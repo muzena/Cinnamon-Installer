@@ -25,7 +25,6 @@ __author__ = "Lester Carballo <lestcape@gmail.com>"
 #Original version from: __author__ = "Sebastian Heinlein <devel@glatzor.de>"
 
 import logging
-import apport
 
 # uncomment to use GTK 2.0
 #import gi
@@ -47,7 +46,7 @@ __all__ = ("AptConfigFileConflictDialog", "AptCancelButton",
            "AptTerminal"
            )
 
-import difflib, gettext, os, pty, re
+import difflib, gettext, os, pty, re, subprocess, glob
 
 import apt_pkg, apt
 from gi.repository import GLib
@@ -67,7 +66,87 @@ _ = lambda msg: gettext.dgettext("aptdaemon", msg)
  COLUMN_PACKAGE) = list(range(2))
 
 def findPackageByPath(path):
-    return apport.fileutils.find_file_package(path)
+    '''Return the package that ships the given file.
+
+    Return None if no package ships it.
+    '''
+    # resolve symlinks in directories
+    (dir, name) = os.path.split(path)
+    resolved_dir = os.path.realpath(dir)
+    if os.path.isdir(resolved_dir):
+        file = os.path.join(resolved_dir, name)
+
+    if not likely_packaged(path):
+        return None
+
+    return get_file_package(path)
+
+def likely_packaged(file):
+    '''Check whether the given file is likely to belong to a package.'''
+    pkg_whitelist = ['/bin/', '/boot', '/etc/', '/initrd', '/lib', '/sbin/',
+                     '/opt', '/usr/', '/var']  # packages only ship executables in these directories
+
+    whitelist_match = False
+    for i in pkg_whitelist:
+        if file.startswith(i):
+            whitelist_match = True
+            break
+    return whitelist_match and not file.startswith('/usr/local/') and not \
+        file.startswith('/var/lib/')
+
+def get_file_package(file):
+    '''Return the package a file belongs to.
+
+    Return None if the file is not shipped by any package.
+    '''
+    # check if the file is a diversion
+    dpkg = subprocess.Popen(['/usr/sbin/dpkg-divert', '--list', file],
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    out = dpkg.communicate()[0].decode('UTF-8')
+    if dpkg.returncode == 0 and out:
+        pkg = out.split()[-1]
+        if pkg != 'hardening-wrapper':
+            return pkg
+
+    fname = os.path.splitext(os.path.basename(file))[0].lower()
+
+    all_lists = []
+    likely_lists = []
+    for f in glob.glob('/var/lib/dpkg/info/*.list'):
+        p = os.path.splitext(os.path.basename(f))[0].lower().split(':')[0]
+        if p in fname or fname in p:
+            likely_lists.append(f)
+        else:
+            all_lists.append(f)
+
+    # first check the likely packages
+    match = __fgrep_files(file, likely_lists)
+    if not match:
+        match = __fgrep_files(file, all_lists)
+
+    if match:
+        return os.path.splitext(os.path.basename(match))[0].split(':')[0]
+
+    return None
+
+def __fgrep_files(pattern, file_list):
+    '''Call fgrep for a pattern on given file list and return the first
+    matching file, or None if no file matches.'''
+
+    match = None
+    slice_size = 100
+    i = 0
+
+    while not match and i < len(file_list):
+        p = subprocess.Popen(['fgrep', '-lxm', '1', '--', pattern] +
+                             file_list[i:(i + slice_size)], stdin=subprocess.PIPE,
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out = p.communicate()[0].decode('UTF-8')
+        if p.returncode == 0:
+            match = out
+        i += slice_size
+
+    return match
 
 def searchUnistalledPackages(pattern):
      cache = apt.Cache(apt.progress.base.OpProgress())

@@ -1,4 +1,4 @@
-Cinnamon-Installer 0.1-Beta
+Cinnamon-Installer 0.2-Beta
 ==================
 
 Last version release date: 24 March 2014
@@ -37,6 +37,9 @@ This application come inside with another application caller Updater to allow up
 
 Change log
 --------------
+0.2-Beta
+   - Removed the import of apport, now run native on Linux Mint(Cinnamon).
+
 0.1-Beta
    - Initial Release
 
