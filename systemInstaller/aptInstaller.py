@@ -24,7 +24,15 @@ Provides a graphical demo application for aptdaemon
 __author__ = "Lester Carballo <lestcape@gmail.com>" 
 #Original version from: __author__ = "Sebastian Heinlein <devel@glatzor.de>"
 
-import logging
+import aptdaemon.client
+import aptdaemon.errors
+from aptdaemon.enums import *
+
+import apt_pkg, apt
+
+import logging, difflib, gettext, os, pty, re, subprocess, glob
+from defer import inline_callbacks
+from defer.utils import deferable
 
 # uncomment to use GTK 2.0
 #import gi
@@ -33,9 +41,10 @@ import logging
 
 from gi.repository import GObject
 from gi.repository import Gtk
-
-import aptdaemon.client
-from aptdaemon.enums import *
+from gi.repository import GLib
+from gi.repository import Gdk
+from gi.repository import Pango
+from gi.repository import Vte
 
 __all__ = ("AptConfigFileConflictDialog", "AptCancelButton",
            "AptConfirmDialog",
@@ -45,20 +54,6 @@ __all__ = ("AptConfigFileConflictDialog", "AptCancelButton",
            "AptErrorDialog", "AptProgressBar", "DiffView",
            "AptTerminal"
            )
-
-import difflib, gettext, os, pty, re, subprocess, glob
-
-import apt_pkg, apt
-from gi.repository import GLib
-from gi.repository import Gdk
-from gi.repository import Pango
-from gi.repository import Vte
-
-from defer import inline_callbacks
-from defer.utils import deferable
-
-import aptdaemon.errors
-
 
 _ = lambda msg: gettext.dgettext("aptdaemon", msg)
 
@@ -70,16 +65,18 @@ def findPackageByPath(path):
 
     Return None if no package ships it.
     '''
-    # resolve symlinks in directories
-    (dir, name) = os.path.split(path)
-    resolved_dir = os.path.realpath(dir)
-    if os.path.isdir(resolved_dir):
-        file = os.path.join(resolved_dir, name)
+    if path is not None:
+        # resolve symlinks in directories
+        (dir, name) = os.path.split(path)
+        resolved_dir = os.path.realpath(dir)
+        if os.path.isdir(resolved_dir):
+            file = os.path.join(resolved_dir, name)
 
-    if not likely_packaged(path):
-        return None
+        if not likely_packaged(path):
+            return None
 
-    return get_file_package(path)
+        return get_file_package(path)
+    return None
 
 def likely_packaged(file):
     '''Check whether the given file is likely to belong to a package.'''
@@ -161,9 +158,13 @@ def searchUnistalledPackages(pattern):
 def packageExistArch(pkgName, cache):
     lenght = len(pkgName)
     if pkgName[lenght-5:lenght] == ":i386":
-        if cache[pkgName[0:lenght-5]].is_installed:
-            #print "Installed: " + pkgName
-            return True
+        try:
+            pkg = cache[pkgName[0:lenght-5]]
+            if pkg.is_installed:
+                #print "Installed: " + pkgName
+                return True
+        except Exception:
+            return False
     return False
 
 

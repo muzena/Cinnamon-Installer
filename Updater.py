@@ -1,10 +1,13 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
-import urllib2, sys, os, shutil, tarfile, argparse, stat
+import sys, os, shutil, tarfile, argparse, stat
 from threading import Thread
 from gi.repository import Gtk, Gdk, GObject, GLib, Pango
 
+import urllib2
+#from urllib import request #python3
+# r+b python3 apend chuck
 '''Important Constants'''
 PROGRAM_NAME = "Cinnamon-Installer"
 SELF_NAME = "Updater"
@@ -19,12 +22,17 @@ ABS_PATH = os.path.abspath(__file__)
 DIR_PATH = os.path.dirname(ABS_PATH) + "/"
 INSTALL_DIR = os.path.expanduser("~") + "/.local/share/" + PROGRAM_NAME + "/"
 
+#Needed to support different Python versions
+def printOut(text):
+    print text
+    #print(text) #python3
+
 class MainApp():
     """Graphical updater for update Cinnamon Installer directly from github"""
 
     def __init__(self, currentVersion, fileD):
         self.currentVersion = currentVersion
-        print "Current version: " + self.currentVersion
+        printOut("Current version: " + self.currentVersion)
         self._fileD = fileD
         self.interface = Gtk.Builder()
         self.interface.set_translation_domain(PROGRAM_NAME)
@@ -35,7 +43,7 @@ class MainApp():
         self.progressBar = self.interface.get_object('progressBar')
         self._mainWindow.connect("destroy", self.closeWindows)
         self.loop = GObject.MainLoop()
-        self.newVersion = None
+        self.newVersion = 0.0
 
     def show(self):
         self._mainWindow.show_all()
@@ -45,25 +53,50 @@ class MainApp():
     def tryUpdaterGUI(self):
         # question dialog
         self._statusLabel.set_text("Starting")
-        question_title = "Do you like to install Cinnamon Installer?"
-        if float(self.currentVersion) > 0.0:
-            question_title = "Do you like to update Cinnamon Installer?"
-        question_description = "This is a requiere tools for install package on " + \
+        if float(self.currentVersion) == 0.0:
+            question_title = "Do you like to install <i>Cinnamon Installer</i>?"
+            question_description = "This is a requiere tools for install package on " + \
                                "<i>Configurable Menu</i>. \n" + \
                                "Note that your linux distribution can not be supported.\n" + \
                                "If you wish to contribute, please visit: " + \
                                "<a href='" + WEB_SITE_URL + "'>" + \
                                "Cinnamon Installer</a>."
-        response = self._question_dialog(question_title, question_description)
-        if response == Gtk.ResponseType.YES:
-           result = []
-           self.show()
-           print "running GUI"
-           thread = Thread(target = self._checkNewVersionGUI, args=(result,))
-           thread.start()
-           self.loop.run()
-           self._handdledErrors(result)
-        print "stop"
+            response = self._question_dialog(question_title, question_description)
+            if response == Gtk.ResponseType.YES:
+                self.forceUpdaterGUI()
+        else:
+            result = []
+            self.show()
+            printOut("running GUI")
+            thread = Thread(target = self._checkNewVersionGUI, args=(result,))
+            thread.start()
+            self.loop.run()
+            self._handdledErrors(result)
+            if self._isUpdateNeeded():
+                self._statusLabel.set_text("Update needed")
+                question_title = "You have the oldest version <i>Cinnamon Installer "+ self.currentVersion +"</i>.\n" + \
+                                 "Do you like to update to the lasted version <i>Cinnamon Installer "+ self.newVersion +"</i>?"
+                question_description = "This is a requiere tools for install package on " + \
+                                       "<i>Configurable Menu</i>. \n" + \
+                                       "Note that your linux distribution can not be supported.\n" + \
+                                       "If you wish to contribute, please visit: " + \
+                                       "<a href='" + WEB_SITE_URL + "'>" + \
+                                       "Cinnamon Installer</a>."
+                response = self._question_dialog(question_title, question_description)
+                if response == Gtk.ResponseType.YES:
+                    self.forceUpdaterGUI()
+            else:
+                self._statusLabel.set_text("Not necessary update")
+                question_title = "You have the latest version of <i>Cinnamon Installer "+ self.currentVersion +"</i>...\n" + \
+                                 "Do you want a reinstallation anyway?"
+                question_description = "Note that your linux distribution can not be supported.\n" + \
+                                       "If you wish to contribute, please visit: " + \
+                                       "<a href='" + WEB_SITE_URL + "'>" + \
+                                       "Cinnamon Installer</a>."
+                response = self._question_dialog(question_title, question_description)
+                if response == Gtk.ResponseType.YES:
+                    self.forceUpdaterGUI()
+        printOut("stop")
 
     def forceUpdaterGUI(self):
         self._statusLabel.set_text("Starting")
@@ -88,17 +121,13 @@ class MainApp():
     def _checkNewVersionGUI(self, outList):
         self._statusLabel.set_text("Checking for a new version")
         try:
-            self._fileD.readFile(VERSION_URL, self.chunk_report, VERSION_FILE)
-            if self._isUpdateNeeded():
-                self._performUpdaterGUI(outList)
-            else:
-                outList.append(-1)
-            
+            self._fileD.readFile(VERSION_URL, self.chunk_report, VERSION_FILE) 
+            outList.append(0)           
         except urllib2.URLError:
             outList.append(1)
         except IOError:
             outList.append(2) 
-            print "Fail to download"
+            printOut("Fail to download")
         self.closeWindows(None) 
 
     def _performUpdaterGUI(self, outList):
@@ -130,7 +159,7 @@ class MainApp():
             shutil.rmtree(INSTALL_DIR, onerror=self._del_rw)
         if os.path.exists(INSTALL_DIR):
             return False
-        print "Old Version Removed"
+        printOut("Old Version Removed")
         if os.path.exists(TEMP + PROGRAM_NAME + "-" + self.newVersion):
             shutil.rmtree(TEMP + PROGRAM_NAME + "-" + self.newVersion, onerror=self._del_rw)
         self.progressBar.set_fraction(0.2)
@@ -138,12 +167,12 @@ class MainApp():
         tar.extractall(TEMP)
         tar.close()
         self.progressBar.set_fraction(0.3)
-        print "Uncompress " + TEMP + PROGRAM_NAME + "-" + self.newVersion
+        printOut("Uncompress " + TEMP + PROGRAM_NAME + "-" + self.newVersion)
         root_src_dir = TEMP + PROGRAM_NAME + "-" + self.newVersion
         root_target_dir = INSTALL_DIR
         for src_dir, dirs, files in os.walk(root_src_dir):
             dst_dir = src_dir.replace(root_src_dir, root_target_dir)
-            print "create:" + dst_dir
+            printOut("create:" + dst_dir)
             if not os.path.exists(dst_dir):
                 os.mkdir(dst_dir)
             for file_ in files:
@@ -158,7 +187,7 @@ class MainApp():
         if os.path.exists(TEMP + PROGRAM_NAME + "-" + self.newVersion):
             shutil.rmtree(TEMP + PROGRAM_NAME + "-" + self.newVersion, onerror=self._del_rw)
         self.progressBar.set_fraction(0.8)
-        print "New Version Installed"
+        printOut("New Version Installed")
         return True
 
     def setPermissionToExecute(self):
@@ -168,15 +197,15 @@ class MainApp():
         stS = os.stat(INSTALL_DIR + SELF_NAME + ".py")
         os.chmod(INSTALL_DIR + PROGRAM_NAME + ".py", stO.st_mode | stat.S_IEXEC)
         os.chmod(INSTALL_DIR + SELF_NAME + ".py", stS.st_mode | stat.S_IEXEC)
-        print "Set Permission to Execute : " + INSTALL_DIR + PROGRAM_NAME
-        print "Set Permission to Execute : " + INSTALL_DIR + SELF_NAME
+        printOut("Set Permission to Execute : " + INSTALL_DIR + PROGRAM_NAME)
+        printOut("Set Permission to Execute : " + INSTALL_DIR + SELF_NAME)
 
     def _del_rw(self):
-        print "Error on dir removed"
+        printOut("Error on dir removed")
 
     def _handdledErrors(self, result):
         if result[0] == 0:
-            print "All finished with good result"
+            printOut("All finished with good result")
         if result[0] == 1:
             self._statusLabel.set_text("Found errors")
             title = "Can not be perform the installation."
@@ -189,13 +218,6 @@ class MainApp():
             message = "Appear that you don't have permission to write files on " + TEMP + "\n"\
                       "Please try later." 
             self._custom_dialog(Gtk.MessageType.ERROR, title, message)
-        elif result[0] == -1:
-            self._statusLabel.set_text("Not necessary update")
-            question_title = "You have the latest version of the product..."
-            question_description = "Do you want a reinstallation anyway?"
-            response = self._question_dialog(question_title, question_description)
-            if response == Gtk.ResponseType.YES:
-                self.forceUpdaterGUI()
 
     def _on_clicked_cancelButton(self, button, transaction):
         self._fileD.cancel()
@@ -205,11 +227,11 @@ class MainApp():
         self.loop.quit()
 
     def refresh(self, force_update = False):
-	while Gtk.events_pending():
-	    Gtk.main_iteration()
-	while Gtk.events_pending():
-	    Gtk.main_iteration()
-	#Refresh(force_update)
+        while Gtk.events_pending():
+            Gtk.main_iteration()
+        while Gtk.events_pending():
+            Gtk.main_iteration()
+        #Refresh(force_update)
 
     def chunk_report(self, bytes_so_far, total_size):
         percent = float(bytes_so_far) / total_size
@@ -232,7 +254,7 @@ class MainApp():
     def _isUpdateNeeded(self):
         self.newVersion = self.readVersionFromFile(TEMP + VERSION_FILE)
         self._fileD.deleteFile(TEMP + VERSION_FILE)
-        print self.newVersion
+        printOut(self.newVersion)
         if float(self.newVersion) > float(self.currentVersion):
             return True
         return False
@@ -306,12 +328,12 @@ class Download():
 
     def initializeRequest(self, response):
         self.total_size = -1
-        if response.info().has_key('Content-Length'):
-            self.total_size = response.info().getheader('Content-Length').strip()
+        if 'Content-Length' in response.info():
+            self.total_size = response.info()['Content-Length'].strip()
         self.total_size = int(self.total_size)
         self.bytes_so_far = 0
         try:
-            if response.info().has_key('Content-Disposition'):
+            if 'Content-Disposition' in response.info():
                 realFileName = response.info()['Content-Disposition'].split('filename=')[1]
                 if realFileName[0] == '"' or realFileName[0] == "'":
                     realFileName = realFileName[1:-1]
@@ -323,7 +345,8 @@ class Download():
 
     def chunk_read(self, response, chunk_size=8192, report_hook=None):
         while self.executeAction:
-           chunk = response.read(chunk_size)
+           chunk = response.read(chunk_size) #python3 .decode("UTF-8")
+           
            self.bytes_so_far += len(chunk)
 
            if not chunk:
@@ -346,14 +369,14 @@ class Download():
     def deleteFile(self, path):
         if os.path.isfile(path):
             os.remove(path)
-            #print "Clean file:" + path
+            #printOut("Clean file:" + path)
 
 class Updater:
     def __init__(self):
         self.currentVersion = self.readVersionFromFile(INSTALL_DIR + VERSION_FILE)
         self.newVersion = 0;
         self._fileD = Download()
-        #print "Current Version: " + self.currentVersion
+        #printOut("Current Version: " + self.currentVersion)
 
     def checkNewVersionGUI(self):
         self.mainW = MainApp(self.currentVersion, self._fileD)
@@ -364,12 +387,12 @@ class Updater:
         try:
             self._fileD.readFile(VERSION_URL, None, VERSION_FILE)
             if self.isUpdateNeeded():
-                print "update"
-                print str(self.newVersion)
+                printOut("update")
+                printOut(str(self.newVersion))
             else:
-                print "ready"
+                printOut("ready")
         except Exception:
-            print "internet"
+            printOut("internet")
             pass
 
     def forceUpdaterGUI(self):
@@ -386,8 +409,9 @@ class Updater:
             shutil.rmtree(INSTALL_DIR, onerror=self._del_rw)
 
     def executeTest(self):
-        os.system(INSTALL_DIR + PROGRAM_NAME + ".py --qtest package")
-        print "Run Test Import"
+        printOut("Run test package")
+        os.system("python2 " + INSTALL_DIR + PROGRAM_NAME + ".py --qtest package")
+  
 
     def isUpdateNeeded(self):
         self.newVersion = self.readVersionFromFile(TEMP + VERSION_FILE)
@@ -408,7 +432,7 @@ class Updater:
         return "0.0"
 
     def _del_rw(self):
-        print "Error on dir removed"
+        printOut("Error on dir removed")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process the updater options.')
