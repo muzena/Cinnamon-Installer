@@ -1,0 +1,114 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Cinnamon Installer 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-01-10 14:06-0600\n"
+"PO-Revision-Date: 2014-03-26 08:18-0600\n"
+"Last-Translator: Lester Carballo Pérez <lestcape@gmail.com>\n"
+"Language-Team: lestcape <lestcape@gmail.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Poedit 1.5.4\n"
+
+#: Cinnamon-Installer.py:10
+msgid "Cinnamon Installer"
+msgstr "Instalador de Canela"
+
+#: Cinnamon-Installer.py:16
+msgid "Cinnamon Uninstaller"
+msgstr "Desinstalador de Canela"
+
+#: Cinnamon-Installer.py:20
+msgid ""
+"<i>Cinnamon Installer %s</i>, can not find any Cinnamon package on your "
+"system."
+msgstr ""
+"<i>Cinnamon Installer %s</i>, no puede encontrar ningun paquete de Cinnamon "
+"en su sistema."
+
+#: Cinnamon-Installer.py:22
+msgid "You are using Cinnamon desktop?"
+msgstr "¿Está utilizando el escritorio de Cinnamon?"
+
+#: Cinnamon-Installer.py:24
+msgid "Some unexpected problem has occurred on <i>Cinnamon Installer %s</i>."
+msgstr ""
+"Algunos problemas inesperados han ocurrido en <i>Cinnamon Installer %s</i>."
+
+#: Cinnamon-Installer.py:26
+msgid ""
+"Appear that your Linux distribution is supported,\n"
+"but some unexpected error has been detected.\n"
+"If you want to contribute to fix the problem,\n"
+"please visit: <a href='%s'>Cinnamon Installer</a>.\n"
+"\n"
+msgstr ""
+"Parece que se admite su distribución de Linux, \n"
+"pero algun error inesperado se ha detectado. \n"
+"Si quieres contribuir a solucionar el problema, \n"
+"por favor visite: <a href='%s'>Cinnamon Installer</a>.\n"
+"\n"
+
+#: Cinnamon-Installer.py:28
+msgid "<i><u>Error Message:</u></i>"
+msgstr "<i><u>Mensajes de Error:</u></i>"
+
+#: Cinnamon-Installer.py:30
+msgid "Appear that <i>Cinnamon Installer %s</i> can run on your OS."
+msgstr "Parece ser que <i>Cinnamon Installer %s</i> puede ejecutarse en su SO."
+
+#: Cinnamon-Installer.py:30
+msgid ""
+"If you detect any problem or you want to contribute,\n"
+"please visit: <a href='%s'>Cinnamon Installer</a>."
+msgstr ""
+"Si detecta algún problema o quieres contribuir,\n"
+"por favor visite: <a href='%s'>Cinnamon Installer</a>."
+
+#: Cinnamon-Installer.py:32
+msgid "Imposible to run <i>Cinnamon Installer %s</i> on your OS."
+msgstr "Imposible ejecutar <i>Cinnamon Installer %s</i> en su SO."
+
+#: Cinnamon-Installer.py:34
+msgid ""
+"Your Linux distribution is unsupported or are missing some packages.\n"
+"If you want to contribute to fix the problem, please visit:\n"
+"<a href='%s'>Cinnamon Installer</a>.\n"
+"\n"
+msgstr ""
+"Su distribución Linux no es compatible o faltan algunos paquetes.\n"
+"Si quieres contribuir a solucionar el problema, por favor visite:\n"
+"<a href='%s'>Cinnamon Installer</a>.\n"
+"\n"
+
+#: Cinnamon-Installer.py:36
+msgid "Process the installer options."
+msgstr "Procesar las opciones del instalador."
+
+#: Cinnamon-Installer.py:38
+msgid "Install package by name"
+msgstr "Instale el paquete por su nombre"
+
+#: Cinnamon-Installer.py:40
+msgid "Uninstall package by name"
+msgstr "Desinstale el paquete por nombre"
+
+#: Cinnamon-Installer.py:42
+msgid "Uninstall program by name"
+msgstr "Desinstale el programa por nombre"
+
+#: Cinnamon-Installer.py:44
+msgid "Query package by name"
+msgstr "Consultar el paquete por nombre"
+
+#: Cinnamon-Installer.py:46
+msgid "Query for (imports / cinnamon)"
+msgstr "Consultar para (imports / cinnamon)"

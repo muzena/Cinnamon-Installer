@@ -161,7 +161,7 @@ def packageExistArch(pkgName, cache):
         try:
             pkg = cache[pkgName[0:lenght-5]]
             if pkg.is_installed:
-                #print "Installed: " + pkgName
+                #print("Installed: " + pkgName)
                 return True
         except Exception:
             return False
@@ -304,13 +304,13 @@ class ControlWindow(object):
             self.mainWindow.resize(terminal_width - exp_width ,
                                terminal_height - exp_height )
         else:
-            print win_height
+            print(win_height)
             self.mainWindow.resize(win_width + 100, win_height)
 
     def _on_status_changed(self, trans, status):
         # Also resize the window if we switch from download details to
         # the terminal window
-        print status
+        print(status)
         #if (status == STATUS_COMMITTING and self.terminal and 
         #        self.terminal.get_visible()):
         #    self._resize_to_show_details()
@@ -554,9 +554,9 @@ class ControlWindow(object):
         except aptdaemon.errors.NotAuthorizedError:
             # Silently ignore auth failures
             return
-        except aptdaemon.errors.TransactionFailed, error:
+        except aptdaemon.errors.TransactionFailed as error:
             pass
-        except Exception, error:
+        except Exception as error:
             error = aptdaemon.errors.TransactionFailed(ERROR_UNKNOWN,
                                                        str(error))
         dia = AptErrorDialog(error, self.mainWindow)

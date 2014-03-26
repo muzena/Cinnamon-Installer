@@ -5,9 +5,8 @@ import sys, os, shutil, tarfile, argparse, stat
 from threading import Thread
 from gi.repository import Gtk, Gdk, GObject, GLib, Pango
 
-import urllib2
-#from urllib import request #python3
-# r+b python3 apend chuck
+import urllib.request
+
 '''Important Constants'''
 PROGRAM_NAME = "Cinnamon-Installer"
 SELF_NAME = "Updater"
@@ -22,17 +21,13 @@ ABS_PATH = os.path.abspath(__file__)
 DIR_PATH = os.path.dirname(ABS_PATH) + "/"
 INSTALL_DIR = os.path.expanduser("~") + "/.local/share/" + PROGRAM_NAME + "/"
 
-#Needed to support different Python versions
-def printOut(text):
-    print text
-    #print(text) #python3
 
 class MainApp():
     """Graphical updater for update Cinnamon Installer directly from github"""
 
     def __init__(self, currentVersion, fileD):
         self.currentVersion = currentVersion
-        printOut("Current version: " + self.currentVersion)
+        print("Current version: " + self.currentVersion)
         self._fileD = fileD
         self.interface = Gtk.Builder()
         self.interface.set_translation_domain(PROGRAM_NAME)
@@ -67,7 +62,7 @@ class MainApp():
         else:
             result = []
             self.show()
-            printOut("running GUI")
+            print("running GUI")
             thread = Thread(target = self._checkNewVersionGUI, args=(result,))
             thread.start()
             self.loop.run()
@@ -96,7 +91,7 @@ class MainApp():
                 response = self._question_dialog(question_title, question_description)
                 if response == Gtk.ResponseType.YES:
                     self.forceUpdaterGUI()
-        printOut("stop")
+        print("Stop")
 
     def forceUpdaterGUI(self):
         self._statusLabel.set_text("Starting")
@@ -123,11 +118,11 @@ class MainApp():
         try:
             self._fileD.readFile(VERSION_URL, self.chunk_report, VERSION_FILE) 
             outList.append(0)           
-        except urllib2.URLError:
+        except urllib.error.URLError:
             outList.append(1)
         except IOError:
             outList.append(2) 
-            printOut("Fail to download")
+            print("Fail to download")
         self.closeWindows(None) 
 
     def _performUpdaterGUI(self, outList):
@@ -138,7 +133,7 @@ class MainApp():
            self.installNewVersion()
            self.setPermissionToExecute()
            outList.append(0)
-       except urllib2.URLError:
+       except urllib.error.URLError:
            outList.append(1)
        except IOError:
            outList.append(2)
@@ -159,7 +154,7 @@ class MainApp():
             shutil.rmtree(INSTALL_DIR, onerror=self._del_rw)
         if os.path.exists(INSTALL_DIR):
             return False
-        printOut("Old Version Removed")
+        print("Old version removed")
         if os.path.exists(TEMP + PROGRAM_NAME + "-" + self.newVersion):
             shutil.rmtree(TEMP + PROGRAM_NAME + "-" + self.newVersion, onerror=self._del_rw)
         self.progressBar.set_fraction(0.2)
@@ -167,12 +162,12 @@ class MainApp():
         tar.extractall(TEMP)
         tar.close()
         self.progressBar.set_fraction(0.3)
-        printOut("Uncompress " + TEMP + PROGRAM_NAME + "-" + self.newVersion)
+        print("Uncompress " + TEMP + PROGRAM_NAME + "-" + self.newVersion)
         root_src_dir = TEMP + PROGRAM_NAME + "-" + self.newVersion
         root_target_dir = INSTALL_DIR
         for src_dir, dirs, files in os.walk(root_src_dir):
             dst_dir = src_dir.replace(root_src_dir, root_target_dir)
-            printOut("create:" + dst_dir)
+            print("Create: " + dst_dir)
             if not os.path.exists(dst_dir):
                 os.mkdir(dst_dir)
             for file_ in files:
@@ -187,7 +182,7 @@ class MainApp():
         if os.path.exists(TEMP + PROGRAM_NAME + "-" + self.newVersion):
             shutil.rmtree(TEMP + PROGRAM_NAME + "-" + self.newVersion, onerror=self._del_rw)
         self.progressBar.set_fraction(0.8)
-        printOut("New Version Installed")
+        print("New version installed")
         return True
 
     def setPermissionToExecute(self):
@@ -197,15 +192,15 @@ class MainApp():
         stS = os.stat(INSTALL_DIR + SELF_NAME + ".py")
         os.chmod(INSTALL_DIR + PROGRAM_NAME + ".py", stO.st_mode | stat.S_IEXEC)
         os.chmod(INSTALL_DIR + SELF_NAME + ".py", stS.st_mode | stat.S_IEXEC)
-        printOut("Set Permission to Execute : " + INSTALL_DIR + PROGRAM_NAME)
-        printOut("Set Permission to Execute : " + INSTALL_DIR + SELF_NAME)
+        print("Set permission to execute : " + INSTALL_DIR + PROGRAM_NAME)
+        print("Set permission to execute : " + INSTALL_DIR + SELF_NAME)
 
     def _del_rw(self):
-        printOut("Error on dir removed")
+        print("Error on dir removed")
 
     def _handdledErrors(self, result):
         if result[0] == 0:
-            printOut("All finished with good result")
+            print("All finished with good result")
         if result[0] == 1:
             self._statusLabel.set_text("Found errors")
             title = "Can not be perform the installation."
@@ -254,7 +249,7 @@ class MainApp():
     def _isUpdateNeeded(self):
         self.newVersion = self.readVersionFromFile(TEMP + VERSION_FILE)
         self._fileD.deleteFile(TEMP + VERSION_FILE)
-        printOut(self.newVersion)
+        print("New version: " + self.newVersion)
         if float(self.newVersion) > float(self.currentVersion):
             return True
         return False
@@ -303,12 +298,15 @@ class Download():
         self.total_size = -1
 
     def readFile(self, url, report=None, defaultFileName=""):
-        self.fileName = defaultFileName
-        response = urllib2.urlopen(url);
-        #if report is None:
-        #    report = self.chunk_report
-        self.initializeRequest(response)
-        return self.chunk_read(response, report_hook=report) is not None
+        try:
+            self.fileName = defaultFileName
+            response = urllib.request.urlopen(url);
+            #if report is None:
+            #    report = self.chunk_report
+            self.initializeRequest(response)
+            self.chunk_read(response, report_hook=report) is not None
+        except Exception as err:
+            print(err)
 
     def chunk_report(self, bytes_so_far, total_size):
         percent = float(bytes_so_far) / total_size
@@ -345,12 +343,13 @@ class Download():
 
     def chunk_read(self, response, chunk_size=8192, report_hook=None):
         while self.executeAction:
-           chunk = response.read(chunk_size) #python3 .decode("UTF-8")
-           
-           self.bytes_so_far += len(chunk)
+
+           chunk = response.read(chunk_size)
 
            if not chunk:
               break
+
+           self.bytes_so_far += len(chunk)
 
            self.saveData(chunk)
 
@@ -361,22 +360,24 @@ class Download():
 
     def saveData(self, data):
         if (len(data) > 0):
-            f = open(TEMP + self.fileName, "a")
-            for x in data:
-                f.write(x)
+            f = open(TEMP + self.fileName, "ab")
+            f.write(data)
             f.close()
 
     def deleteFile(self, path):
-        if os.path.isfile(path):
-            os.remove(path)
-            #printOut("Clean file:" + path)
+        try:
+            if os.path.isfile(path):
+                os.remove(path)
+                #print("Clean file:" + path)
+        except Exception:
+            pass
 
 class Updater:
     def __init__(self):
         self.currentVersion = self.readVersionFromFile(INSTALL_DIR + VERSION_FILE)
         self.newVersion = 0;
         self._fileD = Download()
-        #printOut("Current Version: " + self.currentVersion)
+        #print("Current version: " + self.currentVersion)
 
     def checkNewVersionGUI(self):
         self.mainW = MainApp(self.currentVersion, self._fileD)
@@ -387,12 +388,12 @@ class Updater:
         try:
             self._fileD.readFile(VERSION_URL, None, VERSION_FILE)
             if self.isUpdateNeeded():
-                printOut("update")
-                printOut(str(self.newVersion))
+                print("update")
+                print("New version:" + str(self.newVersion))
             else:
-                printOut("ready")
+                print("ready")
         except Exception:
-            printOut("internet")
+            print("internet")
             pass
 
     def forceUpdaterGUI(self):
@@ -409,8 +410,8 @@ class Updater:
             shutil.rmtree(INSTALL_DIR, onerror=self._del_rw)
 
     def executeTest(self):
-        printOut("Run test package")
-        os.system("python2 " + INSTALL_DIR + PROGRAM_NAME + ".py --qtest package")
+        print("Run test package")
+        os.system("python3 " + INSTALL_DIR + PROGRAM_NAME + ".py --qtest package")
   
 
     def isUpdateNeeded(self):
@@ -432,7 +433,7 @@ class Updater:
         return "0.0"
 
     def _del_rw(self):
-        printOut("Error on dir removed")
+        print("Error on dir removed")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Process the updater options.')

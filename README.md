@@ -1,7 +1,7 @@
-Cinnamon-Installer 0.3-Beta
+Cinnamon-Installer 0.4-Beta
 ==================
 
-Last version release date: 25 March 2014
+Last version release date: 26 March 2014
 
 Author: [Lester Carballo Pérez](https://github.com/lestcape)
 
@@ -37,11 +37,14 @@ This application come inside with another application caller Updater to allow up
 
 Change log
 --------------
+0.4-Beta
+   - Added translation support.
+   - Execution forced to python 3(Cinnamon compatibility).
+
 0.3-Beta
    - Now can report the error to users.
    - Now can display the version.
    - Fixed problem of package no exist.
-   - Execution forced to python 2(Support Manjaro).
 
 0.2-Beta
    - Removed the import of apport, now run native on Linux Mint(Cinnamon).

@@ -19,7 +19,7 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 #  USA
 
-import os, argparse, sys, gettext
+import os, argparse, sys, gettext, locale
 from gi.repository import Gtk, Gdk, GObject, GLib
 
 MODULES = 'systemInstaller'
@@ -27,14 +27,21 @@ ABS_PATH = os.path.abspath(__file__)
 DIR_PATH = os.path.dirname(ABS_PATH) + "/"
 sys.path.append(DIR_PATH + MODULES)
 
-_ = lambda msg: gettext.dgettext("aptdaemon", msg)
+LOCALE_PATH = DIR_PATH + 'locale'
+DOMAIN = 'cinnamon-installer'
+locale.bindtextdomain(DOMAIN , LOCALE_PATH)
+locale.bind_textdomain_codeset(DOMAIN , 'UTF-8')
+gettext.bindtextdomain(DOMAIN, LOCALE_PATH)
+gettext.bind_textdomain_codeset(DOMAIN , 'UTF-8')
+gettext.textdomain(DOMAIN)
+_ = gettext.gettext
 
 WEB_SITE_URL = "https://github.com/lestcape/Cinnamon-Installer"
 
 importerError = []
 try:
     import aptInstaller as Installer
-except ImportError,e:
+except ImportError as e:
     importerError.append(e)
 
 class MainApp():
@@ -62,11 +69,11 @@ class MainApp():
         Gtk.main_quit()
 
     def refresh(self, force_update = False):
-	while Gtk.events_pending():
-	    Gtk.main_iteration()
-	while Gtk.events_pending():
-	    Gtk.main_iteration()
-	#Refresh(force_update)
+        while Gtk.events_pending():
+            Gtk.main_iteration()
+        while Gtk.events_pending():
+            Gtk.main_iteration()
+        #Refresh(force_update)
 
 def readVersionFromFile():
     try:
@@ -94,9 +101,9 @@ def startGUI(install, packageName):
 
 def findPackageForProgram(program):
     path = GLib.find_program_in_path(program);
-    print path
+    print(path)
     packageName = Installer.findPackageByPath(path);
-    print packageName
+    print(packageName)
     return packageName
 
 def printPackageByName(packageName):
@@ -104,8 +111,8 @@ def printPackageByName(packageName):
     try:
        listPackage = Installer.searchUnistalledPackages(packageName)
        for p in listPackage:
-          print p.name
-    except Exception,e:
+          print(p.name)
+    except Exception as e:
        return str(e)
     if len(listPackage) == 0:
        return packageName
@@ -130,49 +137,47 @@ def validateImport(arg):
         if arg == "cinnamon":
             result = printPackageByName(arg)
             if result == arg:
-                print "error"
-                title = "<i>Cinnamon Installer "+ ver +"</i>, can not find any Cinnamon package on your system."
-                message = "You are using Cinnamon desktop?"
+                print("error")
+                title = _("<i>Cinnamon Installer %s</i>, can not find any Cinnamon package on your system.") % ver
+                message = _("You are using Cinnamon desktop?")
                 _custom_dialog(Gtk.MessageType.INFO, title, message)
             elif result != "run":
-                print "error"
-                title = "Some unexpected problem has occurred on <i>Cinnamon Installer "+ ver +"</i>."
-                message = "Appear that your Linux distribution is supported,\n" +\
+                print("error")
+                title = _("Some unexpected problem has occurred on <i>Cinnamon Installer %s</i>.") % ver
+                message = _("Appear that your Linux distribution is supported,\n" +\
                           "but some unexpected error has been detected.\n" + \
                           "If you want to contribute to fix the problem,\n" + \
-                          "please visit: <a href='" + WEB_SITE_URL + "'>" + \
-                          "Cinnamon Installer</a>.\n\n"
+                          "please visit: <a href='%s'>Cinnamon Installer</a>.\n\n") % WEB_SITE_URL
 
-                message += "<i><u>Error Message:</u></i>\n" 
-                message += result 
+                message += _("<i><u>Error Message:</u></i>")
+                message += "\n" + result 
                 _custom_dialog(Gtk.MessageType.ERROR, title, message)
-        print "run"
-        title = "Appear that <i>Cinnamon Installer "+ ver +"</i> can run on your OS."
-        message = "If you detect any problem or you want to contribute,\n" + \
-                  "please visit: <a href='" + WEB_SITE_URL + "'>" + \
-                  "Cinnamon Installer</a>."
+        print("run")
+        title = _("Appear that <i>Cinnamon Installer %s</i> can run on your OS.") % ver
+        message = _("If you detect any problem or you want to contribute,\n" + \
+                  "please visit: <a href='%s'>Cinnamon Installer</a>.") % WEB_SITE_URL
         _custom_dialog(Gtk.MessageType.INFO, title, message)
     else:
-        print "error"
-        title = "Imposible to run <i>Cinnamon Installer "+ ver +"</i> on your OS."
-        message = "Your Linux distribution is unsupported or are missing some packages.\n" + \
+        print("error")
+        title = _("Imposible to run <i>Cinnamon Installer %s</i> on your OS.") % ver
+        message = _("Your Linux distribution is unsupported or are missing some packages.\n" + \
                   "If you want to contribute to fix the problem, please visit:\n" + \
-                  "<a href='" + WEB_SITE_URL + "'>Cinnamon Installer</a>.\n\n"
+                  "<a href='%s'>Cinnamon Installer</a>.\n\n") % WEB_SITE_URL
 
-        message += "<i><u>Error Message:</u></i>" 
+        message += _("<i><u>Error Message:</u></i>")
         for error in importerError:
             message += "\n" + str(error)
  
         _custom_dialog(Gtk.MessageType.ERROR, title, message)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Process the installer options.')
+    parser = argparse.ArgumentParser(description=_("Process the installer options."))
     group_action = parser.add_mutually_exclusive_group(required=True)
-    group_action.add_argument('--ipackage', nargs='?', action='store', type=str, help='Install package by name')
-    group_action.add_argument('--upackage', nargs='?', action='store', type=str, help='Uninstall package by name')
-    group_action.add_argument('--uprogram', nargs='?', action='store', type=str, help='Uninstall program by name')
-    group_action.add_argument('--qpackage', nargs='?', action='store', type=str, help='Query package by name')
-    group_action.add_argument('--qtest', nargs='?', action='store', type=str, help='Query for (imports / cinnamon)')
+    group_action.add_argument('--ipackage', nargs='?', action='store', type=str, help=_("Install package by name"))
+    group_action.add_argument('--upackage', nargs='?', action='store', type=str, help=_("Uninstall package by name"))
+    group_action.add_argument('--uprogram', nargs='?', action='store', type=str, help=_("Uninstall program by name"))
+    group_action.add_argument('--qpackage', nargs='?', action='store', type=str, help=_("Query package by name"))
+    group_action.add_argument('--qtest', nargs='?', action='store', type=str, help=_("Query for (imports / cinnamon)"))
     args = parser.parse_args()
     if(args.qtest):
        validateImport(args.qtest)
