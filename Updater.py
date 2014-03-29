@@ -52,7 +52,7 @@ class MainApp():
             question_title = "Do you like to install <i>Cinnamon Installer</i>?"
             question_description = "This is a requiere tools for install package on " + \
                                "<i>Configurable Menu</i>. \n" + \
-                               "Note that your linux distribution can not be supported.\n" + \
+                               "Note that your linux distribution might not be supported.\n" + \
                                "If you wish to contribute, please visit: " + \
                                "<a href='" + WEB_SITE_URL + "'>" + \
                                "Cinnamon Installer</a>."
@@ -73,7 +73,7 @@ class MainApp():
                                  "Do you like to update to the lasted version <i>Cinnamon Installer "+ self.newVersion +"</i>?"
                 question_description = "This is a requiere tools for install package on " + \
                                        "<i>Configurable Menu</i>. \n" + \
-                                       "Note that your linux distribution can not be supported.\n" + \
+                                       "Note that your linux distribution might not be supported.\n" + \
                                        "If you wish to contribute, please visit: " + \
                                        "<a href='" + WEB_SITE_URL + "'>" + \
                                        "Cinnamon Installer</a>."
@@ -84,7 +84,7 @@ class MainApp():
                 self._statusLabel.set_text("Not necessary update")
                 question_title = "You have the latest version of <i>Cinnamon Installer "+ self.currentVersion +"</i>...\n" + \
                                  "Do you want a reinstallation anyway?"
-                question_description = "Note that your linux distribution can not be supported.\n" + \
+                question_description = "Note that your linux distribution might not be supported.\n" + \
                                        "If you wish to contribute, please visit: " + \
                                        "<a href='" + WEB_SITE_URL + "'>" + \
                                        "Cinnamon Installer</a>."

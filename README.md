@@ -37,6 +37,10 @@ This application come inside with another application caller Updater to allow up
 
 Change log
 --------------
+0.5-Beta
+   - Improve the search to allow space.
+   - Fixed the bug of unistall package on ubuntu 14.04.
+
 0.4-Beta
    - Added translation support.
    - Execution forced to python 3(Cinnamon compatibility).

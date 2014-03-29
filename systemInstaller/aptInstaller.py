@@ -97,13 +97,17 @@ def get_file_package(file):
     Return None if the file is not shipped by any package.
     '''
     # check if the file is a diversion
-    dpkg = subprocess.Popen(['/usr/sbin/dpkg-divert', '--list', file],
-                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    out = dpkg.communicate()[0].decode('UTF-8')
-    if dpkg.returncode == 0 and out:
-        pkg = out.split()[-1]
-        if pkg != 'hardening-wrapper':
-            return pkg
+    divert = '/usr/bin/dpkg-divert'
+    if(not GLib.file_test(divert, GLib.FileTest.EXISTS)):
+        divert = '/usr/sbin/dpkg-divert'
+    if(GLib.file_test(divert, GLib.FileTest.EXISTS)):
+        dpkg = subprocess.Popen([divert, '--list', file],
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        out = dpkg.communicate()[0].decode('UTF-8')
+        if dpkg.returncode == 0 and out:
+            pkg = out.split()[-1]
+            if pkg != 'hardening-wrapper':
+                return pkg
 
     fname = os.path.splitext(os.path.basename(file))[0].lower()
 
@@ -147,13 +151,21 @@ def __fgrep_files(pattern, file_list):
 
 def searchUnistalledPackages(pattern):
      cache = apt.Cache(apt.progress.base.OpProgress())
+     matchWordsPattern = pattern.split(",")
      unInstalledPackages = []
      for pkgName in cache.keys():
         pkg = cache[pkgName]
-        if((not pkg.is_installed) and (pattern in pkg.name) and
+        if((not pkg.is_installed) and (isMatching(matchWordsPattern, pkg.name)) and
             (not packageExistArch(pkgName, cache))):
             unInstalledPackages.append(pkg)
      return unInstalledPackages
+
+def isMatching(matchWordsPattern, packageName):
+    for word in matchWordsPattern:
+       if(not (word in packageName)):
+           return False
+    return True
+          
 
 def packageExistArch(pkgName, cache):
     lenght = len(pkgName)
