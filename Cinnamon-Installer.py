@@ -1,6 +1,7 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
+#! /usr/bin/python3
+# -*- coding: utf-8 -*-
 #
+# Cinnamon Installer
 #
 # Authors: Lester Carballo Pérez <lestcape@gmail.com>
 #
@@ -19,14 +20,20 @@
 #  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
 #  USA
 
-import os, argparse, sys, gettext, locale
+__author__ = "Lester Carballo <lestcape@gmail.com>" 
+
+import os, argparse, sys
 from gi.repository import Gtk, Gdk, GObject, GLib
+GObject.threads_init()
 
 MODULES = 'systemInstaller'
 ABS_PATH = os.path.abspath(__file__)
 DIR_PATH = os.path.dirname(ABS_PATH) + "/"
 sys.path.append(DIR_PATH + MODULES)
 
+Gtk.IconTheme.get_default().append_search_path(DIR_PATH + "gui/img")
+
+import gettext, locale
 LOCALE_PATH = DIR_PATH + 'locale'
 DOMAIN = 'cinnamon-installer'
 locale.bindtextdomain(DOMAIN , LOCALE_PATH)
@@ -43,6 +50,12 @@ try:
     import aptInstaller as Installer
 except ImportError as e:
     importerError.append(e)
+    try:
+        import pacInstaller as Installer
+        importerError = []
+    except ImportError as e:
+        print("error " + str(e))
+        importerError.append(e)
 
 class MainApp():
     """Graphical progress for installation/fetch/operations.
@@ -57,12 +70,41 @@ class MainApp():
         self.interface.add_from_file(DIR_PATH + 'gui/main.ui')
         self._mainWindow = self.interface.get_object('Installer')
         self._appNameLabel = self.interface.get_object('appNameLabel')
+        self._cancelButton = self.interface.get_object('cancelButton')
+        self._closeButton = self.interface.get_object('closeButton')
+        self._terminalExpander = self.interface.get_object('terminalExpander')
+        self._terminalTextView = self.interface.get_object('terminalTextView')
+        self._terminalScrolled = self.interface.get_object('terminalScrolledWindow')
+        self._terminalBox = self.interface.get_object('terminalBox')
+
+        self._progressBar = self.interface.get_object('progressBar')
+        self._roleLabel = self.interface.get_object('roleLabel')
+        self._statusLabel = self.interface.get_object('statusLabel')
+        self._actionImage = self.interface.get_object('actionImage')
+        self._sumTopLabel = self.interface.get_object('sum_top_label')
+        self._sumBottomLabel = self.interface.get_object('sum_bottom_label')
+
+        self._errorDialog = self.interface.get_object('ErrorDialog')
+        self._confDialog = self.interface.get_object('ConfDialog')
+        self._warningDialog = self.interface.get_object('WarningDialog')
+        self._chooseDialog = self.interface.get_object('ChooseDialog')
+        self._preferencesWindow = self.interface.get_object('PreferencesWindow')
+
+        self._transactionSum = self.interface.get_object('transaction_sum')
+
+        self._chooseLabel = self.interface.get_object('choose_label')
+        self._chooseList = self.interface.get_object('choose_list')
+        self._chooseRendererToggle = self.interface.get_object('choose_renderertoggle')
+        self._enableAURButton = self.interface.get_object('EnableAURButton')
+        self._removeUnrequiredDepsButton = self.interface.get_object('RemoveUnrequiredDepsButton')
+        self._refreshPeriodSpinButton = self.interface.get_object('RefreshPeriodSpinButton')
+        #RefreshPeriodLabel = interface.get_object('RefreshPeriodLabel')
         #self._mainWindow.connect("delete-event", self.closeWindows)
 
     def show(self):
         self._mainWindow.show()
         self._mainWindow.get_window().set_cursor(Gdk.Cursor(Gdk.CursorType.WATCH))
-        self.refresh()
+        #self.refresh()
         Gtk.main()
 
     def closeWindows(self, windows, event):
@@ -134,7 +176,7 @@ def _custom_dialog(dialog_type, title, message):
 def validateImport(arg):
     ver = readVersionFromFile()
     if len(importerError) == 0:
-        if arg == "cinnamon":
+        if (arg == "cinnamon")or(arg == "install"):
             result = printPackageByName(arg)
             if result == arg:
                 print("error")
@@ -152,11 +194,22 @@ def validateImport(arg):
                 message += _("<i><u>Error Message:</u></i>")
                 message += "\n" + result 
                 _custom_dialog(Gtk.MessageType.ERROR, title, message)
-        print("run")
-        title = _("Appear that <i>Cinnamon Installer %s</i> can run on your OS.") % ver
-        message = _("If you detect any problem or you want to contribute,\n" + \
-                  "please visit: <a href='%s'>Cinnamon Installer</a>.") % WEB_SITE_URL
-        _custom_dialog(Gtk.MessageType.INFO, title, message)
+        if (arg == "install")and(Installer.configure()):
+            print("run")
+            title = _("Appear that <i>Cinnamon Installer %s</i> can run on your OS.") % ver
+            message = _("If you detect any problem or you want to contribute,\n" + \
+                      "please visit: <a href='%s'>Cinnamon Installer</a>.") % WEB_SITE_URL
+            _custom_dialog(Gtk.MessageType.INFO, title, message)
+        else:
+            print("error")
+            title = _("You need to install <i>Cinnamon Installer %s</i> for the first used.") % ver
+            message = _("Appear that your Linux distribution is supported.\n" +\
+                      "If you detect any problem or you want to contribute,\n" + \
+                      "please visit: <a href='%s'>Cinnamon Installer</a>.") % WEB_SITE_URL
+
+            message += _("<i><u>Error Message:</u></i>")
+            message += "\n" + result 
+            _custom_dialog(Gtk.MessageType.ERROR, title, message)
     else:
         print("error")
         title = _("Imposible to run <i>Cinnamon Installer %s</i> on your OS.") % ver
@@ -177,16 +230,16 @@ if __name__ == "__main__":
     group_action.add_argument('--upackage', nargs='?', action='store', type=str, help=_("Uninstall package by name"))
     group_action.add_argument('--uprogram', nargs='?', action='store', type=str, help=_("Uninstall program by name"))
     group_action.add_argument('--qpackage', nargs='?', action='store', type=str, help=_("Query package by name"))
-    group_action.add_argument('--qtest', nargs='?', action='store', type=str, help=_("Query for (imports / cinnamon)"))
+    group_action.add_argument('--qtest', nargs='?', action='store', type=str, help=_("Query for (imports/cinnamon/install)"))
     args = parser.parse_args()
     if(args.qtest):
-       validateImport(args.qtest)
+        validateImport(args.qtest)
     elif(args.ipackage):
-       startGUI(True, args.ipackage)
+        startGUI(True, args.ipackage)
     elif(args.upackage):
-       startGUI(False, args.upackage)
+        startGUI(False, args.upackage)
     elif(args.uprogram):
-       packageName = findPackageForProgram(args.uprogram)
-       startGUI(False, packageName)
+        packageName = findPackageForProgram(args.uprogram)
+        startGUI(False, packageName)
     elif(args.qpackage):
-       printPackageByName(args.qpackage)
+        printPackageByName(args.qpackage)

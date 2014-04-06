@@ -1,0 +1,406 @@
+# Translation of Cinnamon Installer.
+# Copyright (C) 2007-2012 Free Software Foundation, Inc.
+# This file is distributed under the same license as the Cinnamon Installer.
+# Lester Carballo <lestcape@gmail.com>, 2013-2014.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Cinnamon Installer 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-01-10 14:06-0600\n"
+"PO-Revision-Date: 2014-03-26 08:18-0600\n"
+"Last-Translator: Lester Carballo Pérez <lestcape@gmail.com>\n"
+"Language-Team: lestcape <lestcape@gmail.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Poedit 1.5.4\n"
+
+#: Cinnamon-Installer.py:10
+msgid "Cinnamon Installer"
+msgstr ""
+
+#: Cinnamon-Installer.py:16
+msgid "Cinnamon Uninstaller"
+msgstr ""
+
+#: Cinnamon-Installer.py:20
+msgid ""
+"<i>Cinnamon Installer %s</i>, can not find any Cinnamon package on your "
+"system."
+msgstr ""
+
+#: Cinnamon-Installer.py:22
+msgid "You are using Cinnamon desktop?"
+msgstr ""
+
+#: Cinnamon-Installer.py:24
+msgid "Some unexpected problem has occurred on <i>Cinnamon Installer %s</i>."
+msgstr ""
+
+#: Cinnamon-Installer.py:26
+msgid ""
+"Appear that your Linux distribution is supported,\n"
+"but some unexpected error has been detected.\n"
+"If you want to contribute to fix the problem,\n"
+"please visit: <a href='%s'>Cinnamon Installer</a>.\n"
+"\n"
+msgstr ""
+
+#: Cinnamon-Installer.py:28
+msgid "<i><u>Error Message:</u></i>"
+msgstr ""
+
+#: Cinnamon-Installer.py:30
+msgid "Appear that <i>Cinnamon Installer %s</i> can run on your OS."
+msgstr ""
+
+#: Cinnamon-Installer.py:30
+msgid ""
+"If you detect any problem or you want to contribute,\n"
+"please visit: <a href='%s'>Cinnamon Installer</a>."
+msgstr ""
+
+#: Cinnamon-Installer.py:32
+msgid "Imposible to run <i>Cinnamon Installer %s</i> on your OS."
+msgstr ""
+
+#: Cinnamon-Installer.py:34
+msgid ""
+"Your Linux distribution is unsupported or are missing some packages.\n"
+"If you want to contribute to fix the problem, please visit:\n"
+"<a href='%s'>Cinnamon Installer</a>.\n"
+"\n"
+msgstr ""
+
+#: Cinnamon-Installer.py:36
+msgid "Process the installer options."
+msgstr ""
+
+#: Cinnamon-Installer.py:38
+msgid "Install package by name"
+msgstr ""
+
+#: Cinnamon-Installer.py:40
+msgid "Uninstall package by name"
+msgstr ""
+
+#: Cinnamon-Installer.py:42
+msgid "Uninstall program by name"
+msgstr ""
+
+#: Cinnamon-Installer.py:44
+msgid "Query package by name"
+msgstr ""
+
+#: Cinnamon-Installer.py:46
+msgid "Query for (imports / cinnamon)"
+msgstr ""
+
+#: systemInstaller/policy/org.cinnamon.installer.policy:10
+msgid "Authentication is required"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:162
+msgid "Checking dependencies"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:170
+msgid "Checking file conflicts"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:176
+msgid "Resolving dependencies"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:184
+msgid "Checking inter conflicts"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:192
+#, python-brace-format
+msgid "Installing {pkgname}"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:200
+#, python-brace-format
+msgid "Removing {pkgname}"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:208
+#, python-brace-format
+msgid "Upgrading {pkgname}"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:216
+#, python-brace-format
+msgid "Downgrading {pkgname}"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:224
+#, python-brace-format
+msgid "Reinstalling {pkgname}"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:232
+msgid "Checking integrity"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:239
+msgid "Loading packages files"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:245
+msgid "Checking delta integrity"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:251
+msgid "Applying deltas"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:257
+msgid "Generating {} with {}"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:261
+msgid "Generation succeeded!"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:264
+msgid "Generation failed."
+msgstr ""
+
+#: systemInstaller/lib/executer.py:267
+#, python-brace-format
+msgid "Configuring {pkgname}"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:272
+msgid "Downloading"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:276
+msgid "Checking available disk space"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:286
+msgid "Checking keyring"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:292
+msgid "Downloading required keys"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:311
+#, python-brace-format
+msgid "{pkgname1} will be replaced by {pkgname2}"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:314
+#, python-brace-format
+msgid "{pkgname1} conflicts with {pkgname2}"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:339
+msgid "Error: "
+msgstr ""
+
+#: systemInstaller/lib/executer.py:345
+msgid "Warning: "
+msgstr ""
+
+#: systemInstaller/lib/executer.py:359
+#, python-brace-format
+msgid "Refreshing {repo}"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:363 systemInstaller/lib/transaction.py:608
+#, python-brace-format
+msgid "Downloading {pkgname}"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:427 systemInstaller/lib/executer.py:439 systemInstaller/lib/executer.py:762
+#: systemInstaller/lib/executer.py:770 systemInstaller/lib/executer.py:793 systemInstaller/lib/executer.py:827
+msgid "Authentication failed"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:572 pacInstaller.py:127
+#, python-brace-format
+msgid "{pkgname} is not a valid path or package name"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:685
+#, python-brace-format
+msgid ""
+"The transaction cannot be performed because it needs to remove {pkgname1} "
+"which is a locked package"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:695 systemInstaller/lib/transaction.py:449
+msgid "Nothing to do"
+msgstr ""
+
+#: systemInstaller/lib/executer.py:757
+msgid "Transaction successfully finished"
+msgstr ""
+
+#: systemInstaller/lib/transaction.py:757
+msgid "To install"
+msgstr ""
+
+#: systemInstaller/lib/transaction.py:737
+msgid "To remove"
+msgstr ""
+
+#, python-brace-format
+msgid ""
+"{pkgname} has {number} uninstalled optional deps.\n"
+"Please choose those you would like to install:"
+msgstr ""
+
+#: pacInstaller.py:160
+msgid "Cinnamon Installer is already running"
+msgstr ""
+
+#: pacInstaller:59
+msgid "Your system is up-to-date"
+msgstr ""
+
+#: pacInstaller:74 systemInstaller/lib/transaction.py:787
+msgid "Total download size:"
+msgstr ""
+
+#: pacInstaller.py:76
+msgid "1 available update"
+msgstr ""
+
+#: pacInstaller.py:78
+#, python-brace-format
+msgid "{number} available updates"
+msgstr ""
+
+#: gui/updater.ui:24
+msgid "Update Manager"
+msgstr ""
+
+#: pacInstaller.py:66
+msgid ""
+"Some updates are available.\n"
+"Please update your system first"
+msgstr ""
+
+#: pacInstaller.py:72 systemInstaller/lib/transaction.py:406 systemInstaller/lib/transaction.py:799
+msgid "Preparing"
+msgstr ""
+
+#: systemInstaller/lib/transaction.py:94 gui/dialogs.ui:369
+msgid "How often to check for updates, value in hours"
+msgstr ""
+
+#: systemInstaller/lib/transaction.py:192
+#, python-brace-format
+msgid ""
+"{pkgname} is provided by {number} packages.\n"
+"Please choose those you would like to install:"
+msgstr ""
+
+#: systemInstaller/lib/transaction.py:257
+msgid "Refreshing"
+msgstr ""
+
+#: systemInstaller/lib/transaction.py:341 systemInstaller/lib/transaction.py:380
+#, python-brace-format
+msgid "{pkgname} depends on {dependname} but it is not installable"
+msgstr ""
+
+#: systemInstaller/lib/transaction.py:384
+#, python-brace-format
+msgid "Failed to get {pkgname} archive from AUR"
+msgstr ""
+
+#: systemInstaller/lib/transaction.py:552 systemInstaller/lib/transaction.py:558
+msgid "Build process failed."
+msgstr ""
+
+#: systemInstaller/lib/transaction.py:644
+#, python-brace-format
+msgid "Building {pkgname}"
+msgstr ""
+
+#: systemInstaller/lib/transaction.py:685
+msgid "Checking for updates"
+msgstr ""
+
+#: systemInstaller/lib/transaction.py:735
+msgid "Transaction Summary"
+msgstr ""
+
+#: systemInstaller/lib/transaction.py:743
+msgid "To downgrade"
+msgstr ""
+
+#: systemInstaller/lib/transaction.py:751
+msgid "To build"
+msgstr ""
+
+#: systemInstaller/lib/transaction.py:765
+msgid "To reinstall"
+msgstr ""
+
+#: systemInstaller/lib/transaction.py:774
+msgid "To update"
+msgstr ""
+
+#: systemInstaller/lib/common.py:30
+#, python-format
+msgid "%.1f KiB"
+msgstr ""
+
+#: systemInstaller/lib/common.py:33
+#, python-format
+msgid "%.2f MiB"
+msgstr ""
+
+#: gui/dialogs.ui:70
+msgid "Progress"
+msgstr ""
+
+#: gui/dialogs.ui:162
+msgid "details"
+msgstr ""
+
+#: gui/dialogs.ui:292
+msgid "Cinnamon Installer Preferences"
+msgstr ""
+
+#: gui/dialogs.ui:316
+msgid "Enable AUR support"
+msgstr ""
+
+#: gui/dialogs.ui:320
+msgid "Allow Cinnamon Installer to search and install packages from AUR"
+msgstr ""
+
+#: gui/dialogs.ui:333
+msgid "Remove unrequired dependencies"
+msgstr ""
+
+#: gui/dialogs.ui:337
+msgid ""
+"When removing a package, also remove those dependencies that are not "
+"required by other packages"
+msgstr ""
+
+#: gui/dialogs.ui:396
+msgid "Options"
+msgstr ""
+
+#: gui/dialogs.ui:465
+msgid "Choose"
+msgstr ""
+
+#: gui/dialogs.ui:579
+msgid "Summary"
+msgstr ""

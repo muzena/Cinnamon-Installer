@@ -1,7 +1,7 @@
 Cinnamon-Installer 0.4-Beta
 ==================
 
-Last version release date: 26 March 2014
+Last version release date: 6 April 2014
 
 Author: [Lester Carballo Pérez](https://github.com/lestcape)
 
@@ -19,27 +19,31 @@ For now are planed add support to:
 
    - Debian base distros using: aptdaemon(https://launchpad.net/aptdaemon/) binding and aptdaemon.client example.
    - Manjaro and Arch Linux using: python alpm bindings and pamac like example(http://git.manjaro.org/core/pamac).
-   - RedHad base distro using: libsolv bindings and pysolv.asc example(https://github.com/openSUSE/libsolv). Can be use also the YUM interface.
-   - Gentoo using: portage code(https://github.com/gentoo/portage)
+   - Several ways for install packages(http://www.freedesktop.org/software/PackageKit/pk-matrix.html) using the PackageKit service(http://www.freedesktop.org/software/PackageKit/index.html)
 
 System detection:
 
   Ansible project https://github.com/ansible/ansible
-
-This applet not longer has support for Arch Linux.
---------------
-The comunity of Arch Linux do not want that I or other Cinnamon developer, publish about Cinnamon, and receive the users feedback (necessary on the developing any app). When the comunity of Arch Linux, want to be open to the free software world, sure that I want to support Arch Linux again...
 
 Updater
 --------------
 This application come inside with another application caller Updater to allow update the main application. 
 
 
+This program not longer has support for Arch Linux.
+--------------
+The comunity of Arch Linux do not want that I or other Cinnamon developer, publish about Cinnamon, and receive the users feedback (necessary on the developing any app). When the comunity of Arch Linux, want to be open to the free software world, sure that I want to support Arch Linux again...
+
 Change log
 --------------
+0.6-Beta
+   - Improved the GUI.
+   - Added support for Manjaro, and Arch Linux based distros...
+
 0.5-Beta
    - Improve the search to allow space.
    - Fixed the bug of unistall package on ubuntu 14.04.
+
 
 0.4-Beta
    - Added translation support.
@@ -55,7 +59,6 @@ Change log
 
 0.1-Beta
    - Initial Release
-
 
 Anyone is wellcome to contribute...
 

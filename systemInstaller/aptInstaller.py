@@ -1,28 +1,27 @@
-#!/usr/bin/env python
+#! /usr/bin/python3
 # -*- coding: utf-8 -*-
-"""
-Provides a graphical demo application for aptdaemon
-"""
-# Copyright (C) 2008-2009 Sebastian Heinlein <sevel@glatzor.de>
 #
-# Licensed under the GNU General Public License Version 2
+# Cinnamon Installer
 #
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
+# Authors: Lester Carballo Pérez <lestcape@gmail.com>
 #
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
+# Original version from: Sebastian Heinlein <devel@glatzor.de>
 #
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+#  This program is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public License as
+#  published by the Free Software Foundation; either version 2 of the
+#  License, or (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program; if not, write to the Free Software
+#  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+#  USA
 
-__author__ = "Lester Carballo <lestcape@gmail.com>" 
-#Original version from: __author__ = "Sebastian Heinlein <devel@glatzor.de>"
 
 import aptdaemon.client
 import aptdaemon.errors
@@ -59,6 +58,9 @@ _ = lambda msg: gettext.dgettext("aptdaemon", msg)
 
 (COLUMN_ID,
  COLUMN_PACKAGE) = list(range(2))
+
+def configure():
+    return True
 
 def findPackageByPath(path):
     '''Return the package that ships the given file.
@@ -225,31 +227,31 @@ class ControlWindow(object):
         self._expanded_size = None
         self._transaction = None
 #att requeridos
-        interface = self.mainApp.interface
-        self.mainWindow = (interface.get_object("Installer"))
-        self.progressBar = interface.get_object("progressbar")
-        self.expander = interface.get_object("terminalExpander")
-        self.labelRole = interface.get_object("roleLabel")
-        self.labelStatus = interface.get_object("statusLabel")
-        self.cancelButton = interface.get_object("cancelButton")
+        #interface = self.mainApp.interface
+        #self.mainWindow = (interface.get_object("Installer"))
+        #self.progressBar = interface.get_object("progressbar")
+        #self.expander = interface.get_object("terminalExpander")
+        #self.labelRole = interface.get_object("roleLabel")
+        #self.labelStatus = interface.get_object("statusLabel")
+        #self.cancelButton = interface.get_object("cancelButton")
         self._signals = []
 
-        self.labelStatus.set_ellipsize(Pango.EllipsizeMode.END)
-        self.labelStatus.set_max_width_chars(15)
+        self.mainApp._statusLabel.set_ellipsize(Pango.EllipsizeMode.END)
+        self.mainApp._statusLabel.set_max_width_chars(15)
         self._signalsLabelStatus = []
 
-        self.cancelButton.set_use_stock(True)
-        self.cancelButton.set_label(Gtk.STOCK_CANCEL)
-        self.cancelButton.set_sensitive(True)
+        self.mainApp._cancelButton.set_use_stock(True)
+        self.mainApp._cancelButton.set_label(Gtk.STOCK_CANCEL)
+        self.mainApp._cancelButton.set_sensitive(True)
         self._signalsCancelButton = []
 
-        self.progressBar.set_ellipsize(Pango.EllipsizeMode.END)
-        self.progressBar.set_text(" ")
-        self.progressBar.set_pulse_step(0.05)
+        self.mainApp._progressBar.set_ellipsize(Pango.EllipsizeMode.END)
+        self.mainApp._progressBar.set_text(" ")
+        self.mainApp._progressBar.set_pulse_step(0.05)
         self._signalsProgressBar = []
 
-        self.expander.set_sensitive(False)
-        self.expander.set_expanded(False)
+        self.mainApp._terminalExpander.set_sensitive(False)
+        self.mainApp._terminalExpander.set_expanded(False)
         if self.show_terminal:
             self.terminal = AptTerminal()
         else:
@@ -259,15 +261,14 @@ class ControlWindow(object):
         self.download_scrolled.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
         self.download_scrolled.set_policy(Gtk.PolicyType.NEVER, Gtk.PolicyType.AUTOMATIC)
         self.download_scrolled.add(self.download_view)
-        hbox = Gtk.HBox()
-        hbox.pack_start(self.download_scrolled, True, True, 0)
+        self.mainApp._terminalBox.pack_start(self.download_scrolled, True, True, 0)
         if self.terminal:
-            hbox.pack_start(self.terminal, True, True, 0)
-        self.expander.add(hbox)
-        self.expander.connect("notify::expanded", self._on_expanded)
+            self.mainApp._terminalBox.pack_start(self.terminal, True, True, 0)
+
+        self.mainApp._terminalExpander.connect("notify::expanded", self._on_expanded)
         
         #self.set_title("")
-        self.progressBar.set_size_request(350, -1)
+        self.mainApp._progressBar.set_size_request(350, -1)
 
         self._signalsExpander = []
 
@@ -275,12 +276,28 @@ class ControlWindow(object):
         self.loop = GObject.MainLoop()
         self.ac = aptdaemon.client.AptClient()
 
+    def preformInstall(self, name):
+        self.packageName = name
+        if self.packageName is not None:
+            self.ac.install_packages([self.packageName],
+                                     reply_handler=self._simulate_trans,
+                                     error_handler=self._on_error)
+        self.run()
+
+    def preformUninstall(self, name):
+        self.packageName = name
+        if self.packageName is not None:
+            self.ac.remove_packages([self.packageName],
+                                    reply_handler=self._simulate_trans,
+                                    error_handler=self._on_error)
+            self.run()
+
     def _setTransaction(self, transaction=None):
         if transaction is not None:
             self.set_transaction(transaction)
 
     def _on_dialog_delete_event(self, dialog, event):
-        self.cancelButton.clicked()
+        self.mainApp._cancelButton.clicked()
         return True
 
 
@@ -289,10 +306,10 @@ class ControlWindow(object):
         # try to restore a previous size
         if not expander.get_expanded():
             self._expanded_size = (self.terminal.get_visible(),
-                                   self.mainWindow.get_size())
-            self.mainWindow.set_resizable(False)
+                                   self.mainApp._mainWindow.get_size())
+            self.mainApp._mainWindow.set_resizable(False)
         elif self._expanded_size:
-            self.mainWindow.set_resizable(True)
+            self.mainApp._mainWindow.set_resizable(True)
             term_visible, (stored_width, stored_height) = self._expanded_size
             # Check if the stored size was for the download details or
             # the terminal widget
@@ -301,23 +318,23 @@ class ControlWindow(object):
                 # get a new size for the terminal widget
                 self._resize_to_show_details()
             else:
-                self.mainWindow.resize(stored_width, stored_height)
+                self.mainApp._mainWindow.resize(stored_width, stored_height)
         else:
-            self.mainWindow.set_resizable(True)
+            self.mainApp._mainWindow.set_resizable(True)
             self._resize_to_show_details()
 
     def _resize_to_show_details(self):
-        win_width, win_height = self.mainWindow.get_size()
-        exp_width = self.expander.get_allocation().width
-        exp_height = self.expander.get_allocation().height
+        win_width, win_height = self.mainApp._mainWindow.get_size()
+        exp_width = self.mainApp._terminalExpander.get_allocation().width
+        exp_height = self.mainApp._terminalExpander.get_allocation().height
         if self.terminal and self.terminal.get_visible():
             terminal_width = self.terminal.get_char_width() * 80
             terminal_height = self.terminal.get_char_height() * 24
-            self.mainWindow.resize(terminal_width - exp_width ,
+            self.mainApp._mainWindow.resize(terminal_width - exp_width ,
                                terminal_height - exp_height )
         else:
             print(win_height)
-            self.mainWindow.resize(win_width + 100, win_height)
+            self.mainApp._mainWindow.resize(win_width + 100, win_height)
 
     def _on_status_changed(self, trans, status):
         # Also resize the window if we switch from download details to
@@ -330,6 +347,7 @@ class ControlWindow(object):
     @inline_callbacks
     def _run(self, attach, close_on_finished, show_error,
              reply_handler, error_handler):
+        print("showwww")
         try:
             sig = self._transaction.connect("finished", self._on_finished,
                                             close_on_finished, show_error)
@@ -340,8 +358,9 @@ class ControlWindow(object):
                 if self.debconf:
                     yield self._transaction.set_debconf_frontend("gnome")
                 yield self._transaction.run()
-            self.mainWindow.show_all()
+            self.mainApp._mainWindow.show_all()
         except Exception as error:
+            print(error)
             if error_handler:
                 error_handler(error)
             else:
@@ -353,7 +372,7 @@ class ControlWindow(object):
     def _on_role_changed(self, transaction, role_enum):
         """Show the role of the transaction in the dialog interface"""
         role = get_role_localised_present_from_enum(role_enum)
-        self.labelRole.set_markup("<big><b>%s</b></big>" % role)
+        self.mainApp._roleLabel.set_markup("<big><b>%s</b></big>" % role)
 
     def set_transaction(self, transaction):
         """Connect the dialog to the given aptdaemon transaction"""
@@ -399,9 +418,9 @@ class ControlWindow(object):
 
     def _on_finished(self, transaction, status, close, show_error):
         if close:
-            self.mainWindow.hide()
+            self.mainApp._mainWindow.hide()
         if status == EXIT_FAILED and show_error:
-            err_dia = AptErrorDialog(self._transaction.error, self.mainWindow)
+            err_dia = AptErrorDialog(self._transaction.error, self.mainApp._mainWindow)
             err_dia.run()
             self.loop.quit()
             err_dia.hide()
@@ -423,11 +442,11 @@ class ControlWindow(object):
 
     def _on_status_changed_labelStatus(self, transaction, status):
         """Set the status text according to the changed status"""
-        self.labelStatus.set_markup(get_status_string_from_enum(status))
+        self.mainApp._statusLabel.set_markup(get_status_string_from_enum(status))
 
     def _on_status_details_changed_labelStatus(self, transaction, text):
         """Set the status text to the one reported by apt"""
-        self.labelStatus.set_markup(text)
+        self.mainApp._statusLabel.set_markup(text)
 #labelStatus
 #cancelButton
     def setCancelButtonTransaction(self, transaction):
@@ -440,20 +459,20 @@ class ControlWindow(object):
         self._signalsCancelButton.append(
             transaction.connect("cancellable-changed",
                                 self._on_cancellable_changed_cancelButton))
-        self.cancelButton.connect("clicked", self._on_clicked_cancelButton, transaction)
+        self.mainApp._cancelButton.connect("clicked", self._on_clicked_cancelButton, transaction)
 
     def _on_cancellable_changed_cancelButton(self, transaction, cancellable):
         """
         Enable the button if cancel is allowed and disable it in the other case
         """
-        self.cancelButton.set_sensitive(cancellable)
+        self.mainApp._cancelButton.set_sensitive(cancellable)
 
     def _on_finished_cancelButton(self, transaction, status):
-        self.cancelButton.set_sensitive(False)
+        self.mainApp._cancelButton.set_sensitive(False)
 
     def _on_clicked_cancelButton(self, button, transaction):
         transaction.cancel()
-        self.cancelButton.set_sensitive(False)
+        self.mainApp._cancelButton.set_sensitive(False)
         self.loop.quit()
 #cancelButton
 #progressBar
@@ -474,9 +493,9 @@ class ControlWindow(object):
         Update the progress according to the latest progress information
         """
         if progress > 100:
-            self.progressBar.pulse()
+            self.mainApp._progressBar.pulse()
         else:
-            self.progressBar.set_fraction(progress / 100.0)
+            self.mainApp._progressBar.set_fraction(progress / 100.0)
 
     def _on_progress_details_progressBar(self, transaction, items_done, items_total,
                              bytes_done, bytes_total, speed, eta):
@@ -484,21 +503,21 @@ class ControlWindow(object):
         Update the progress bar text according to the latest progress details
         """
         if items_total == 0 and bytes_total == 0:
-            self.progressBar.set_text(" ")
+            self.mainApp._progressBar.set_text(" ")
             return
         if speed != 0:
-            self.progressBar.set_text(_("Downloaded %sB of %sB at %sB/s") %
+            self.mainApp._progressBar.set_text(_("Downloaded %sB of %sB at %sB/s") %
                                       (apt_pkg.size_to_str(bytes_done),
                                       apt_pkg.size_to_str(bytes_total),
                                       apt_pkg.size_to_str(speed)))
         else:
-            self.progressBar.set_text(_("Downloaded %sB of %sB") %
+            self.mainApp._progressBar.set_text(_("Downloaded %sB of %sB") %
                                       (apt_pkg.size_to_str(bytes_done),
                                       apt_pkg.size_to_str(bytes_total)))
 
     def _on_finished_progressBar(self, transaction, exit):
         """Set the progress to 100% when the transaction is complete"""
-        self.progressBar.set_fraction(1)
+        self.mainApp._progressBar.set_fraction(1)
 #progressBar
 #expander
     def setExpanderTransaction(self, transaction):
@@ -516,7 +535,7 @@ class ControlWindow(object):
 
     def _on_status_changed_expander(self, trans, status):
         if status in (STATUS_DOWNLOADING, STATUS_DOWNLOADING_REPO):
-            self.expander.set_sensitive(True)
+            self.mainApp._terminalExpander.set_sensitive(True)
             self.download_scrolled.show()
             if self.terminal:
                 self.terminal.hide()
@@ -524,21 +543,21 @@ class ControlWindow(object):
             self.download_scrolled.hide()
             if self.terminal:
                 self.terminal.show()
-                self.expander.set_sensitive(True)
+                self.mainApp._terminalExpander.set_sensitive(True)
             else:
-                self.expander.set_expanded(False)
-                self.expander.set_sensitive(False)
+                self.mainApp._terminalExpander.set_expanded(False)
+                self.mainApp._terminalExpander.set_sensitive(False)
         else:
             self.download_scrolled.hide()
             if self.terminal:
                 self.terminal.hide()
-            self.expander.set_sensitive(False)
-            self.expander.set_expanded(False)
+            self.mainApp._terminalExpander.set_sensitive(False)
+            self.mainApp._terminalExpander.set_expanded(False)
 
     def _on_terminal_attached_changed_expander(self, transaction, attached):
         """Connect the terminal to the pty device"""
         if attached and self.terminal:
-            self.expander.set_sensitive(True)
+            self.mainApp._terminalExpander.set_sensitive(True)
 #expander
     def _run_transaction(self, transaction):
         self._setTransaction(transaction)
@@ -552,7 +571,7 @@ class ControlWindow(object):
 
     def _confirm_deps(self, trans):
         if [pkgs for pkgs in trans.dependencies if pkgs]:
-            dia = AptConfirmDialog(trans, parent=self.mainWindow)
+            dia = AptConfirmDialog(trans, parent=self.mainApp._mainWindow)
             res = dia.run()
             dia.hide()
             if res != Gtk.ResponseType.OK:
@@ -561,39 +580,26 @@ class ControlWindow(object):
         self._run_transaction(trans)
 
     def _on_error(self, error):
+        print("error" + str(error))
         try:
             raise error
         except aptdaemon.errors.NotAuthorizedError:
             # Silently ignore auth failures
             return
         except aptdaemon.errors.TransactionFailed as error:
-            pass
-        except Exception as error:
-            error = aptdaemon.errors.TransactionFailed(ERROR_UNKNOWN,
+            errorApt = aptdaemon.errors.TransactionFailed(ERROR_UNKNOWN,
                                                        str(error))
-        dia = AptErrorDialog(error, self.mainWindow)
-        dia.run()
-        self.loop.quit()
-        dia.hide()
+        except Exception as error:
+            errorApt = aptdaemon.errors.TransactionFailed(ERROR_UNKNOWN,
+                                                       str(error))
+        if errorApt:
+           dia = AptErrorDialog(errorApt, self.mainApp._mainWindow)
+           dia.run()
+           self.loop.quit()
+           dia.hide()
 
     def run(self):
         self.loop.run()
-
-    def preformInstall(self, name):
-        self.packageName = name
-        if self.packageName is not None:
-            self.ac.install_packages([self.packageName],
-                                     reply_handler=self._simulate_trans,
-                                     error_handler=self._on_error)
-        self.run()
-
-    def preformUninstall(self, name):
-        self.packageName = name
-        if self.packageName is not None:
-            self.ac.remove_packages([self.packageName],
-                                    reply_handler=self._simulate_trans,
-                                    error_handler=self._on_error)
-            self.run()
     '''
     def preformUpgrade_clicked(self):
         self.ac.upgrade_system(safe_mode=False, 
