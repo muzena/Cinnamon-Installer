@@ -191,8 +191,8 @@ def validateImport(arg):
     try:
         ver = readVersionFromFile()
         if len(importerError) == 0:
-            if (arg == "cinnamon")or(arg == "install"):
-                if (arg == "cinnamon") and findPackageForProgram("cinnamon-settings") != arg:
+            if (arg == "package")or(arg == "install"):
+                if (arg == "package") and (findPackageForProgram("cinnamon-settings") != "cinnamon"):
                     print("error")
                     title = _("<i>Cinnamon Installer %s</i>, can not find any Cinnamon package on your system.") % ver
                     message = _("You are using Cinnamon desktop?")

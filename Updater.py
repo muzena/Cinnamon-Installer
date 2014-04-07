@@ -411,7 +411,7 @@ class Updater:
 
     def executeTest(self):
         print("Run test package")
-        os.system("python3 " + INSTALL_DIR + PROGRAM_NAME + ".py --qtest cinnamon")
+        os.system("python3 " + INSTALL_DIR + PROGRAM_NAME + ".py --qtest package")
   
 
     def isUpdateNeeded(self):
