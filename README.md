@@ -1,4 +1,4 @@
-Cinnamon-Installer 0.6.1-Beta
+Cinnamon-Installer 0.64-Beta
 ==================
 
 Last version release date: 6 April 2014
