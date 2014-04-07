@@ -143,10 +143,13 @@ def startGUI(install, packageName):
 
 def findPackageForProgram(program):
     path = GLib.find_program_in_path(program);
-    print(path)
-    packageName = Installer.findPackageByPath(path);
-    print(packageName)
-    return packageName
+    if path is not None:
+        print("Program " + program + " was find in path:" + path)
+        packageName = Installer.findPackageByPath(path);
+        if packageName is not None:
+            print("Program " + program + " was find in package:" + packageName)
+            return packageName
+    return ""
 
 def printPackageByName(packageName):
     listPackage = []
@@ -173,54 +176,59 @@ def _custom_dialog(dialog_type, title, message):
     dialog.run()
     dialog.destroy()
 
-def validateImport(arg):
-    ver = readVersionFromFile()
-    if len(importerError) == 0:
-        if (arg == "cinnamon")or(arg == "install"):
-            result = printPackageByName(arg)
-            if result == arg:
-                print("error")
-                title = _("<i>Cinnamon Installer %s</i>, can not find any Cinnamon package on your system.") % ver
-                message = _("You are using Cinnamon desktop?")
-                _custom_dialog(Gtk.MessageType.INFO, title, message)
-            elif result != "run":
-                print("error")
-                title = _("Some unexpected problem has occurred on <i>Cinnamon Installer %s</i>.") % ver
-                message = _("Appear that your Linux distribution is supported,\n" +\
-                          "but some unexpected error has been detected.\n" + \
-                          "If you want to contribute to fix the problem,\n" + \
-                          "please visit: <a href='%s'>Cinnamon Installer</a>.\n\n") % WEB_SITE_URL
+def tryUninstall(program):
+    packageName = findPackageForProgram(program)
+    if packageName != "":
+        startGUI(False, packageName)
+    else:
+        title = _("Not found any package associated with the program '%s'.") % program
+        message = _("If you detect any problem or you want to contribute,\n" + \
+                  "please visit: <a href='%s'>Cinnamon Installer</a>.") % WEB_SITE_URL
+        _custom_dialog(Gtk.MessageType.INFO, title, message)
 
-                message += _("<i><u>Error Message:</u></i>")
-                message += "\n" + result 
-                _custom_dialog(Gtk.MessageType.ERROR, title, message)
-        if (arg == "install")and(Installer.configure()):
-            print("run")
-            title = _("Appear that <i>Cinnamon Installer %s</i> can run on your OS.") % ver
-            message = _("If you detect any problem or you want to contribute,\n" + \
-                      "please visit: <a href='%s'>Cinnamon Installer</a>.") % WEB_SITE_URL
-            _custom_dialog(Gtk.MessageType.INFO, title, message)
+def validateImport(arg):
+    ver = "?"
+    try:
+        ver = readVersionFromFile()
+        if len(importerError) == 0:
+            if (arg == "cinnamon")or(arg == "install"):
+                if (arg == "cinnamon") and findPackageForProgram("cinnamon-settings") != arg:
+                    print("error")
+                    title = _("<i>Cinnamon Installer %s</i>, can not find any Cinnamon package on your system.") % ver
+                    message = _("You are using Cinnamon desktop?")
+                    _custom_dialog(Gtk.MessageType.INFO, title, message)
+                if (Installer.configure()):
+                    print("run")
+                    title = _("Appear that <i>Cinnamon Installer %s</i> can run on your OS.") % ver
+                    message = _("If you detect any problem or you want to contribute,\n" + \
+                             "please visit: <a href='%s'>Cinnamon Installer</a>.") % WEB_SITE_URL
+                    _custom_dialog(Gtk.MessageType.INFO, title, message)
+                else:
+                    print("error")
+                    title = _("You need to install <i>Cinnamon Installer %s</i> for the first used.") % ver
+                    message = _("Appear that your Linux distribution is supported.\n" +\
+                              "If you detect any problem or you want to contribute,\n" + \
+                              "please visit: <a href='%s'>Cinnamon Installer</a>.") % WEB_SITE_URL
+                    _custom_dialog(Gtk.MessageType.INFO, title, message)
         else:
             print("error")
-            title = _("You need to install <i>Cinnamon Installer %s</i> for the first used.") % ver
-            message = _("Appear that your Linux distribution is supported.\n" +\
-                      "If you detect any problem or you want to contribute,\n" + \
-                      "please visit: <a href='%s'>Cinnamon Installer</a>.") % WEB_SITE_URL
+            title = _("Imposible to run <i>Cinnamon Installer %s</i> on your OS.") % ver
+            message = _("Your Linux distribution is unsupported or are missing some packages.\n" + \
+                      "If you want to contribute to fix the problem, please visit:\n" + \
+                      "<a href='%s'>Cinnamon Installer</a>.\n\n") % WEB_SITE_URL
 
             message += _("<i><u>Error Message:</u></i>")
-            message += "\n" + result 
-            _custom_dialog(Gtk.MessageType.ERROR, title, message)
-    else:
-        print("error")
-        title = _("Imposible to run <i>Cinnamon Installer %s</i> on your OS.") % ver
-        message = _("Your Linux distribution is unsupported or are missing some packages.\n" + \
-                  "If you want to contribute to fix the problem, please visit:\n" + \
-                  "<a href='%s'>Cinnamon Installer</a>.\n\n") % WEB_SITE_URL
-
-        message += _("<i><u>Error Message:</u></i>")
-        for error in importerError:
-            message += "\n" + str(error)
+            for error in importerError:
+                message += "\n" + str(error)
  
+            _custom_dialog(Gtk.MessageType.ERROR, title, message)
+    except Exception as e:
+        print(str(e))
+        title = _("Some unexpected problem has occurred on <i>Cinnamon Installer %s</i>.") % ver
+        message = _("Appear that your Linux distribution is unsupported.\n" +\
+                  "If you want to contribute to fix the problem,\n" + \
+                  "please visit: <a href='%s'>Cinnamon Installer</a>.\n\n") % WEB_SITE_URL
+
         _custom_dialog(Gtk.MessageType.ERROR, title, message)
 
 if __name__ == "__main__":
@@ -239,7 +247,6 @@ if __name__ == "__main__":
     elif(args.upackage):
         startGUI(False, args.upackage)
     elif(args.uprogram):
-        packageName = findPackageForProgram(args.uprogram)
-        startGUI(False, packageName)
+        tryUninstall(args.uprogram)
     elif(args.qpackage):
         printPackageByName(args.qpackage)
