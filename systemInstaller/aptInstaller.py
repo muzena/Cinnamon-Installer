@@ -226,6 +226,7 @@ class ControlWindow(object):
         self.show_terminal = True
         self._expanded_size = None
         self._transaction = None
+        self.icon_name = None
 #att requeridos
         #interface = self.mainApp.interface
         #self.mainWindow = (interface.get_object("Installer"))
@@ -347,7 +348,6 @@ class ControlWindow(object):
     @inline_callbacks
     def _run(self, attach, close_on_finished, show_error,
              reply_handler, error_handler):
-        print("showwww")
         try:
             sig = self._transaction.connect("finished", self._on_finished,
                                             close_on_finished, show_error)
@@ -373,6 +373,12 @@ class ControlWindow(object):
         """Show the role of the transaction in the dialog interface"""
         role = get_role_localised_present_from_enum(role_enum)
         self.mainApp._roleLabel.set_markup("<big><b>%s</b></big>" % role)
+        icon_name = get_role_icon_name_from_enum(role_enum)
+        if icon_name is None:
+            icon_name = Gtk.STOCK_MISSING_IMAGE
+        if icon_name != self.icon_name:
+            self.icon_name = icon_name
+        self.mainApp._actionImage.set_from_icon_name(icon_name, Gtk.IconSize.BUTTON)
 
     def set_transaction(self, transaction):
         """Connect the dialog to the given aptdaemon transaction"""

@@ -1,7 +1,7 @@
-Cinnamon-Installer 0.64-Beta
+Cinnamon-Installer 0.65-Beta
 ==================
 
-Last version release date: 6 April 2014
+Last version release date: 7 April 2014
 
 Author: [Lester Carballo Pérez](https://github.com/lestcape)
 
@@ -36,8 +36,9 @@ The comunity of Arch Linux do not want that I or other Cinnamon developer, publi
 
 Change log
 --------------
-0.6.1-Beta
+0.65-Beta
    - Fixed some errors on the first load.
+   - Show status icons on debian.
 
 0.6-Beta
    - Improved the GUI.
