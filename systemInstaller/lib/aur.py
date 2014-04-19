@@ -23,7 +23,7 @@
 #  USA
 
 
-import os, urllib, Namcap, requests, tarfile, sys
+import os, urllib.request, tarfile, sys, Namcap
 
 ABS_PATH = os.path.abspath(__file__)
 DIR_PATH = os.path.dirname(ABS_PATH) + "/"

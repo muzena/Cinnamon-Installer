@@ -93,14 +93,14 @@ def define_siglevel(default_level, conf_string):
         if 'Never' in directive:
             if affect_package:
                 default_level &= ~pyalpm.SIG_PACKAGE
-                default_level |= pyalpm.SIG_PACKAGE_SET
+                #default_level |= pyalpm.SIG_PACKAGE_SET
             if affect_database:
                 default_level &= ~pyalpm.SIG_DATABASE
         elif 'Optional' in directive:
             if affect_package:
                 default_level |= pyalpm.SIG_PACKAGE
                 default_level |= pyalpm.SIG_PACKAGE_OPTIONAL
-                default_level |= pyalpm.SIG_PACKAGE_SET
+                #default_level |= pyalpm.SIG_PACKAGE_SET
             if affect_database:
                 default_level |= pyalpm.SIG_DATABASE
                 default_level |= pyalpm.SIG_DATABASE_OPTIONAL
@@ -108,7 +108,7 @@ def define_siglevel(default_level, conf_string):
             if affect_package:
                 default_level |= pyalpm.SIG_PACKAGE
                 default_level &= ~pyalpm.SIG_PACKAGE_OPTIONAL
-                default_level |= pyalpm.SIG_PACKAGE_SET
+                #default_level |= pyalpm.SIG_PACKAGE_SET
             if affect_database:
                 default_level |= pyalpm.SIG_DATABASE
                 default_level &= ~pyalpm.SIG_DATABASE_OPTIONAL
@@ -116,7 +116,7 @@ def define_siglevel(default_level, conf_string):
             if affect_package:
                 default_level &= ~pyalpm.SIG_PACKAGE_MARGINAL_OK
                 default_level &= ~pyalpm.SIG_PACKAGE_UNKNOWN_OK
-                default_level |= pyalpm.SIG_PACKAGE_TRUST_SET
+                #default_level |= pyalpm.SIG_PACKAGE_TRUST_SET
             if affect_database:
                 default_level &= ~pyalpm.SIG_DATABASE_MARGINAL_OK
                 default_level &= ~pyalpm.SIG_DATABASE_UNKNOWN_OK
@@ -124,7 +124,7 @@ def define_siglevel(default_level, conf_string):
             if affect_package:
                 default_level |= pyalpm.SIG_PACKAGE_MARGINAL_OK
                 default_level |= pyalpm.SIG_PACKAGE_UNKNOWN_OK
-                default_level |= pyalpm.SIG_PACKAGE_TRUST_SET
+                #default_level |= pyalpm.SIG_PACKAGE_TRUST_SET
             if affect_database:
                 default_level |= pyalpm.SIG_DATABASE_MARGINAL_OK
                 default_level |= pyalpm.SIG_DATABASE_UNKNOWN_OK
@@ -132,14 +132,14 @@ def define_siglevel(default_level, conf_string):
             print('unrecognized siglevel: {}'.format(conf_string))
     return default_level
 
-def merge_siglevel(base_level, over_level):
-    if not over_level & pyalpm.SIG_PACKAGE_SET:
-        over_level |= base_level & pyalpm.SIG_PACKAGE
-        over_level |= base_level & pyalpm.SIG_PACKAGE_OPTIONAL
-    if not over_level & pyalpm.SIG_PACKAGE_TRUST_SET:
-        over_level |= base_level & pyalpm.SIG_PACKAGE_MARGINAL_OK
-        over_level |= base_level & pyalpm.SIG_PACKAGE_UNKNOWN_OK
-    return over_level
+#def merge_siglevel(base_level, over_level):
+    #if not over_level & pyalpm.SIG_PACKAGE_SET:
+    #    over_level |= base_level & pyalpm.SIG_PACKAGE
+    #    over_level |= base_level & pyalpm.SIG_PACKAGE_OPTIONAL
+    #if not over_level & pyalpm.SIG_PACKAGE_TRUST_SET:
+    #    over_level |= base_level & pyalpm.SIG_PACKAGE_MARGINAL_OK
+    #    over_level |= base_level & pyalpm.SIG_PACKAGE_UNKNOWN_OK
+    #return over_level
 
 def pacman_conf_enumerator(path):
     filestack = []
@@ -269,23 +269,23 @@ class PacmanConfig():
         if "CheckSpace" in self.options:
             h.checkspace = self.options["CheckSpace"]
         # register default siglevel, it should have been updated previously
-        h.siglevel = self.default_siglevel
+        #h.siglevel = self.default_siglevel
         # update localsiglevel
         if "LocalFileSigLevel" in self.options:
             localsiglevel = define_siglevel(self.default_siglevel, self.options["LocalFileSigLevel"])
-            localsiglevel = merge_siglevel(self.default_siglevel, localsiglevel)
+            #localsiglevel = merge_siglevel(self.default_siglevel, localsiglevel)
         else:
             localsiglevel = self.default_siglevel
         # define localsiglevel
-        h.localsiglevel = localsiglevel
+        # h.localsiglevel = localsiglevel
         # update remotesiglevel
         if "RemoteFileSigLevel" in self.options:
             remotesiglevel = define_siglevel(self.default_siglevel, self.options["RemoteFileSigLevel"])
-            remotesiglevel = merge_siglevel(self.default_siglevel, remotesiglevel)
+            #remotesiglevel = merge_siglevel(self.default_siglevel, remotesiglevel)
         else:
             remotesiglevel = self.default_siglevel
         # define remotesiglevel
-        h.remotesiglevel = remotesiglevel
+        #h.remotesiglevel = remotesiglevel
         # set sync databases
         for repo, servers in self.repos.items():
             db = h.register_syncdb(repo, servers[1])
