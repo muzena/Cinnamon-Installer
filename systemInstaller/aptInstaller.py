@@ -159,7 +159,7 @@ def searchUnistalledPackages(pattern):
         pkg = cache[pkgName]
         if((not pkg.is_installed) and (isMatching(matchWordsPattern, pkg.name)) and
             (not packageExistArch(pkgName, cache))):
-            unInstalledPackages.append(pkg)
+            unInstalledPackages.append(pkg.name)
      return unInstalledPackages
 
 def isMatching(matchWordsPattern, packageName):

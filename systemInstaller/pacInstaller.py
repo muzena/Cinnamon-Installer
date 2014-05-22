@@ -158,13 +158,11 @@ def searchUnistalledPackages(pattern):
         syncdbs = handle.get_syncdbs()
         localdb = handle.get_localdb()
         unInstalledPackages = []
-        names_list = []
         for repo in syncdbs:
             for pkg in repo.pkgcache:
-                if((pattern in pkg.name) and (not pkg.name in names_list)):
-                    names_list.append(pkg.name)
+                if((pattern in pkg.name) and (not pkg.name in unInstalledPackages)):
                     if not localdb.get_pkg(pkg.name):
-                        unInstalledPackages.append(pkg)
+                        unInstalledPackages.append(pkg.name)
     except Exception as e:
         print(e)
     return unInstalledPackages

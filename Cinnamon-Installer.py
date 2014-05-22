@@ -54,8 +54,12 @@ except ImportError as e:
         import pacInstaller as Installer
         importerError = []
     except ImportError as e:
-        print("error " + str(e))
         importerError.append(e)
+        try:
+            import kitInstaller as Installer
+            importerError = []
+        except ImportError as e:
+            importerError.append(e)
 
 class MainApp():
     """Graphical progress for installation/fetch/operations.
@@ -156,7 +160,7 @@ def printPackageByName(packageName):
     try:
        listPackage = Installer.searchUnistalledPackages(packageName)
        for p in listPackage:
-          print(p.name)
+          print(p)
     except Exception as e:
        return str(e)
     if len(listPackage) == 0:

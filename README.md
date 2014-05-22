@@ -1,7 +1,7 @@
-Cinnamon-Installer 0.65-Beta
+Cinnamon-Installer 0.7-Beta
 ==================
 
-Last version release date: 7 April 2014
+Last version release date: 21 May 2014
 
 Author: [Lester Carballo Pérez](https://github.com/lestcape)
 
@@ -21,7 +21,7 @@ For now are planed add support to:
    - Manjaro and Arch Linux using: python alpm bindings and pamac like example(http://git.manjaro.org/core/pamac).
    - Several ways for install packages(http://www.freedesktop.org/software/PackageKit/pk-matrix.html) using the PackageKit service(http://www.freedesktop.org/software/PackageKit/index.html)
 
-System detection:
+System detection(if it's neded):
 
   Ansible project https://github.com/ansible/ansible
 
@@ -36,6 +36,13 @@ The comunity of Arch Linux do not want that I or other Cinnamon developer, publi
 
 Change log
 --------------
+
+0.7-Beta
+   - Suppor Fedora and several more distro with packagekit.
+
+0.67-Beta
+   - Suppor ArchLinux
+
 0.65-Beta
    - Fixed some errors on the first load.
    - Show status icons on debian.
