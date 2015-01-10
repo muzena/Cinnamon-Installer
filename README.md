@@ -1,41 +1,54 @@
-Cinnamon-Installer 0.7-Beta
+Cinnamon-Installer 0.8-Beta
 ==================
 
-Last version release date: 21 May 2014
+![](https://raw.githubusercontent.com/lestcape/Cinnamon-Settings-Installer/master/Capture.png)
+
+Last version release date(0.7): 21 May 2014
 
 Author: [Lester Carballo Pérez](https://github.com/lestcape)
 
 Special thanks to:
 Manjaro users and developers they have given their support to make this project possible.
 
-A GUI Packages Manager with the ability to support all distros, where you can install Cinnamon desktop.
+A GUI Packages Manager writing in python, with the ability to support all distros, where you can install Cinnamon desktop.
 
-This is a project of GUI packages Manager tools writing in python.
+The idea it's allow have an installer and uninstaller, but with the ability to support all
+distros, where Cinnamon desktop can be installed. The intention it's not break the current
+Cinnamon functionality, not replace, copy or move any code of Cinnamon. It's make more 
+options, modify behaviors or any other thing, without create a new unsupported branch, 
+damages the image of Cinnamon, or forced the user to use this tools in any way or any form.
+But we want to have alternatives always.
 
-The idea it's allow have an installer and uninstaller of only one package at the same time,
-but with the ability to support all distros, where Cinnamon desktop can be installed.
+For now the support is for:
 
-For now are planed add support to:
+   - Debian base distros using: [aptdaemon](https://launchpad.net/aptdaemon/) binding and aptdaemon.client example.
+   - Manjaro and Arch Linux using: python alpm bindings and pamac like [example](http://git.manjaro.org/core/pamac).
+   - Several ways for [install packages](http://www.freedesktop.org/software/PackageKit/pk-matrix.html) using the [PackageKit](http://www.freedesktop.org/software/PackageKit/index.html) service.
 
-   - Debian base distros using: aptdaemon(https://launchpad.net/aptdaemon/) binding and aptdaemon.client example.
-   - Manjaro and Arch Linux using: python alpm bindings and pamac like example(http://git.manjaro.org/core/pamac).
-   - Several ways for install packages(http://www.freedesktop.org/software/PackageKit/pk-matrix.html) using the PackageKit service(http://www.freedesktop.org/software/PackageKit/index.html)
+The version 0.8, come with several updates and is in progress, there are not any release. Used for tested propouse only.
 
-System detection(if it's neded):
-
-  Ansible project https://github.com/ansible/ansible
-
-Updater
+Abilities
 --------------
-This application come inside with another application caller Updater to allow update the main application. 
+- The integration mode allow do less click to handle the spices applets, desklets, extensions, they will be accessible always without need to go back and then enter in other session to be only do the same thing... ...
+- Will be used a better integration with pkexec, instead of continues used the obsolete gksudo...
+- This have a multithreading way for download the metadata of applets desklet, extentions that of course is more faster on that way.
+- Handle dependencies for the hard packages (system packages), for some applets or desklets that could have dependencies that can be resolved.
+- Allowed you to know if an specific applet could work in the specific Cinnamon version that you have. Some applet could break down Cinnamon, because they are not update to work in your Cinnamon version, for example. Also we can have an alternative database with patched for the not working extensions in some external place. This could be kept by external users, and will can apply the patches for the not working extensions in the installation process, that will be transparent for the final users.
+- Provide a service/terminal/a way/ to an external application for install some extension if they want or need to do that.
+- Allow a local installation: If you have an applet, desklet... with translation, or a gsetting schema, you will requiere to do an installation. If you copy directly the applet to the corresponding folder, this will not work with translation or you could not access to the settings... there are guys without internet connections that can not perform an install from spices web site.. this guys can not use this applet or at less the applet can not be translate for him.
+- Provide a cron.d or a service to call periodically and inform the user for any update of the installed applets, desklets, extentions and themes.
+- Cinnamon settings have a powerfull way to build the settings for applets, desklets and extentions using only a json file, but do not exploit all potential that could have. In some contexts, we need more actions that are not available in Cinnamon Settings...
+- This application come inside with another that is caller Updater to allow update the main application.
 
-
-This program not longer has support for Arch Linux.
---------------
-The comunity of Arch Linux do not want that I or other Cinnamon developer, publish about Cinnamon, and receive the users feedback (necessary on the developing any app). When the comunity of Arch Linux, want to be open to the free software world, sure that I want to support Arch Linux again...
 
 Change log
 --------------
+
+0.8-Beta
+   - Construction of the system installer applet, desklet, extension and themes, thanks to Cinnamon Settings code.
+   - Integrate all installer on one GUI as a plugins.
+   - Reworked Cinnamon Settings to integrate online and local tab inside only one.
+   - Create an spices plugin to be integrate on the core.
 
 0.7-Beta
    - Suppor Fedora and several more distro with packagekit.

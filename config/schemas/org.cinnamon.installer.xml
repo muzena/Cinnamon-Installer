@@ -1,0 +1,15 @@
+<schemalist>
+    <schema id="org.cinnamon.installer" path="/org/cinnamon/installer"
+        gettext-domain="@GETTEXT_PACKAGE@">
+        <key name="enable-daemon" type="b">
+            <default>true</default>
+            <_summary>
+                Enable Cinnamon Installer as a daemon
+            </_summary>
+            <_description>
+                Allows access to Cinnamon Installer using DBus Message protocol.
+            </_description>
+        </key>
+    </schema>
+</schemalist>
+

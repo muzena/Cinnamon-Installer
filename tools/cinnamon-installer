@@ -1,0 +1,6 @@
+#!/bin/sh
+#
+# Cron script to call cinnamon settings for installer module daily in /etc/cron.daily.
+#
+#cinnamon-settings installer check-update
+#cinnamon-installer
