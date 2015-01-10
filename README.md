@@ -1,7 +1,7 @@
 Cinnamon-Installer 0.8-Beta
 ==================
 
-![](https://raw.githubusercontent.com/lestcape/Cinnamon-Settings-Installer/master/Capture.png)
+![](https://raw.githubusercontent.com/lestcape/Cinnamon-Installer/master/Capture.png)
 
 Last version release date(0.7): 21 May 2014
 
