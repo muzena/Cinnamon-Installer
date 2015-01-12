@@ -145,7 +145,7 @@ class CinnamonSettingsSidePageHacker():
         except Exception:
             e = sys.exc_info()[1]
             print(str(e))
-            sys.exit(1)
+            #sys.exit(1)
         return None
 
     def add_moduler_hacker(self):

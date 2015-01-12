@@ -63,9 +63,7 @@ try:
 except ImportError:
     e = sys.exc_info()[1]
 
-
-import ApplicationGUI, ModulesInstallerLoader
-        
+import InstallerProviders
 
 class InstallerService(dbus.service.Object):
     def __init__(self, installerAction):
@@ -212,82 +210,81 @@ class InstallerClient():
 
 class InstallerAction():
     def __init__(self):
-       self.mainAppWindows = ApplicationGUI.MainApp()
-       self.trans = ModulesInstallerLoader.Transaction()
-       self.importerError = self.trans.get_importer_errors()
-       self.createWindows()
-
-    def createWindows(self, cinnamon=None):
-        try:
-            if self.validateImport("None"):
-            #if cinnamon:
-                #self.mainWindC = CInstaller.ControlWindow(self.mainAppWindows)
-                self.mainWind = ApplicationGUI.ControlWindow(self.mainAppWindows, self.trans)
-            else:
-                print("error")
-            #self.mainWind.show_error(None);
-        except Exception:
-            if self.mainAppWindows:
-                ver = "1.0"
-                title = _("Some unexpected problem has occurred on <i>Cinnamon Installer %s</i>.") % ver
-                message = _("Appear that your Linux distribution is unsupported.\n" +\
-                            "If you want to contribute to fix the problem,\n" + \
-                            "please visit: <a href='%s'>Cinnamon Installer</a>.\n\n") % WEB_SITE_URL
-        
-                self.mainAppWindows.show_error(title, message);
+        self.installer = InstallerProvider.get_default()
+        self.importerError = self.installer.get_importer_errors()
 
     def install(self, packageName):
-        if self.trans.need_root_access() and (os.geteuid() != 0):
+        if self.installer.need_root_access() and (os.geteuid() != 0):
             self._reloadAsRoot("--ipackage", pkgs_name)
         else:
-            self._startGUI(True, packageName, False, False, False)
+            self.installer.set_service_for_collection("package")
+            self.installer.execute_install(packageName)
 
     def uninstall(self, packageName):
-        if self.trans.need_root_access() and (os.geteuid() != 0):
+        if self.installer.need_root_access() and (os.geteuid() != 0):
             self._reloadAsRoot("--upackage", packageName)
         else:
-            self._startGUI(False, packageName, False, False, False)
+            self.installer.set_service_for_collection("package")
+            self.installer.execute_uninstall(packageName)
 
     def uninstallProgram(self, programName):
-        if self.trans.need_root_access() and (os.geteuid() != 0):
+        if self.installer.need_root_access() and (os.geteuid() != 0):
             self._reloadAsRoot("--uprogram", programName)
         else:
+            self.installer.set_service_for_collection("package")
             packageName = self.findPackageForProgram(programName)
             if packageName:
-                self.uninstall(packageName)
+                self.installer.execute_uninstall(packageName)
             else:
                 title = _("Not found any package associated with the program '%s'.") % programName
                 message = _("If you detect any problem or you want to contribute,\n" + \
                       "please visit: <a href='%s'>Cinnamon Installer</a>.") % WEB_SITE_URL
                 self.mainAppWindows.show_error(title, message)
 
-    def upgradeSpices(self, spicesList):
-        self._startGUI(True, spicesList, True, True, False)
-
     def installSpices(self, spicesList):
-        self._startGUI(True, spicesList, True, False, False)
+        if self.installer.need_root_access() and (os.geteuid() != 0):
+            self._reloadAsRoot("--icinnamon", spicesList)
+        else:
+            self.installer.set_service_for_collection("applet")
+            self.installer.execute_install(spicesList)
 
     def uninstallSpices(self, spicesList):
-        self._startGUI(False, spicesList, True, False, False)
+        if self.installer.need_root_access() and (os.geteuid() != 0):
+            self._reloadAsRoot("--ucinnamon", spicesList)
+        else:
+            self.installer.set_service_for_collection("applet")
+            self.installer.execute_uninstall(spicesList)
+
+    def upgradeSpices(self, spicesList):
+        if self.installer.need_root_access() and (os.geteuid() != 0):
+            self._reloadAsRoot("--ccinnamon", spicesList)
+        else:
+            self.installer.set_service_for_collection("applet")
+            self.installer.execute_upgrade(spicesList)
 
     def updateSpices(self, updateType):
-        self._startGUI(False, updateType, True, False, True)
+        if self.installer.need_root_access() and (os.geteuid() != 0):
+            self._reloadAsRoot("--rcinnamon", spicesList)
+        else:
+            self.installer.set_service_for_collection("applet")
+            self.installer.execute_update(spicesList)
 
     def findPackageForProgram(self, program):
-        if self.mainWind:
-            path = GLib.find_program_in_path(program);
-            if path is not None:
-                print("Program " + program + " was find in path:" + path)
-                packageName = self.mainWind.findPackageByPath(path);
-                if packageName is not None:
-                    print("Program " + program + " was find in package:" + packageName)
-                    return packageName
+        path = GLib.find_program_in_path(program);
+        if path is not None:
+            print("Program " + program + " was find in path:" + path)
+            self.installer.set_service_for_collection("package")
+            packageName = self.installer.find_package_by_path(path);
+            if packageName is not None:
+                print("Program " + program + " was find in package:" + packageName)
+                return packageName
         return ""
 
     def getPackageByName(self, packageName):
         listPackage = ["error"]
         try:
-            listPackage = self.mainWind.searchUnistalledPackages(packageName)
+            self.installer.set_service_for_collection("package")
+            listPackage = self.installer.search_uninstall(packageName)
             if(len(listPackage) == 0):
                listPackage.append("empty")
         except Exception:
@@ -321,7 +318,7 @@ class InstallerAction():
                         self.mainAppWindows.show_error(title, message)
                         return False
                     if (arg == "install"):
-                        if (self.mainWind.configure()):
+                        if (True): # is installed
                             print("run")
                             title = _("Appear that <i>Cinnamon Installer %s</i> can run on your OS.") % ver
                             message = _("If you detect any problem or you want to contribute,\n" + \
@@ -360,30 +357,6 @@ class InstallerAction():
 
             self.mainAppWindows.show_error(title, message)
         return True
-
-    def _startGUI(self, install, packageName, installerCinnamon, upgrade, update):
-        if self.mainWind:
-            #self.app.window.present()
-            if installerCinnamon:
-                mainWind = self.mainWindC
-            else:
-                mainWind = self.mainWind
-            if(install):
-                self.mainAppWindows._mainWindow.set_title(_("Cinnamon Installer"))
-                self.mainAppWindows._appNameLabel.set_text(_("Cinnamon Installer"))
-                mainWind.preformInstall(packageName);
-            elif(upgrade):
-                self.mainAppWindows._mainWindow.set_title(_("Cinnamon Installer"))
-                self.mainAppWindows._appNameLabel.set_text(_("Cinnamon Installer"))
-                mainWind.preformUpgrade(packageName);
-            elif(update):
-                self.mainAppWindows._mainWindow.set_title(_("Cinnamon Installer"))
-                self.mainAppWindows._appNameLabel.set_text(_("Cinnamon Installer"))
-                mainWind.preformUpdate(packageName);
-            else:
-                self.mainAppWindows._mainWindow.set_title(_("Cinnamon Uninstaller"))
-                self.mainAppWindows._appNameLabel.set_text(_("Cinnamon Uninstaller"))
-                mainWind.preformUninstall(packageName);
 
     def _reloadAsRoot(self, option, value):
         try:

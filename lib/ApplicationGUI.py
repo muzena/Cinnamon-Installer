@@ -89,13 +89,13 @@ class ControlWindow(object):
         self.trans = None
         if transaction is not None:
             self.set_transaction(transaction)
-        self.mainApp.interface.set_translation_domain(DOMAIN)
-
+        self.mainApp.builder.set_translation_domain(DOMAIN)
 
         self.mainApp._terminalExpander.connect("notify::expanded", self._on_expanded)
         self.mainApp._progressColumn.set_cell_data_func(self.mainApp._progressCell, self._data_progress, None)
         self.mainApp._confActionColumn.set_cell_data_func(self.mainApp._confImgCell, self._render_package_icon, None)
         self.mainApp._confActionColumn.set_cell_data_func(self.mainApp._confDesCell, self._render_package_desc, None)
+
         self.signals = {
                         'on_chooseButton_clicked'            : self._on_chooseButton_clicked,
                         'on_terminalTextView_allocate'       : self._on_terminalTextView_allocate, #terminalTextView Installer
@@ -106,7 +106,8 @@ class ControlWindow(object):
                         'on_progressCloseButton_clicked'     : self._on_progressCloseButton_clicked,
                         'on_progressCancelButton_clicked'    : self._on_progressCancelButton_clicked
                        }
-        self.mainApp.interface.connect_signals(self.signals)
+
+        self.mainApp.builder.connect_signals(self.signals)
         self._config_signals()
         self.details = False#Que es esto kit
         self.transaction_done = True#Que es esto pac update after install
@@ -185,6 +186,7 @@ class ControlWindow(object):
         adj.set_value(adj.get_upper() - adj.get_page_size())
 
     def _on_chooseToggleCell_toggled(self, *args):
+        # Bug line?
         self.mainApp._chooseList[line][0] = not self.mainApp._chooseList[line][0]
 
     def _on_preferencesCloseButton_clicked(self, *args):
@@ -296,7 +298,7 @@ class ControlWindow(object):
         GObject.idle_add(self.exec_show)
         time.sleep(0.2)
         self.mainApp.refresh()
-        Gtk.main()
+        Gtk.main() #commented spices
 
     def exec_show(self):
         self.mainApp.show()
@@ -306,7 +308,7 @@ class ControlWindow(object):
         self.trans.cancel()
         self.mainApp.hide()
         print(msg)
-        Gtk.main_quit()
+        Gtk.main_quit()#commented spices
     '''
     def preformUpgrade_clicked(self):
         self.trans.upgrade_system(safe_mode=False, 
@@ -390,6 +392,10 @@ class ControlWindow(object):
         GObject.idle_add(self.exec_cancellable_changed, cancellable)
         time.sleep(0.1)
 
+    def handler_start_childs(self, service, restar_all):
+        GObject.idle_add(self.exec_start_childs, restar_all)
+        time.sleep(0.1)
+
     def handler_percent_childs(self, service, id, name, percent, details):
         GObject.idle_add(self.exec_percent_childs, id, name, percent, details)
         time.sleep(0.1)
@@ -470,7 +476,7 @@ class ControlWindow(object):
             else:
                 self.mainApp._terminalTextView.show()
                 self.mainApp._terminalExpander.set_expanded(False)
-                self.mainApp._terminalExpander.set_sensitive(False)
+                self.mainApp._terminalExpander.set_sensitive(False) #commented spices
         elif status == "DETAILS":
             return
         else:
@@ -479,7 +485,7 @@ class ControlWindow(object):
                 self.terminal.hide()
             else:
                 self.mainApp._terminalTextView.show()
-            self.mainApp._terminalExpander.set_sensitive(False)
+            self.mainApp._terminalExpander.set_sensitive(False) #commented spices
             self.mainApp._terminalExpander.set_expanded(False)
         self.mainApp.refresh()
 
@@ -527,8 +533,13 @@ class ControlWindow(object):
     def exec_cancellable_changed(self, cancellable):
         self.mainApp._cancelButton.set_sensitive(cancellable)
 
+    def exec_start_childs(self, restar_all):
+        self.mainApp._downloadTreeView.get_model().clear()
+
     def exec_percent_childs(self, id, name, percent, details):
         model = self.mainApp._downloadTreeView.get_model()
+        if percent > 100:
+            percent = 100
         try:
             iter = self._download_map[id]
         except KeyError:
@@ -687,6 +698,7 @@ class ControlWindow(object):
         self.trans.connect("EmitIcon", self.handler_icon)
         self.trans.connect("EmitTarget", self.handler_target)
         self.trans.connect("EmitPercent", self.handler_percent)
+        self.trans.connect("EmitDownloadChildStart", self.handler_start_childs)
         self.trans.connect("EmitDownloadPercentChild", self.handler_percent_childs)
         self.trans.connect("EmitTerminalAttached", self.handler_terminal_attached)
         self.trans.connect("EmitNeedDetails", self.handler_need_details)
@@ -801,68 +813,68 @@ class MainApp():
     showing the progress of package manipulation tasks.
     """
     def __init__(self):
-        self.interface = Gtk.Builder()
-        self.interface.set_translation_domain('cinnamon-installer')
-        self.interface.add_from_file(DIR_PATH + 'gui/main.ui')
-        self._mainWindow = self.interface.get_object('Installer')
-        self._appNameLabel = self.interface.get_object('appNameLabel')
-        self._cancelButton = self.interface.get_object('cancelButton')
-        self._closeButton = self.interface.get_object('closeButton')
-        self._terminalExpander = self.interface.get_object('terminalExpander')
-        self._terminalTextView = self.interface.get_object('terminalTextView')
+        self.builder = Gtk.Builder()
+        self.builder.set_translation_domain('cinnamon-installer')
+        self.builder.add_from_file(DIR_PATH + 'gui/main.ui')
+        self._mainWindow = self.builder.get_object('Installer')
+        self._appNameLabel = self.builder.get_object('appNameLabel')
+        self._cancelButton = self.builder.get_object('cancelButton')
+        self._closeButton = self.builder.get_object('closeButton')
+        self._terminalExpander = self.builder.get_object('terminalExpander')
+        self._terminalTextView = self.builder.get_object('terminalTextView')
         self._terminalTextBuffer = self._terminalTextView.get_buffer()
-        self._terminalScrolled = self.interface.get_object('terminalScrolledWindow')
-        self._terminalBox = self.interface.get_object('terminalBox')
-        self._downloadScrolled = self.interface.get_object('downloadScrolledWindow')
-        self._downloadTreeView = self.interface.get_object('downloadTreeView')
-        self._downloadListModel = self.interface.get_object('downloadListModel')
-        self._progressColumn = self.interface.get_object('progressColumn')
-        self._nameColumn = self.interface.get_object('nameColumn')
-        self._descriptionColumn = self.interface.get_object('descriptionColumn')
-        self._progressCell = self.interface.get_object('progressCell')
-        self._nameCell = self.interface.get_object('nameCell')
-        self._descriptionCell = self.interface.get_object('descriptionCell')
+        self._terminalScrolled = self.builder.get_object('terminalScrolledWindow')
+        self._terminalBox = self.builder.get_object('terminalBox')
+        self._downloadScrolled = self.builder.get_object('downloadScrolledWindow')
+        self._downloadTreeView = self.builder.get_object('downloadTreeView')
+        self._downloadListModel = self.builder.get_object('downloadListModel')
+        self._progressColumn = self.builder.get_object('progressColumn')
+        self._nameColumn = self.builder.get_object('nameColumn')
+        self._descriptionColumn = self.builder.get_object('descriptionColumn')
+        self._progressCell = self.builder.get_object('progressCell')
+        self._nameCell = self.builder.get_object('nameCell')
+        self._descriptionCell = self.builder.get_object('descriptionCell')
 
-        self._progressBar = self.interface.get_object('progressBar')
-        self._roleLabel = self.interface.get_object('roleLabel')
-        self._statusLabel = self.interface.get_object('statusLabel')
-        self._actionImage = self.interface.get_object('actionImage')
-        self._confTopLabel = self.interface.get_object('confTopLabel')
-        self._confBottomLabel = self.interface.get_object('confBottomLabel')
+        self._progressBar = self.builder.get_object('progressBar')
+        self._roleLabel = self.builder.get_object('roleLabel')
+        self._statusLabel = self.builder.get_object('statusLabel')
+        self._actionImage = self.builder.get_object('actionImage')
+        self._confTopLabel = self.builder.get_object('confTopLabel')
+        self._confBottomLabel = self.builder.get_object('confBottomLabel')
 
-        self._infoDialog = self.interface.get_object('InfoDialog')
-        self._errorDialog = self.interface.get_object('ErrorDialog')
-        self._errorDetails = self.interface.get_object('errorDetails')
-        self._errorExpander = self.interface.get_object('errorBoxExpander')
+        self._infoDialog = self.builder.get_object('InfoDialog')
+        self._errorDialog = self.builder.get_object('ErrorDialog')
+        self._errorDetails = self.builder.get_object('errorDetails')
+        self._errorExpander = self.builder.get_object('errorBoxExpander')
 
-        self._confDialog = self.interface.get_object('ConfDialog')
-        self._confTreeView = self.interface.get_object('configTreeView')
-        self._confScrolledWindow = self.interface.get_object('confScrolledWindow')
-        self._confActionColumn = self.interface.get_object('confActionColumn')
-        self._confImgCell = self.interface.get_object('confImgCell')
-        self._confDesCell = self.interface.get_object('confDesCell')
+        self._confDialog = self.builder.get_object('ConfDialog')
+        self._confTreeView = self.builder.get_object('configTreeView')
+        self._confScrolledWindow = self.builder.get_object('confScrolledWindow')
+        self._confActionColumn = self.builder.get_object('confActionColumn')
+        self._confImgCell = self.builder.get_object('confImgCell')
+        self._confDesCell = self.builder.get_object('confDesCell')
 
-        self._fileConfDialog = self.interface.get_object('FileConfDialog')
-        self._fileConfTextView = self.interface.get_object('fileConfTextView')
+        self._fileConfDialog = self.builder.get_object('FileConfDialog')
+        self._fileConfTextView = self.builder.get_object('fileConfTextView')
 
-        self._chooseDialog = self.interface.get_object('ChooseDialog')
-        #self._chooseLabelModel = self.interface.get_object('chooseLabelModel')
+        self._chooseDialog = self.builder.get_object('ChooseDialog')
+        #self._chooseLabelModel = self.builder.get_object('chooseLabelModel')
 
-        self._questionDialog = self.interface.get_object('QuestionDialog')
-        self._warningDialog = self.interface.get_object('WarningDialog')
-        self._preferencesWindow = self.interface.get_object('PreferencesWindow')
+        self._questionDialog = self.builder.get_object('QuestionDialog')
+        self._warningDialog = self.builder.get_object('WarningDialog')
+        self._preferencesWindow = self.builder.get_object('PreferencesWindow')
 
-        #self._transactionSum = self.interface.get_object('transaction_sum')
+        #self._transactionSum = self.builder.get_object('transaction_sum')
 
-        #self._downloadList = self.interface.get_object('download_list')
-        #self._column_download = self.interface.get_object('column_download')
+        #self._downloadList = self.builder.get_object('download_list')
+        #self._column_download = self.builder.get_object('column_download')
 
-        self._chooseList = self.interface.get_object('chooseListModel')
-        self._chooseToggleCell = self.interface.get_object('chooseToggleCell')
-        self._enableAURButton = self.interface.get_object('enableAURButton')
-        self._removeUnrequiredDepsButton = self.interface.get_object('RemoveUnrequiredDepsButton')
-        self._refreshPeriodSpinButton = self.interface.get_object('refreshPeriodSpinButton')
-        #refreshPeriodLabel = interface.get_object('refreshPeriodLabel')
+        self._chooseList = self.builder.get_object('chooseListModel')
+        self._chooseToggleCell = self.builder.get_object('chooseToggleCell')
+        self._enableAURButton = self.builder.get_object('enableAURButton')
+        self._removeUnrequiredDepsButton = self.builder.get_object('RemoveUnrequiredDepsButton')
+        self._refreshPeriodSpinButton = self.builder.get_object('refreshPeriodSpinButton')
+        #refreshPeriodLabel = self.builder.get_object('refreshPeriodLabel')
         #self._mainWindow.connect("delete-event", self.closeWindows)
         self._init_common_values()
 

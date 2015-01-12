@@ -42,7 +42,7 @@ if not SETT_PATH in sys.path:
 try:
     from XletInstallerModules import *
     from SettingsInstallerWidgets import *
-    from InstallerProviders import Installer
+    import InstallerProviders
 except Exception:
     e = sys.exc_info()[1]
     print(str(e))
@@ -60,16 +60,16 @@ class Module:
         self.category = "prefs"
         self.icon = "cinnamon-installer"
         self.sidePage = SidePage(_("Cinnamon Installer"), self.icon, self.keywords, content_box, module=self)
-        self.managerBuilder = Gtk.Builder()
+        #self.managerBuilder = Gtk.Builder()
         self.modules = {}
         self.categories_view = None
         self.currentModule = None
-
         self.content_installer_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.store = Gtk.ListStore(str,    str,    object)
         self.bar_heights = 0
         self.first_category_done = False
         self.sidePageHacker = CinnamonSettingsSidePageHacker(self)
+        self.installer = InstallerProviders.get_default()
 
     def on_module_selected(self):
         if not self.loaded:
@@ -141,7 +141,7 @@ class Module:
         self.window = window
         self.sidePage.window = self.window
         #self.sidePage.builder = self.builder
-        self.installer = Installer(self.window, self.builder)
+        self.installer.select_installer_provider(self.window, self.builder)
         modules = self.sidePageHacker._setParentRef(self.window, self.builder)
         self.prepare_swapper(modules)
         self.checked_installer_arg()

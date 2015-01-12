@@ -25,25 +25,29 @@
 
 from __future__ import print_function
 
+import sys, os
+
 try:
     from SettingsInstallerWidgets import SidePage, SectionBg
     import XletInstallerSettings as XletSettings
-    from InstallerProviders import Spice_Harvester
+    from SpicesInstaller import Spice_Harvester
     from threading import Thread, Lock
     #from Spices import *
     try: #aparently not needed
         import urllib2
     except:
         import urllib.request as urllib2
+    try:
+        import html2text
+    except:
+        html2text = None
+    try:
+        import json
+    except ImportError:
+        import simplejson as json
     import gettext
     import locale
-    import os.path
-    import sys
     import time
-
-    import os
-    import os.path
-    import json
     from gi.repository import Gio, Gtk, GObject, Gdk, GdkPixbuf, Pango, GLib
     import dbus
     import cgi
@@ -1911,6 +1915,10 @@ Please contact the developer.""")
                             try: version = extensionData['version']
                             except KeyError: version = ""
                             except ValueError: version = ""
+
+            description = description.replace("&nbsp;", "")
+            if html2text is not None:
+                description = html2text.html2text(description)
 
             name_label = self.builder.get_object("name_label")
             desc_label = self.builder.get_object("desc_label")

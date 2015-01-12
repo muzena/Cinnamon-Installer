@@ -24,7 +24,6 @@
 #  USA
 
 from __future__ import print_function
-
 from ExtensionInstallerCore import ExtensionSidePage
 from gi.repository import GObject
 from gi.repository.Gtk import SizeGroup, SizeGroupMode

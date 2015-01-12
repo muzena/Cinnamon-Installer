@@ -77,6 +77,7 @@ class MainApp():
         self.content_box.c_manager = self.c_manager
         self.installer = cs_installer.Module(self.content_box)
         self.installer._setParentRef(self.mainWindow, self.builder)
+
     def show(self):
         #self.mainWindow.get_window().set_cursor(Gdk.Cursor(Gdk.CursorType.WATCH))
         #self.refresh()

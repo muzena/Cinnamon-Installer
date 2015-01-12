@@ -59,6 +59,18 @@ def format_error(data):
     else:
         return errstr
 
+class InstallerModule():
+    def __init__(self):
+        self.validTypes = ["package"]
+
+    def priority_for_action(self, action):
+        if action in self.validTypes:
+            return 1
+        return 0
+    
+    def get_service(self):
+        return InstallerService()
+
 class InstallerService(GObject.GObject):
     __gsignals__ = {
         'EmitTransactionDone': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
@@ -71,6 +83,7 @@ class InstallerService(GObject.GObject):
         'EmitTarget': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
         'EmitPercent': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_FLOAT,)),
         'EmitDownloadPercentChild': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING, GObject.TYPE_FLOAT, GObject.TYPE_STRING,)),
+        'EmitDownloadChildStart': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_BOOLEAN,)),
         'EmitLogError': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
         'EmitLogWarning': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
         'EmitTransactionStart': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
@@ -155,6 +168,8 @@ class InstallerService(GObject.GObject):
     def is_service_idle(self):
         return self.lock_trans.locked()
 
+    def load_cache(self, async):
+        pass
 
     def _init_configuration(self):
         self.config = {}
@@ -2044,6 +2059,9 @@ class InstallerService(GObject.GObject):
 
     def EmitDownloadPercentChild(self, id, name, percent, details):
         self.emit("EmitDownloadPercentChild", id, name, percent, details)
+
+    def EmitDownloadChildStart(self, restar_all):
+        self.emit("EmitDownloadChildStart", restar_all)
 
     def EmitLogError(self, message):
         self.emit("EmitLogError", message)
