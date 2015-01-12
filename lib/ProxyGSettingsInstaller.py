@@ -93,6 +93,10 @@ def get_proxy_settings():
     """Parse the proxy settings as returned by the gsettings executable
        and return a dictionary with a proxy URL for each scheme ."""
     output = subprocess.check_output(GSETTINGS_CMDLINE.split())
+    try:
+        output = output.decode('utf-8')
+    except:
+        pass
     gsettings = {}
     base_len = len("org.gnome.system.proxy.")
     # pylint: disable=E1103

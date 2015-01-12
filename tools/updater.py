@@ -28,7 +28,7 @@ from gi.repository import Gtk, Gdk, GObject, GLib, Pango
 import urllib.request
 
 '''Important Constants'''
-PROGRAM_NAME = "Cinnamon-Installer"
+PROGRAM_NAME = "cinnamon-installer"
 SELF_NAME = "Updater"
 VERSION_FILE = "ver"
 EXTENSION = ".tar.gz"

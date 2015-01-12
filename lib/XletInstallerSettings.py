@@ -133,7 +133,10 @@ class XletSetting:
         if os.path.exists(path) and os.path.isdir(path):
             if os.path.exists("%s/metadata.json" % path):
                 raw_data = open("%s/metadata.json" % path).read()
-                self.applet_meta = json.loads(raw_data.decode('utf-8'))
+                try:
+                    self.applet_meta = json.loads(raw_data.decode('utf-8'))
+                except:
+                    self.applet_meta = json.loads(raw_data)
                 return True
         return False
 
@@ -146,9 +149,12 @@ class XletSetting:
             instances = os.listdir(path)
             if len(instances) != 0:
                 for instance in instances:
-                    raw_data = open("%s/%s" % (path, instance)).read()
                     try:
-                        js = json.loads(raw_data.decode('utf-8'), object_pairs_hook=collections.OrderedDict)
+                        raw_data = open("%s/%s" % (path, instance)).read().decode('utf-8')
+                    except:
+                        raw_data = open("%s/%s" % (path, instance)).read()
+                    try:
+                        js = json.loads(raw_data, object_pairs_hook=collections.OrderedDict)
                     except:
                         raise Exception("Failed to parse settings JSON data for %s %s" % (self.type, self.uuid))
                     instance_id = instance.split(".json")[0]

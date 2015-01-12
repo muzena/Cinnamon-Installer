@@ -145,26 +145,39 @@ class Settings():
         self.multi_instance = multi_instance
         self.uuid = uuid
         try:
-            self.tUser = gettext.translation(self.uuid, home+"/.local/share/locale").ugettext
+            self.tUser = gettext.translation(self.uuid, home+"/.local/share/locale")
         except IOError:
             try:
-                self.tUser = gettext.translation(self.uuid, "/usr/share/locale").ugettext
+                self.tUser = gettext.translation(self.uuid, "/usr/share/locale")
             except IOError:
                 self.tUser = None
         try:
             if os.path.exists("/usr/share/cinnamon/locale"):
-                self.t = gettext.translation("cinnamon", "/usr/share/cinnamon/locale").ugettext
+                self.t = gettext.translation("cinnamon", "/usr/share/cinnamon/locale")
             else:
-                self.t = gettext.translation("cinnamon", "/usr/share/locale").ugettext
+                self.t = gettext.translation("cinnamon", "/usr/share/locale")
         except IOError:
             self.t = None
+        if self.t:
+            try:
+                self.t = self.t.ugettext
+            except:
+                self.t = self.t.gettext
+        if self.tUser:
+            try:
+                self.tUser = self.tUser.ugettext
+            except:
+                self.tUser = self.tUser.gettext
         self.reload()
 
     def reload (self):
         _file = open(self.file_name)
         raw_data = _file.read()
         self.data = {}
-        self.data = json.loads(raw_data.decode('utf-8'), object_pairs_hook=collections.OrderedDict)
+        try:
+            self.data = json.loads(raw_data.decode('utf-8'), object_pairs_hook=collections.OrderedDict)
+        except:
+            self.data = json.loads(raw_data, object_pairs_hook=collections.OrderedDict) 
         _file.close()
 
     def save (self, name = None):
@@ -234,7 +247,10 @@ class Settings():
     def load_from_file(self, filename):
         new_file = open(filename)
         new_raw = new_file.read()
-        new_json = json.loads(new_raw.decode('utf-8'), object_pairs_hook=collections.OrderedDict)
+        try:
+            new_json = json.loads(new_raw.decode('utf-8'), object_pairs_hook=collections.OrderedDict)
+        except:
+            new_json = json.loads(new_raw, object_pairs_hook=collections.OrderedDict)
         new_file.close()
         copy = self.data
         if copy["__md5__"] != new_json["__md5__"]:
@@ -680,7 +696,7 @@ class ComboBox(Gtk.HBox, BaseWidget):
         self.label = Gtk.Label.new(self.get_desc())
         options = self.get_options()
         for option_name in options.keys():
-            if isinstance(options[option_name], basestring):
+            if self._is_string(options[option_name]):
                 self.model = Gtk.ListStore(str, str)
             elif isinstance(options[option_name], int):
                 self.model = Gtk.ListStore(str, int)
@@ -711,6 +727,12 @@ class ComboBox(Gtk.HBox, BaseWidget):
         self.pack_start(self.combo, False, False, 2)
         self.handler = self.combo.connect("changed", self.on_my_value_changed)
         self.combo.show_all()
+
+    def _is_string(self, obj):
+        try:
+            return isinstance(obj, basestring)
+        except NameError:
+            return isinstance(obj, str)
 
     def on_my_value_changed(self, widget):
         tree_iter = widget.get_active_iter()

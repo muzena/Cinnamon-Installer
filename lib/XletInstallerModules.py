@@ -53,37 +53,6 @@ INSTALLER_LIBS = DIR_PATH + 'lib'
 CINNAMON_MODULES = '/usr/lib/cinnamon-settings/modules'
 CINNAMON_LIBS = '/usr/lib/cinnamon-settings/bin'
 
-CATEGORIES = [
-#   Display name                  ID                    Show it? False to start  Icon
-    {"label": _("Appearance"),    "id": "appear",       "show": False,           "icon": "cs-cat-appearance"},
-    {"label": _("Preferences"),   "id": "prefs",        "show": False,           "icon": "cs-cat-prefs"},
-    {"label": _("Hardware"),      "id": "hardware",     "show": False,           "icon": "cs-cat-hardware"},
-    {"label": _("Administration"),"id": "admin",        "show": False,           "icon": "cs-cat-admin"}
-]
-
-CONTROL_CENTER_MODULES = [
-#   Label                         Module ID             Icon                     Category      Keywords for filter
-    [_("Networking"),             "network",            "cs-network",            "hardware",   _("network, wireless, wifi, ethernet, broadband, internet")],
-    [_("Display"),                "display",            "cs-display",            "hardware",   _("display, screen, monitor, layout, resolution, dual, lcd")],
-    [_("Bluetooth"),              "bluetooth",          "cs-bluetooth",          "hardware",   _("bluetooth, dongle, transfer, mobile")], 
-    [_("Accessibility"),          "universal-access",   "cs-universal-access",   "prefs",      _("magnifier, talk, access, zoom, keys, contrast")],
-    [_("Sound"),                  "sound",              "cs-sound",              "hardware",   _("sound, speakers, headphones, test")],
-    [_("Color"),                  "color",              "cs-color",              "hardware",   _("color, profile, display, printer, output")],
-    [_("Graphics Tablet"),        "wacom",              "cs-tablet",             "hardware",   _("wacom, digitize, tablet, graphics, calibrate, stylus")]
-]
-
-STANDALONE_MODULES = [
-#   Label                  Executable                    Icon                  Category    Keywords for filter
-    [_("Printers"),        "system-config-printer",      "cs-printer",         "hardware", _("printers, laser, inkjet")],    
-    [_("Firewall"),        "gufw",                       "cs-firewall",        "admin",    _("firewall, block, filter, programs")],
-    [_("Languages"),       "mintlocale",                 "cs-language",        "prefs",    _("language, install, foreign")],
-    [_("Login Screen"),    "gksu /usr/sbin/mdmsetup",    "cs-login",           "admin",    _("login, mdm, gdm, manager, user, password, startup, switch")],
-    [_("Startup Programs"),"cinnamon-session-properties","cs-startup-programs","prefs",    _("startup, programs, boot, init, session")],
-    [_("Device Drivers"),  "mintdrivers",                "cs-drivers",         "admin",    _("video, driver, wifi, card, hardware, proprietary, nvidia, radeon, nouveau, fglrx")],
-    [_("Software Sources"),"mintsources",                "cs-sources",         "admin",    _("ppa, repository, package, source, download")],
-    [_("Users and Groups"),"cinnamon-settings-users",    "cs-user-accounts",   "admin",    _("user, users, account, accounts, group, groups, password")]
-]
-
 WIN_WIDTH = 800
 WIN_H_PADDING = 20
 MIN_LABEL_WIDTH = 16
@@ -93,6 +62,15 @@ MAX_PIX_WIDTH = 160
 
 class CinnamonSettingsSidePageHacker():
     def __init__(self, hacker):
+        main_module = sys.modules["__main__"]
+        if ("STANDALONE_MODULES" in main_module.__dict__):
+            self.standalone_modules = main_module.STANDALONE_MODULES
+            self.categories = main_module.CATEGORIES
+            self.control_center_modules = main_module.CONTROL_CENTER_MODULES
+        else:
+            self.standalone_modules = []
+            self.categories = []
+            self.control_center_modules = []
         if not INSTALLER_LIBS in sys.path:
             sys.path.append(INSTALLER_LIBS)
         if not CINNAMON_LIBS in sys.path:
@@ -201,12 +179,12 @@ class CinnamonSettingsSidePageHacker():
             pass
         self.add_moduler_hacker()
 
-        for item in CONTROL_CENTER_MODULES:
+        for item in self.control_center_modules:
             ccmodule = SettingsInstallerWidgets.CCModule(item[0], item[1], item[2], item[3], item[4], self.content_box)
             if ccmodule.process(self.c_manager):
                 self.unsortedSidePages.append((ccmodule.sidePage, ccmodule.name, ccmodule.category, ccmodule.sidePage.name, ccmodule.sidePage))
 
-        for item in STANDALONE_MODULES:
+        for item in self.standalone_modules:
             samodule = SettingsInstallerWidgets.SAModule(item[0], item[1], item[2], item[3], item[4], self.content_box)
             if samodule.process():
                 self.unsortedSidePages.append((samodule.sidePage, samodule.name, samodule.category, samodule.sidePage.name, samodule.sidePage))
@@ -229,12 +207,16 @@ class CinnamonSettingsSidePageHacker():
             sp, sp_id, sp_cat, sp_name, real_sp = sidepage
             if not sp_cat in self.store:  #       Label         Icon    sidePage    Category    Real sidePage
                 self.store[sidepage[2]] = Gtk.ListStore(str,          str,    object,     str,        object)
-                for category in CATEGORIES:
+                for category in self.categories:
                     if category["id"] == sp_cat:
                         category["show"] = True
 
             # Don't allow item names (and their translations) to be more than 30 chars long. It looks ugly and it creates huge gaps in the icon views
             name = str(sp_name)
+            try:
+                name = unicode(name,'utf-8')
+            except:
+                pass
             if len(name) > 30:
                 name = "%s..." % name[:30]
             self.sidePagesIters[sp_id] = (self.store[sp_cat].append([name, sp.icon, sp, sp_cat, real_sp]), sp_cat)
@@ -264,18 +246,39 @@ class CinnamonSettingsSidePageHacker():
         self.window = window
         self.builder = builder
         self.side_view = {}
-        self.side_view_container = self.builder.get_object("category_box")
-        self.side_view_sw = self.builder.get_object("side_view_sw")
-        self.content_box_sw = self.builder.get_object("content_box_sw")
-        self.button_back = self.builder.get_object("button_back")
-        self.search_entry = self.builder.get_object("search_box")
-        self.top_bar = self.builder.get_object("top_bar")
+        if self.builder.get_object(Gtk.Buildable.get_name(window)) is None:
+            listToFind = {"category_box": None, "side_view_sw": None, "content_box_sw": None, "button_back": None, "search_box": None, "top_bar": None}
+            self.findGtkComponnents(window, listToFind)
+            self.side_view_container = listToFind["category_box"]
+            self.side_view_sw = listToFind["side_view_sw"]
+            self.content_box_sw = listToFind["content_box_sw"]
+            self.button_back = listToFind["button_back"]
+            self.search_entry = listToFind["search_box"]
+            self.top_bar = listToFind["top_bar"]
+        else:
+            self.side_view_container = self.builder.get_object("category_box")
+            self.side_view_sw = self.builder.get_object("side_view_sw")
+            self.content_box_sw = self.builder.get_object("content_box_sw")
+            self.button_back = self.builder.get_object("button_back")
+            self.search_entry = self.builder.get_object("search_box")
+            self.top_bar = self.builder.get_object("top_bar")
         #self.search_entry.connect('focus-in-event', self._on_sys_arguments)
         self.side_view_container.connect('size_allocate', self._exploreButtons)
         self.prepare_swapper()
         self.calculate_bar_heights()
         self.load_sidePage()
         return self.modules_hacker
+
+
+    def findGtkComponnents(self, window, listToFind):
+        try:
+            childs = window.get_children()
+            for ch in childs:
+                if Gtk.Buildable.get_name(ch) in listToFind:
+                    listToFind[Gtk.Buildable.get_name(ch)] = ch
+                self.findGtkComponnents(ch, listToFind)
+        except Exception:
+            pass
 
     def prepare_swapper(self):
         for key in self.store.keys():
@@ -295,7 +298,7 @@ class CinnamonSettingsSidePageHacker():
         self.min_pix_length = min(self.min_pix_length, MAX_PIX_WIDTH)
 
     def get_id_for_category_label(self, label):
-        for category in CATEGORIES:
+        for category in self.categories:
             if category["label"] == label:
                 return category["id"]
         return ""
@@ -338,15 +341,18 @@ class CinnamonSettingsSidePageHacker():
                        if isinstance(child, Gtk.Label):
                            last_category_id = self.get_id_for_category_label(child.get_text())
                 if isinstance(category, Gtk.IconView):
-                    self.side_view[last_category_id] = category
-                    GObject.signal_handlers_destroy(self.side_view[last_category_id])
-                
-                    self.side_view[last_category_id].connect("item-activated", self.side_view_nav, last_category_id)
-                    self.side_view[last_category_id].connect("button-release-event", self.button_press, last_category_id)
-                    self.side_view[last_category_id].connect("keynav-failed", self.on_keynav_failed, last_category_id)
-                    self.side_view[last_category_id].connect("selection-changed", self.on_selection_changed, last_category_id)
-                    self.create_cinnamon_order(last_category_id)
+                    self.reconnect_categories(category, last_category_id)
         self.explorer = True
+
+    def reconnect_categories(self, category, category_id):
+       self.side_view[category_id] = category
+       GObject.signal_handlers_destroy(self.side_view[category_id])
+                
+       self.side_view[category_id].connect("item-activated", self.side_view_nav, category_id)
+       self.side_view[category_id].connect("button-release-event", self.button_press, category_id)
+       self.side_view[category_id].connect("keynav-failed", self.on_keynav_failed, category_id)
+       self.side_view[category_id].connect("selection-changed", self.on_selection_changed, category_id)
+       self.create_cinnamon_order(category_id)
 
     def _try_to_check_sys_arg(self):
         if len(sys.argv) > 1 and self.sys_arg:
@@ -361,18 +367,19 @@ class CinnamonSettingsSidePageHacker():
         sidePages = []
         model = self.side_view[last_category_id].get_model()
         iter = model.get_iter_first()
-        storeModel = self.store[last_category_id]
-        iterator = storeModel.get_iter_first()
-        while iter is not None:
-            sp_origin = model.get_value(iter, 2)
-            sp_new = storeModel.get_value(iterator, 4)
-            if not self.compare_sidePage(sp_origin, sp_new):
-                iter_found = self.find_side_page_iter(sp_origin, storeModel, iterator, 4)
-                if iter_found:
-                    storeModel.swap(iterator, iter_found)
-                    iterator = iter_found
-            iter = model.iter_next(iter)
-            iterator = storeModel.iter_next(iterator)
+        if last_category_id in self.store:
+            storeModel = self.store[last_category_id]
+            iterator = storeModel.get_iter_first()
+            while iter is not None:
+                sp_origin = model.get_value(iter, 2)
+                sp_new = storeModel.get_value(iterator, 4)
+                if not self.compare_sidePage(sp_origin, sp_new):
+                    iter_found = self.find_side_page_iter(sp_origin, storeModel, iterator, 4)
+                    if iter_found:
+                        storeModel.swap(iterator, iter_found)
+                        iterator = iter_found
+                iter = model.iter_next(iter)
+                iterator = storeModel.iter_next(iterator)
 
     def find_side_page_iter(self, sidePage, model, iter, pos):
         while iter is not None:
@@ -465,15 +472,15 @@ class CinnamonSettingsSidePageHacker():
                 adj.set_value(iv_y + rect.y)
 
     def on_keynav_failed(self, widget, direction, category):
-        num_cats = len(CATEGORIES)
+        num_cats = len(self.categories)
         current_idx = self.get_cur_cat_index(category)
-        new_cat = CATEGORIES[current_idx]
+        new_cat = self.categories[current_idx]
         ret = False
         dist = 1000
         sel = None
 
         if direction == Gtk.DirectionType.DOWN and current_idx < num_cats - 1:
-            new_cat = CATEGORIES[current_idx + 1]
+            new_cat = self.categories[current_idx + 1]
             col = self.get_cur_column(widget)
             new_cat_view = self.side_view[new_cat["id"]]
             model = new_cat_view.get_model()
@@ -489,7 +496,7 @@ class CinnamonSettingsSidePageHacker():
             self.reposition_new_cat(sel, new_cat_view)
             ret = True
         elif direction == Gtk.DirectionType.UP and current_idx > 0:
-            new_cat = CATEGORIES[current_idx - 1]
+            new_cat = self.categories[current_idx - 1]
             col = self.get_cur_column(widget)
             new_cat_view = self.side_view[new_cat["id"]]
             model = new_cat_view.get_model()
@@ -508,7 +515,7 @@ class CinnamonSettingsSidePageHacker():
 
     def get_cur_cat_index(self, category):
         i = 0
-        for cat in CATEGORIES:
+        for cat in self.categories:
             if category == cat["id"]:
                 return i
             i += 1

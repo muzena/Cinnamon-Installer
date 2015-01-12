@@ -1134,9 +1134,11 @@ class Installer():
     def __init__(self, window, builder):
         self.installer_providers = {}
         self.providers = []
+        self.single_mode = True
         sp_har = Spice_Harvester_Composed()
         self.installer_providers[sp_har.name] = sp_har
         self.select_installer_provider(window, builder)
+
 
     def select_installer_provider(self, window, builder):
          #try to load first cinnamon installer....

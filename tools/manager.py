@@ -23,6 +23,10 @@ from __future__ import print_function
 
 import sys, os
 from gi.repository import Gtk, Gdk, GObject
+try:
+    import urllib2
+except:
+    import urllib.request as urllib2
 
 '''Important Constants'''
 VERSION_FILE = "ver"
@@ -35,6 +39,7 @@ Gtk.IconTheme.get_default().append_search_path(DIR_PATH + "gui/img")
 
 import gettext, locale
 import CApiInstaller
+import ProxyGSettingsInstaller
 
 LOCALE_PATH = DIR_PATH + 'locale'
 DOMAIN = 'cinnamon-installer'
@@ -54,6 +59,12 @@ class MainApp():
     """Graphical Manager for Cinnamon Installer"""
 
     def __init__(self):
+        ps = ProxyGSettingsInstaller.get_proxy_settings()
+        if ps:
+            proxy = urllib2.ProxyHandler(ps)
+        else:
+            proxy = urllib2.ProxyHandler()
+        urllib2.install_opener(urllib2.build_opener(proxy))
         self.currentVersion = self.readVersionFromFile(DIR_PATH + VERSION_FILE)
         self.builder = Gtk.Builder()
         self.builder.set_translation_domain(DOMAIN)

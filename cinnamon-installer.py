@@ -33,7 +33,7 @@ except Exception:
     #import importlib
     #importlib.reload(sys)
 
-import os, argparse
+import os, argparse, stat, subprocess, time
 
 from gi.repository import Gtk, Gdk, GObject, GLib
 GObject.threads_init()
@@ -123,6 +123,11 @@ class InstallerService(dbus.service.Object):
         self.SearchResult(listPackages)
         return listPackages
 
+    @dbus.service.method(dbus_interface='org.cinnamon.Installer')
+    def runningAsRoot(self):
+        return self.installerAction.runningAsRoot()
+
+
     @dbus.service.method(dbus_interface='org.cinnamon.Installer', in_signature='s', out_signature='')
     def validateImport(self, arg):
         self.installerAction.validateImport(arg)
@@ -178,6 +183,12 @@ class InstallerClient():
             return getPackageByNameMethod(packageName)
         return ["error"]
 
+    def runningAsRoot(self):
+        getRunningAsRootMethod = self.installerService.get_dbus_method("runningAsRoot")
+        if(getRunningAsRootMethod):
+            return getRunningAsRootMethod()
+        return False
+
     def printPackageByName(self, packageName):
         listPackage = self.getPackageByName(packageName)
         if listPackage[0] == "error":
@@ -226,20 +237,29 @@ class InstallerAction():
                 self.mainAppWindows.show_error(title, message);
 
     def install(self, packageName):
-        self._startGUI(True, packageName, False, False, False)
+        if self.trans.need_root_access() and (os.geteuid() != 0):
+            self._reloadAsRoot("--ipackage", pkgs_name)
+        else:
+            self._startGUI(True, packageName, False, False, False)
 
     def uninstall(self, packageName):
-        self._startGUI(False, packageName, False, False, False)
+        if self.trans.need_root_access() and (os.geteuid() != 0):
+            self._reloadAsRoot("--upackage", packageName)
+        else:
+            self._startGUI(False, packageName, False, False, False)
 
     def uninstallProgram(self, programName):
-        packageName = self.findPackageForProgram(programName)
-        if packageName:
-            self.uninstall(packageName)
+        if self.trans.need_root_access() and (os.geteuid() != 0):
+            self._reloadAsRoot("--uprogram", programName)
         else:
-            title = _("Not found any package associated with the program '%s'.") % programName
-            message = _("If you detect any problem or you want to contribute,\n" + \
-                  "please visit: <a href='%s'>Cinnamon Installer</a>.") % WEB_SITE_URL
-            self.mainAppWindows.show_error(title, message)
+            packageName = self.findPackageForProgram(programName)
+            if packageName:
+                self.uninstall(packageName)
+            else:
+                title = _("Not found any package associated with the program '%s'.") % programName
+                message = _("If you detect any problem or you want to contribute,\n" + \
+                      "please visit: <a href='%s'>Cinnamon Installer</a>.") % WEB_SITE_URL
+                self.mainAppWindows.show_error(title, message)
 
     def upgradeSpices(self, spicesList):
         self._startGUI(True, spicesList, True, True, False)
@@ -274,6 +294,9 @@ class InstallerAction():
             e = sys.exc_info()[1]
             print(str(e))
         return listPackage
+
+    def runningAsRoot(self):
+        return (os.geteuid() == 0)
 
     def printPackageByName(self, packageName):
         listPackage = self.getPackageByName(packageName)
@@ -362,6 +385,45 @@ class InstallerAction():
                 self.mainAppWindows._appNameLabel.set_text(_("Cinnamon Uninstaller"))
                 mainWind.preformUninstall(packageName);
 
+    def _reloadAsRoot(self, option, value):
+        try:
+            #pathRealod = "/usr/sbin/cinnamon-installer"
+            pathCallBack = os.path.join(DIR_PATH, "cinnamon-installer.py")
+            if self._is_program_in_system("pkexec"):
+                subprocess.call(["sh", "-c", "pkexec env DISPLAY=$DISPLAY XAUTHORITY=$XAUTHORITY " + pathCallBack + " " + option + " " + value])
+                print("reload as root")
+                return True
+            elif self._is_program_in_system("gksudo"):
+                message = _("The program %s is requesting elevated privileges to perform a change on your system.\nEnter the root password to allow this task.") % ("Cinnamon Installer")
+                subprocess.call(["gksudo", "--message", message, pathCallBack + " " + option + " " + value])
+                print("reload as root")
+                return True
+        except Exception:
+            e = sys.exc_info()[1]
+            print("fail to load as root")
+            print(str(e))
+        return False
+
+    def _is_program_in_system(self, programName):
+        path = os.getenv('PATH')
+        for p in path.split(os.path.pathsep):
+            p = os.path.join(p, programName)
+            if os.path.exists(p) and os.access(p, os.X_OK):
+                return True
+        return False
+
+    def _configure(self):
+        st = os.stat(DIR_PATH + "tools/configure.py")
+        os.chmod(DIR_PATH + "tools/configure.py", st.st_mode | stat.S_IEXEC)
+        if ((not os.path.isfile("/usr/share/polkit-1/actions/org.cinnamon.installer.policy")) or
+            (not os.path.isfile("/usr/share/glib-2.0/schemas/org.cinnamon.installer.xml")) or
+            (not os.path.isfile("/usr/sbin/cinnamon-installer"))):
+            process = subprocess.Popen("pkexec '"+ DIR_PATH + "tools/configure.py'", shell=True, stdout=subprocess.PIPE)
+            process.wait()
+            time.sleep(1.2)
+            return (process.returncode == 0)
+        return True
+
     def _readVersionFromFile(self):
         try:
             path = DIR_PATH + "ver"
@@ -387,6 +449,7 @@ if __name__ == "__main__":
     group_action.add_argument('--icinnamon', nargs='?', action='store', type=str, help=_("Install cinnamon components"))
     group_action.add_argument('--rcinnamon', nargs='?', action='store', type=str, help=_("Remove cinnamon components"))
     group_action.add_argument('--ccinnamon', nargs='?', action='store', type=str, help=_("Update cinnamon cache"))
+    group_action.add_argument('--manager', nargs='?', action='store', type=str, help=_("Open the installer manager"))
     args = parser.parse_args()
     #cinnamon need to be called --action "colltype [list of type , separator]"
     try:
@@ -405,6 +468,11 @@ if __name__ == "__main__":
                     if(stopMethod):
                         stopMethod()
                     print("stop service")
+        elif(args.manager): #We need check if installer settings module exist and then call cinnamon-settings instead of the manager
+            if os.path.exists("/usr/lib/cinnamon-settings/modules/cs_installer.py"):
+                os.execvp("cinnamon-settings", ("", "installer", args.manager))
+            else:
+                os.execvp(os.path.join(DIR_PATH, "tools/manager.py"), ('', args.manager))
         else:
             client = None;
             try:

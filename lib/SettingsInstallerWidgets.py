@@ -284,7 +284,7 @@ class SidePage:
         self.keywords = keywords
         self.size = size
         self.topWindow = None
-        self.builder = None
+        #self.builder = None
         if self.module != None:
             self.module.loaded = False
 

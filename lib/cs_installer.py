@@ -22,7 +22,7 @@
 from __future__ import print_function
 
 from gi.repository import Gtk, GObject, Pango
-import sys, gettext, os
+import sys, os
 
 DIR_PATH = "/usr/lib/cinnamon-installer/"
 if not os.path.exists(DIR_PATH):
@@ -102,7 +102,6 @@ class Module:
             self.temporal_side_page.pack_start(self.content_installer_box, True, True, 0)
             self.displayCategories()
         self.buildModule(self.currentModule)
-        
 
     def checked_installer_arg(self):
         mod_len = len(sys.argv)
@@ -134,17 +133,18 @@ class Module:
         self.general_settings_scroll.hide()
         self.packages_manager_paned.show()
 
-    def _setParentRef(self, window, builder):
+    def _setParentRef(self, window, builder = None):
         self.builder = builder
+        if self.builder is None:
+            self.builder = Gtk.Builder()
         self.builder.add_from_file("/usr/lib/cinnamon-settings/cinnamon-settings-spice-progress.ui")
         self.window = window
         self.sidePage.window = self.window
-        self.sidePage.builder = self.builder
+        #self.sidePage.builder = self.builder
         self.installer = Installer(self.window, self.builder)
         modules = self.sidePageHacker._setParentRef(self.window, self.builder)
         self.prepare_swapper(modules)
         self.checked_installer_arg()
-
 
     '''
     def build(self, moduleName):
@@ -196,6 +196,10 @@ class Module:
                sp = self.modules[mod_name].sidePage
                # Don't allow item names (and their translations) to be more than 30 chars long. It looks ugly and it creates huge gaps in the icon views
                name = str(sp.name)
+               try:
+                   name = unicode(name,'utf-8')
+               except:
+                   pass
                if len(name) > 30:
                    name = "%s..." % name[:30]
                self.store.append([name, sp.icon, sp])

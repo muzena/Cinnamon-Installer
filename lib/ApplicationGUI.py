@@ -25,7 +25,7 @@
 from __future__ import print_function
 
 from gi.repository import GObject, Gtk, GLib, Gio
-import os, subprocess, stat, time, difflib, re, gettext, locale, sys
+import os, time, difflib, re, gettext, locale, sys
 
 found_terminal = True
 try:
@@ -126,18 +126,6 @@ class ControlWindow(object):
         else:
             pass #we need to destroy the terminal
 
-    def configure(self):
-        st = os.stat(DIR_PATH + "tools/configure.py")
-        os.chmod(DIR_PATH + "tools/configure.py", st.st_mode | stat.S_IEXEC)
-        if ((not os.path.isfile("/usr/share/polkit-1/actions/org.cinnamon.installer.policy")) or
-            (not os.path.isfile("/usr/share/glib-2.0/schemas/org.cinnamon.installer.xml")) or
-            (not os.path.isfile("/usr/sbin/cinnamon-installer"))):
-            process = subprocess.Popen("pkexec '"+ DIR_PATH + "tools/configure.py'", shell=True, stdout=subprocess.PIPE)
-            process.wait()
-            time.sleep(1.2)
-            return (process.returncode == 0)
-        return True
-
     def findPackageByPath(self, path):
         result = self.trans.search_files(path)
         if len(result) > 0:
@@ -148,42 +136,23 @@ class ControlWindow(object):
         result = self.trans.get_remote_search(pattern)
         return result
 
-    def reloadAsRoot(self, options):
-        if(self.configure()):
-            pathRealod = "/usr/sbin/cinnamon-installer"
-            pathCallBack = DIR_PATH + "Cinnamon-Installer.py"
-            subprocess.call(["pkexec", pathRealod, pathCallBack] + options)
-            #os.execvp('pkexec', ['pkexec', pathRealod, options])
-            print("reload as root")
-            return True
-        else:
-            print("fail to load as root")
-            return False
-        return True
-
     def preformInstall(self, pkgs_name):
-        if self.trans.need_root_access() and (os.geteuid() != 0):
-            self.reloadAsRoot(["--ipackage", pkgs_name])
+        pakages_list = self._create_packages_list(pkgs_name)
+        if len(pakages_list) > 0:
+            self._prepare_ui()
+            self.trans.prepare_transaction_install(pakages_list)
+            self.run()
         else:
-            pakages_list = self._create_packages_list(pkgs_name)
-            if len(pakages_list) > 0:
-                self._prepare_ui()
-                self.trans.prepare_transaction_install(pakages_list)
-                self.run()
-            else:
-                print("Error, not packages founds")
+            print("Error, not packages founds")
 
     def preformUninstall(self, pkgs_name):
-        if self.trans.need_root_access() and (os.geteuid() != 0):
-            self.reloadAsRoot(["--ipackage", pkgs_name])
+        pakages_list = self._create_packages_list(pkgs_name)
+        if len(pakages_list) > 0:
+            self._prepare_ui()
+            self.trans.prepare_transaction_remove(pakages_list)
+            self.run()
         else:
-            pakages_list = self._create_packages_list(pkgs_name)
-            if len(pakages_list) > 0:
-                self._prepare_ui()
-                self.trans.prepare_transaction_remove(pakages_list)
-                self.run()
-            else:
-                print("Error, not packages founds")
+            print("Error, not packages founds")
 
     def _prepare_ui(self):
         self.mainApp._terminalTextBuffer.delete(self.mainApp._terminalTextBuffer.get_start_iter(),
