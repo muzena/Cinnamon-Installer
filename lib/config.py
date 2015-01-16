@@ -30,8 +30,8 @@ import os, glob, argparse, collections, warnings, sys
 
 ABS_PATH = os.path.abspath(__file__)
 DIR_PATH = os.path.dirname(os.path.dirname(ABS_PATH)) + "/"
-INSTALLER_PATH = DIR_PATH + 'config/installer.conf'
-PACMAN_PATH = '/etc/pacman.conf'
+INSTALLER_PATH = DIR_PATH + "config/installer.conf"
+PACMAN_PATH = "/etc/pacman.conf"
 
 class InvalidSyntax(Warning):
     def __init__(self, filename, problem, arg):
@@ -45,60 +45,60 @@ class InvalidSyntax(Warning):
 # Options that may occur several times in a section. Their values should be
 # accumulated in a list.
 LIST_OPTIONS = (
-    'CacheDir',
-    'HoldPkg',
-    'SyncFirst',
-    'IgnoreGroup',
-    'IgnorePkg',
-    'NoExtract',
-    'NoUpgrade',
-    'Server'
+    "CacheDir",
+    "HoldPkg",
+    "SyncFirst",
+    "IgnoreGroup",
+    "IgnorePkg",
+    "NoExtract",
+    "NoUpgrade",
+    "Server"
 )
 
 SINGLE_OPTIONS = (
-    'RootDir',
-    'DBPath',
-    'GPGDir',
-    'LogFile',
-    'UseDelta',
-    'Architecture',
-    'XferCommand',
-    'CleanMethod',
-    'SigLevel',
-    'LocalFileSigLevel',
-    'RemoteFileSigLevel',
-    'RefreshPeriod'
+    "RootDir",
+    "DBPath",
+    "GPGDir",
+    "LogFile",
+    "UseDelta",
+    "Architecture",
+    "XferCommand",
+    "CleanMethod",
+    "SigLevel",
+    "LocalFileSigLevel",
+    "RemoteFileSigLevel",
+    "RefreshPeriod"
 )
 
 BOOLEAN_OPTIONS = (
-    'UseSyslog',
-    'TotalDownload',
-    'CheckSpace',
-    'VerbosePkgLists',
-    'ILoveCandy',
-    'Color',
-    'EnableAUR',
-    'RemoveUnrequiredDeps'
+    "UseSyslog",
+    "TotalDownload",
+    "CheckSpace",
+    "VerbosePkgLists",
+    "ILoveCandy",
+    "Color",
+    "EnableAUR",
+    "RemoveUnrequiredDeps"
 )
 
 def define_siglevel(default_level, conf_string):
     for directive in conf_string.split():
         affect_package = False
         affect_database = False
-        if 'Package' in directive:
+        if "Package" in directive:
             affect_package = True
-        elif 'Database' in directive:
+        elif "Database" in directive:
             affect_database = True
         else:
             affect_package = True
             affect_database = True
-        if 'Never' in directive:
+        if "Never" in directive:
             if affect_package:
                 default_level &= ~pyalpm.SIG_PACKAGE
                 #default_level |= pyalpm.SIG_PACKAGE_SET
             if affect_database:
                 default_level &= ~pyalpm.SIG_DATABASE
-        elif 'Optional' in directive:
+        elif "Optional" in directive:
             if affect_package:
                 default_level |= pyalpm.SIG_PACKAGE
                 default_level |= pyalpm.SIG_PACKAGE_OPTIONAL
@@ -106,7 +106,7 @@ def define_siglevel(default_level, conf_string):
             if affect_database:
                 default_level |= pyalpm.SIG_DATABASE
                 default_level |= pyalpm.SIG_DATABASE_OPTIONAL
-        elif 'Required' in directive:
+        elif "Required" in directive:
             if affect_package:
                 default_level |= pyalpm.SIG_PACKAGE
                 default_level &= ~pyalpm.SIG_PACKAGE_OPTIONAL
@@ -114,7 +114,7 @@ def define_siglevel(default_level, conf_string):
             if affect_database:
                 default_level |= pyalpm.SIG_DATABASE
                 default_level &= ~pyalpm.SIG_DATABASE_OPTIONAL
-        elif 'TrustedOnly' in directive:
+        elif "TrustedOnly" in directive:
             if affect_package:
                 default_level &= ~pyalpm.SIG_PACKAGE_MARGINAL_OK
                 default_level &= ~pyalpm.SIG_PACKAGE_UNKNOWN_OK
@@ -122,7 +122,7 @@ def define_siglevel(default_level, conf_string):
             if affect_database:
                 default_level &= ~pyalpm.SIG_DATABASE_MARGINAL_OK
                 default_level &= ~pyalpm.SIG_DATABASE_UNKNOWN_OK
-        elif 'TrustAll' in directive:
+        elif "TrustAll" in directive:
             if affect_package:
                 default_level |= pyalpm.SIG_PACKAGE_MARGINAL_OK
                 default_level |= pyalpm.SIG_PACKAGE_UNKNOWN_OK
@@ -131,7 +131,7 @@ def define_siglevel(default_level, conf_string):
                 default_level |= pyalpm.SIG_DATABASE_MARGINAL_OK
                 default_level |= pyalpm.SIG_DATABASE_UNKNOWN_OK
         else:
-            print('unrecognized siglevel: {}'.format(conf_string))
+            print("unrecognized siglevel: {}".format(conf_string))
     return default_level
 
 #def merge_siglevel(base_level, over_level):
@@ -158,42 +158,42 @@ def pacman_conf_enumerator(path):
         line = line.strip()
         if len(line) == 0:
             continue
-        if line[0] == '#':
+        if line[0] == "#":
             continue
-        if line[0] == '[' and line[-1] == ']':
+        if line[0] == "[" and line[-1] == "]":
             current_section = line[1:-1]
             continue
         if not current_section:
-            raise InvalidSyntax(f.name, 'statement outside of a section', line)
+            raise InvalidSyntax(f.name, "statement outside of a section", line)
         # read key, value
-        key, equal, value = [x.strip() for x in line.partition('=')]
+        key, equal, value = [x.strip() for x in line.partition("=")]
 
         # include files
-        if equal == '=' and key == 'Include':
+        if equal == "=" and key == "Include":
             filestack.extend(open(f) for f in glob.glob(value))
             continue
-        if current_section != 'options':
+        if current_section != "options":
             # repos only have the Server option
-            if key == 'Server' and equal == '=':
-                yield (current_section, 'Server', value)
-            elif key == 'SigLevel' and equal == '=':
-                yield (current_section, 'SigLevel', value)
+            if key == "Server" and equal == "=":
+                yield (current_section, "Server", value)
+            elif key == "SigLevel" and equal == "=":
+                yield (current_section, "SigLevel", value)
             else:
-                raise InvalidSyntax(f.name, 'invalid key for repository configuration', line)
+                raise InvalidSyntax(f.name, "invalid key for repository configuration", line)
             continue
-        if equal == '=':
+        if equal == "=":
             if key in LIST_OPTIONS:
                 for val in value.split():
                     yield (current_section, key, val)
             elif key in SINGLE_OPTIONS:
                 yield (current_section, key, value)
             else:
-                warnings.warn(InvalidSyntax(f.name, 'unrecognized option', key))
+                warnings.warn(InvalidSyntax(f.name, "unrecognized option", key))
         else:
             if key in BOOLEAN_OPTIONS:
                 yield (current_section, key, 1)
             else:
-                warnings.warn(InvalidSyntax(f.name, 'unrecognized option', key))
+                warnings.warn(InvalidSyntax(f.name, "unrecognized option", key))
 
 class PacmanConfig():
     def __init__(self, conf = None, options = None):
@@ -212,22 +212,22 @@ class PacmanConfig():
 
     def load_from_file(self, filename):
         for section, key, value in pacman_conf_enumerator(filename):
-            if section == 'options':
-                if key == 'Architecture' and value == 'auto':
+            if section == "options":
+                if key == "Architecture" and value == "auto":
                     continue
                 if key in LIST_OPTIONS:
                     self.options.setdefault(key, []).append(value)
                 else:
                     self.options[key] = value
                     # define here default_siglevel to make it usable for servers
-                    if key == 'SigLevel':
+                    if key == "SigLevel":
                         self.default_siglevel = define_siglevel(self.default_siglevel, self.options["SigLevel"])
             else:
                 if not self.repos.get(section):
                     self.repos[section] = ([], self.default_siglevel)
-                if key == 'Server':
+                if key == "Server":
                     self.repos[section][0].append(value)
-                elif key == 'SigLevel':
+                elif key == "SigLevel":
                     urls = self.repos[section][0].copy()
                     new_siglevel = define_siglevel(self.repos[section][1], value)
                     self.repos[section] = (urls, new_siglevel)
@@ -317,27 +317,27 @@ def installer_conf_enumerator(path):
         line = line.strip()
         if len(line) == 0:
             continue
-        if line[0] == '#':
+        if line[0] == "#":
             continue
         # read key, value
-        key, equal, value = [x.strip() for x in line.partition('=')]
+        key, equal, value = [x.strip() for x in line.partition("=")]
 
-        if equal == '=':
+        if equal == "=":
             if key in LIST_OPTIONS:
                 for val in value.split():
                     yield (current_section, key, val)
             elif key in SINGLE_OPTIONS:
-                if key == 'RefreshPeriod':
+                if key == "RefreshPeriod":
                     yield (current_section, key, int(value))
                 else:
                     yield (current_section, key, value)
             else:
-                warnings.warn(InvalidSyntax(f.name, 'unrecognized option', key))
+                warnings.warn(InvalidSyntax(f.name, "unrecognized option", key))
         else:
             if key in BOOLEAN_OPTIONS:
                 yield (current_section, key, True)
             else:
-                warnings.warn(InvalidSyntax(f.name, 'unrecognized option', key))
+                warnings.warn(InvalidSyntax(f.name, "unrecognized option", key))
 
 class InstallerConfig():
     def __init__(self, conf = None):
@@ -360,9 +360,9 @@ class InstallerConfig():
         global refresh_period
         global enable_aur
         global recurse
-        refresh_period = self.options['RefreshPeriod']
-        enable_aur = self.options['EnableAUR']
-        recurse = self.options['RemoveUnrequiredDeps']
+        refresh_period = self.options["RefreshPeriod"]
+        enable_aur = self.options["EnableAUR"]
+        recurse = self.options["RemoveUnrequiredDeps"]
 
     def reload(self):
         self.options["EnableAUR"]  = False
@@ -377,7 +377,7 @@ handle = pacman_conf.initialize_alpm
 installer_conf = InstallerConfig(conf = INSTALLER_PATH)
 holdpkg = []
 syncfirst = []
-if 'HoldPkg' in pacman_conf.options:
-    holdpkg = pacman_conf.options['HoldPkg']
-if 'SyncFirst' in pacman_conf.options:
-    syncfirst = pacman_conf.options['SyncFirst']
+if "HoldPkg" in pacman_conf.options:
+    holdpkg = pacman_conf.options["HoldPkg"]
+if "SyncFirst" in pacman_conf.options:
+    syncfirst = pacman_conf.options["SyncFirst"]

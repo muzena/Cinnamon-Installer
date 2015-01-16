@@ -66,7 +66,7 @@ def proxy_url_from_settings(scheme, gsettings):
     protocol, host, username, pwd = parse_proxy_hostspec(gsettings[scheme + ".host"])
     # if the user did not set a proxy for a type (http/https/ftp) we should
     # return None to ensure that it is not used
-    if host == '':
+    if host == "":
         return None
 
     port = gsettings[scheme + ".port"]
@@ -94,7 +94,7 @@ def get_proxy_settings():
        and return a dictionary with a proxy URL for each scheme ."""
     output = subprocess.check_output(GSETTINGS_CMDLINE.split())
     try:
-        output = output.decode('utf-8')
+        output = output.decode("utf-8")
     except:
         pass
     gsettings = {}
@@ -107,10 +107,10 @@ def get_proxy_settings():
             continue
         if value.startswith("'"):
             parsed_value = value[1:-1]
-        elif value.startswith(('[', '@')):
+        elif value.startswith(("[", "@")):
             parsed_value = value
-        elif value in ('true', 'false'):
-            parsed_value = (value == 'true')
+        elif value in ("true", "false"):
+            parsed_value = (value == "true")
         elif value.isdigit():
             parsed_value = int(value)
         else:

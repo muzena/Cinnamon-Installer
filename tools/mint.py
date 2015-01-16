@@ -67,7 +67,7 @@ class RemoveExecuter(threading.Thread):
             cmd.append("--set-selections-file")
             cmd.append("%s" % f.name)
             f.flush()
-            comnd = Popen(' '.join(cmd), shell=True)
+            comnd = Popen(" ".join(cmd), shell=True)
         returnCode = comnd.wait()
         f.close()        
         sys.exit(0)

@@ -74,7 +74,7 @@ class XletSetting:
         if "icon" in self.applet_meta:
             image = Gtk.Image().new_from_icon_name(self.applet_meta["icon"], Gtk.IconSize.BUTTON)
             self.back_to_list_button.set_image(image)
-            self.back_to_list_button.get_property('image').set_padding(5, 0)
+            self.back_to_list_button.get_property("image").set_padding(5, 0)
         self.back_to_list_button.set_label(self.applet_meta["name"])
         self.back_to_list_button.set_tooltip_text(_("Back to list"))
         self.more_button.set_tooltip_text(_("More actions..."))
@@ -98,7 +98,7 @@ class XletSetting:
     def show (self):
         self.content.show_all()
         try:
-            self.back_to_list_button.get_property('image').show()
+            self.back_to_list_button.get_property("image").show()
         except:
             pass
 
@@ -134,7 +134,7 @@ class XletSetting:
             if os.path.exists("%s/metadata.json" % path):
                 raw_data = open("%s/metadata.json" % path).read()
                 try:
-                    self.applet_meta = json.loads(raw_data.decode('utf-8'))
+                    self.applet_meta = json.loads(raw_data.decode("utf-8"))
                 except:
                     self.applet_meta = json.loads(raw_data)
                 return True
@@ -150,7 +150,7 @@ class XletSetting:
             if len(instances) != 0:
                 for instance in instances:
                     try:
-                        raw_data = open("%s/%s" % (path, instance)).read().decode('utf-8')
+                        raw_data = open("%s/%s" % (path, instance)).read().decode("utf-8")
                     except:
                         raw_data = open("%s/%s" % (path, instance)).read()
                     try:
@@ -243,7 +243,7 @@ class XletSetting:
     def on_highlight_button_clicked(self, widget):
         session_bus = dbus.SessionBus()
         cinnamon_dbus = session_bus.get_object("org.Cinnamon", "/org/Cinnamon")
-        highlight_applet = cinnamon_dbus.get_dbus_method('highlightApplet', 'org.Cinnamon')
+        highlight_applet = cinnamon_dbus.get_dbus_method("highlightApplet", "org.Cinnamon")
         highlight_applet(self.current_id, self.multi_instance)
 
     def on_remove_button_clicked(self, widget):

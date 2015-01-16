@@ -23,6 +23,8 @@ from __future__ import print_function
 
 import sys, os
 from gi.repository import Gtk, Gdk, GObject
+GObject.threads_init()
+
 try:
     import urllib2
 except:
@@ -32,7 +34,7 @@ except:
 VERSION_FILE = "ver"
 ABS_PATH = os.path.abspath(__file__)
 DIR_PATH = os.path.dirname(os.path.dirname(ABS_PATH)) + "/"
-sys.path.append(DIR_PATH + 'lib')
+sys.path.append(DIR_PATH + "lib")
 sys.path.append(DIR_PATH + "installer_modules")
 sys.path.append(DIR_PATH + "settings_modules")
 Gtk.IconTheme.get_default().append_search_path(DIR_PATH + "gui/img")
@@ -41,12 +43,12 @@ import gettext, locale
 import CApiInstaller
 import ProxyGSettingsInstaller
 
-LOCALE_PATH = DIR_PATH + 'locale'
-DOMAIN = 'cinnamon-installer'
+LOCALE_PATH = DIR_PATH + "locale"
+DOMAIN = "cinnamon-installer"
 #locale.bindtextdomain(DOMAIN , LOCALE_PATH)
-#locale.bind_textdomain_codeset(DOMAIN , 'UTF-8')
+#locale.bind_textdomain_codeset(DOMAIN , "UTF-8")
 #gettext.bindtextdomain(DOMAIN, LOCALE_PATH)
-#gettext.bind_textdomain_codeset(DOMAIN , 'UTF-8')
+#gettext.bind_textdomain_codeset(DOMAIN , "UTF-8")
 #gettext.textdomain(DOMAIN)
 #_ = gettext.gettext
 
@@ -68,9 +70,9 @@ class MainApp():
         self.currentVersion = self.readVersionFromFile(DIR_PATH + VERSION_FILE)
         self.builder = Gtk.Builder()
         self.builder.set_translation_domain(DOMAIN)
-        self.builder.add_from_file(DIR_PATH + 'gui/mainManager.ui')
-        self.mainWindow = self.builder.get_object('main_window')
-        self.content_box = self.builder.get_object('content_box')
+        self.builder.add_from_file(DIR_PATH + "gui/mainManager.ui")
+        self.mainWindow = self.builder.get_object("main_window")
+        self.content_box = self.builder.get_object("content_box")
         self.mainWindow.connect("destroy", self.closeWindows)
         self.loop = GObject.MainLoop()
         self.c_manager = CApiInstaller.CManager()
@@ -125,8 +127,8 @@ class MainApp():
     def readVersionFromFile(self, path):
         try:
             if os.path.isfile(path):
-                infile = open(path, 'r')
-                result = infile.readline().rstrip('\r\n')
+                infile = open(path, "r")
+                result = infile.readline().rstrip("\r\n")
                 float(result) #Test info
                 return result
         except Exception:

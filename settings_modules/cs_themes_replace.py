@@ -84,7 +84,7 @@ class ThemesViewSidePage (ExtensionSidePage):
         return string
 
     def getAdditionalPage(self):
-        if not self.scrolled_window:           
+        if not self.scrolled_window:         
             self.scrolled_window = Gtk.ScrolledWindow()
             self.scrolled_window.label = Gtk.Label.new(_("General Themes Settings"))
             config_vbox = Gtk.VBox()
@@ -97,15 +97,15 @@ class ThemesViewSidePage (ExtensionSidePage):
 
             section = Section(_("Themes")) 
             try:
-                self.icon_chooser = self.create_button_chooser(self.if_settings, 'icon-theme', 'icons', 'icons',
+                self.icon_chooser = self.create_button_chooser(self.if_settings, "icon-theme", "icons", "icons",
                                                                button_picture_size=ICON_SIZE, menu_pictures_size=ICON_SIZE, num_cols=4)
-                self.cursor_chooser = self.create_button_chooser(self.if_settings, 'cursor-theme', 'icons', 'cursors',
+                self.cursor_chooser = self.create_button_chooser(self.if_settings, "cursor-theme", "icons", "cursors",
                                                                button_picture_size=32, menu_pictures_size=32, num_cols=4)
-                self.theme_chooser = self.create_button_chooser(self.if_settings, 'gtk-theme', 'themes', 'gtk-3.0',
+                self.theme_chooser = self.create_button_chooser(self.if_settings, "gtk-theme", "themes", "gtk-3.0",
                                                                button_picture_size=35, menu_pictures_size=120, num_cols=4)
-                self.metacity_chooser = self.create_button_chooser(self.wm_settings, 'theme', 'themes', 'metacity-1',
+                self.metacity_chooser = self.create_button_chooser(self.wm_settings, "theme", "themes", "metacity-1",
                                                                button_picture_size=32, menu_pictures_size=100, num_cols=4)
-                self.cinnamon_chooser = self.create_button_chooser(self.cinnamon_settings, 'name', 'themes', 'cinnamon',
+                self.cinnamon_chooser = self.create_button_chooser(self.cinnamon_settings, "name", "themes", "cinnamon",
                                                                button_picture_size=60, menu_pictures_size=100, num_cols=4)
                 section.add(self.make_group(_("Window borders"), self.metacity_chooser))
                 section.add(self.make_group(_("Icons"), self.icon_chooser)) 
@@ -139,7 +139,7 @@ class ThemesViewSidePage (ExtensionSidePage):
                         file_monitor.connect("changed", self.on_file_changed)
                         self.monitors.append(file_monitor)
 
-                self.refresh()
+                self.refresh() 
         return self.scrolled_window
 
     def on_file_changed(self, file, other, event, data):
@@ -162,8 +162,9 @@ class ThemesViewSidePage (ExtensionSidePage):
             themes = chooser[2]
             callback = chooser[3]
             payload = (chooser_obj, path_suffix, themes, callback)
-            thread = Thread(target = self.refresh_chooser, args=(payload,))
-            thread.start()
+            self.refresh_chooser(payload)
+            #thread = Thread(target = self.refresh_chooser, args=(payload,))
+            #thread.start()
             #thread.start_new_thread(self.refresh_chooser, (payload,))
 
     def refresh_chooser(self, payload):
@@ -172,17 +173,18 @@ class ThemesViewSidePage (ExtensionSidePage):
         inc = 1.0
         theme_len = len(themes)
         if theme_len > 0:
-            inc = 1.0 / theme_len
-
+            inc = 1.0 / theme_len 
         if path_suffix == "icons":            
             for theme in themes:
+                if theme == "default":
+                    theme = Gtk.Settings.get_default().get_property('gtk-icon-theme-name')
                 icon_theme = Gtk.IconTheme()
                 icon_theme.set_custom_theme(theme)
                 folder = icon_theme.lookup_icon("folder", ICON_SIZE, Gtk.IconLookupFlags.FORCE_SVG)
                 if folder:
                     path = folder.get_filename()
                     chooser.add_picture(path, callback, title=theme, id=theme)
-                GObject.timeout_add(5, self.increment_progress, (chooser,inc))
+                GObject.timeout_add(5, self.increment_progress, (chooser,inc)) 
         else:
             if path_suffix == "cinnamon":
                 chooser.add_picture("/usr/share/cinnamon/theme/thumbnail.png", callback, title="cinnamon", id="cinnamon") 
@@ -329,6 +331,8 @@ class ThemesViewSidePage (ExtensionSidePage):
         sortArr(valid)
         res = []
         for i in valid:
+            if i[0] == "default":
+                i[0] = Gtk.Settings.get_default().get_property('gtk-icon-theme-name')
             res.append((i[0], i[1]))
         return res
     

@@ -37,37 +37,37 @@ except (ImportError, Exception):
 ABS_PATH = os.path.abspath(__file__)
 DIR_PATH = os.path.dirname(os.path.dirname(ABS_PATH)) + "/"
 
-LOCALE_PATH = DIR_PATH + 'locale'
-DOMAIN = 'cinnamon-installer'
+LOCALE_PATH = DIR_PATH + "locale"
+DOMAIN = "cinnamon-installer"
 locale.bindtextdomain(DOMAIN , LOCALE_PATH)
-locale.bind_textdomain_codeset(DOMAIN , 'UTF-8')
+locale.bind_textdomain_codeset(DOMAIN , "UTF-8")
 gettext.bindtextdomain(DOMAIN, LOCALE_PATH)
-gettext.bind_textdomain_codeset(DOMAIN , 'UTF-8')
+gettext.bind_textdomain_codeset(DOMAIN , "UTF-8")
 gettext.textdomain(DOMAIN)
 _ = gettext.gettext
 
 CI_STATUS = {
-    'RESOLVING_DEPENDENCIES': "Resolving dep",
-    'SETTING_UP': "Setting up",
-    'LOADING_CACHE': "Loading cache",
-    'AUTHENTICATING': "authenticating",
-    'DOWNLOADING': "Downloading",
-    'DOWNLOADING_REPO': "Downloading repo",
-    'RUNNING': "Running",
-    'COMMITTING': "Committing",
-    'INSTALLING': "Installing",
-    'REMOVING': "Removing",
-    'CHECKING': "Checking",
-    'FINISHED': "Finished",
-    'WAITING': "Waiting",
-    'WAITING_LOCK': "Waiting lock",
-    'WAITING_MEDIUM': "Waiting medium",
-    'WAITING_CONFIG_FILE': "Waiting config file",
-    'CANCELLING': "Cancelling",
-    'CLEANING_UP': "Cleaning up",
-    'QUERY': "Query",
-    'DETAILS': "Details",
-    'UNKNOWN': "Unknown"
+    "RESOLVING_DEPENDENCIES": "Resolving dep",
+    "SETTING_UP": "Setting up",
+    "LOADING_CACHE": "Loading cache",
+    "AUTHENTICATING": "authenticating",
+    "DOWNLOADING": "Downloading",
+    "DOWNLOADING_REPO": "Downloading repo",
+    "RUNNING": "Running",
+    "COMMITTING": "Committing",
+    "INSTALLING": "Installing",
+    "REMOVING": "Removing",
+    "CHECKING": "Checking",
+    "FINISHED": "Finished",
+    "WAITING": "Waiting",
+    "WAITING_LOCK": "Waiting lock",
+    "WAITING_MEDIUM": "Waiting medium",
+    "WAITING_CONFIG_FILE": "Waiting config file",
+    "CANCELLING": "Cancelling",
+    "CLEANING_UP": "Cleaning up",
+    "QUERY": "Query",
+    "DETAILS": "Details",
+    "UNKNOWN": "Unknown"
 }
 
 #__all__ = ("DiffView")
@@ -84,7 +84,6 @@ class ControlWindow(object):
         #self.debconf = True
         self._expanded_size = None
         self.terminal = None
-        self._signals = []
         self._download_map = {}
         self.trans = None
         if transaction is not None:
@@ -97,24 +96,25 @@ class ControlWindow(object):
         self.mainApp._confActionColumn.set_cell_data_func(self.mainApp._confDesCell, self._render_package_desc, None)
 
         self.signals = {
-                        'on_chooseButton_clicked'            : self._on_chooseButton_clicked,
-                        'on_terminalTextView_allocate'       : self._on_terminalTextView_allocate, #terminalTextView Installer
-                        'on_chooseToggleCell_toggled'        : self._on_chooseToggleCell_toggled,  #terminalTextView ChooseDialog
-                        'on_preferencesCloseButton_clicked'  : self._on_preferencesCloseButton_clicked, #PreferencesWindow
-                        'on_preferencesWindow_delete_event'  : self._on_preferencesWindow_delete_event,
-                        'on_preferencesAceptButton_clicked'  : self._on_preferencesAceptButton_clicked,
-                        'on_progressCloseButton_clicked'     : self._on_progressCloseButton_clicked,
-                        'on_progressCancelButton_clicked'    : self._on_progressCancelButton_clicked
+                        "on_chooseButton_clicked"            : self._on_chooseButton_clicked,
+                        "on_terminalTextView_allocate"       : self._on_terminalTextView_allocate, #terminalTextView Installer
+                        "on_chooseToggleCell_toggled"        : self._on_chooseToggleCell_toggled,  #terminalTextView ChooseDialog
+                        "on_preferencesCloseButton_clicked"  : self._on_preferencesCloseButton_clicked, #PreferencesWindow
+                        "on_preferencesWindow_delete_event"  : self._on_preferencesWindow_delete_event,
+                        "on_preferencesAceptButton_clicked"  : self._on_preferencesAceptButton_clicked,
+                        "on_progressCloseButton_clicked"     : self._on_progressCloseButton_clicked,
+                        "on_progressCancelButton_clicked"    : self._on_progressCancelButton_clicked
                        }
 
         self.mainApp.builder.connect_signals(self.signals)
-        self._config_signals()
         self.details = False#Que es esto kit
         self.transaction_done = True#Que es esto pac update after install
         self.tag_count = 0
 
     def set_transaction(self, transaction):
+        self.disconnect_all_signals()
         self.trans = transaction
+        self.connect_all_signals()
         if found_terminal and self.trans.have_terminal():
             self.terminal = Vte.Terminal()
             self._master, self._slave = pty.openpty()
@@ -127,58 +127,21 @@ class ControlWindow(object):
         else:
             pass #we need to destroy the terminal
 
-    def findPackageByPath(self, path):
-        result = self.trans.search_files(path)
-        if len(result) > 0:
-            return result[0]
-        return None
-
-    def searchUnistalledPackages(self, pattern):
-        result = self.trans.get_remote_search(pattern)
-        return result
-
-    def preformInstall(self, pkgs_name):
-        pakages_list = self._create_packages_list(pkgs_name)
-        if len(pakages_list) > 0:
-            self._prepare_ui()
-            self.trans.prepare_transaction_install(pakages_list)
-            self.run()
-        else:
-            print("Error, not packages founds")
-
-    def preformUninstall(self, pkgs_name):
-        pakages_list = self._create_packages_list(pkgs_name)
-        if len(pakages_list) > 0:
-            self._prepare_ui()
-            self.trans.prepare_transaction_remove(pakages_list)
-            self.run()
-        else:
-            print("Error, not packages founds")
-
-    def _prepare_ui(self):
+    def restar_window(self):
         self.mainApp._terminalTextBuffer.delete(self.mainApp._terminalTextBuffer.get_start_iter(),
                                                 self.mainApp._terminalTextBuffer.get_end_iter())
         self.mainApp._cancelButton.set_visible(False)
         self.mainApp._closeButton.set_visible(False)
-        self.mainApp._actionImage.set_from_icon_name('cinnamon-installer-setup', Gtk.IconSize.BUTTON)
+        self.mainApp._actionImage.set_from_icon_name("cinnamon-installer-setup", Gtk.IconSize.BUTTON)
         self.mainApp._terminalExpander.set_visible(True)
-        self.mainApp._statusLabel.set_text(_('Preparing')+'...')
-        self.mainApp._roleLabel.set_text(_('Preparing')+'...')
-        self.mainApp._progressBar.set_text('')
+        self.mainApp._statusLabel.set_text(_("Preparing")+"...")
+        self.mainApp._roleLabel.set_text(_("Preparing")+"...")
+        self.mainApp._progressBar.set_text("")
         self.mainApp._progressBar.set_fraction(0)
         if (self.terminal):
             self.mainApp._terminalTextView.hide()
         else:
             self.mainApp._terminalTextView.show()
-        self.mainApp.refresh()
-
-    def _create_packages_list(self, pkgs_name):
-        unfilter_pkg_list = pkgs_name.split(",")
-        pkg_list = []
-        for pkg in unfilter_pkg_list:
-            if ((pkg != "") and (pkg not in pkg_list)):
-                pkg_list.append(pkg)
-        return pkg_list
 
     def _on_terminalTextView_allocate(self, *args):
         #auto-scrolling method
@@ -199,9 +162,9 @@ class ControlWindow(object):
 
     def _on_preferencesAceptButton_clicked(self, *args):
         data = []
-        data.append(('EnableAUR', str(self.mainApp._enableAURButton.get_active())))
-        data.append(('RemoveUnrequiredDeps', str(self.mainApp._removeUnrequiredDepsButton.get_active())))
-        data.append(('RefreshPeriod', str(self.mainApp._refreshPeriodSpinButton.get_value_as_int())))
+        data.append(("EnableAUR", str(self.mainApp._enableAURButton.get_active())))
+        data.append(("RemoveUnrequiredDeps", str(self.mainApp._removeUnrequiredDepsButton.get_active())))
+        data.append(("RefreshPeriod", str(self.mainApp._refreshPeriodSpinButton.get_value_as_int())))
         self.trans.write_config(data)
         self.mainApp._preferencesWindow.hide()
 
@@ -213,10 +176,9 @@ class ControlWindow(object):
 
     def _on_chooseButton_clicked(self, *args):# no existe
         self.mainApp._chooseDialog.hide()
-        self.mainApp.refresh()
         #for row in self.mainApp._chooseList:
         #    if row[0] is True:
-        #        self.trans.resolve_package_providers(row[1].split(':')[0]) # split done in case of optdep choice
+        #        self.trans.resolve_package_providers(row[1].split(":")[0]) # split done in case of optdep choice
 
     def _on_expanded(self, expander, param):
         # Make the dialog resizable if the expander is expanded
@@ -293,14 +255,11 @@ class ControlWindow(object):
         cell.set_property("markup", text)
 
     def run(self):
-        self.transaction_done = False
-        self.mainApp._closeButton.hide()
-        GObject.idle_add(self.exec_show)
-        time.sleep(0.2)
-        self.mainApp.refresh()
-        Gtk.main() #commented spices
+        self.mainApp.run()
 
-    def exec_show(self):
+    def show(self):
+        self.transaction_done = False
+        self.restar_window()
         self.mainApp.show()
 
     def exiting(self, msg):
@@ -308,34 +267,8 @@ class ControlWindow(object):
         self.trans.cancel()
         self.mainApp.hide()
         print(msg)
-        Gtk.main_quit()#commented spices
-    '''
-    def preformUpgrade_clicked(self):
-        self.trans.upgrade_system(safe_mode=False, 
-                               reply_handler=self._simulate_trans,
-                               error_handler=self._on_error)
-        self.run()
+        self.mainApp.exit()
 
-    def preformUpdate(self):
-        self.trans.update_cache(repaly_handler=self._run_transaction,
-                             error_handler=self._on_error)
-        self.run()
-
-    def preformInstallFile(self):
-        chooser = Gtk.FileChooserDialog(parent=self.mainWindow,
-                                        action=Gtk.FileChooserAction.OPEN,
-                                        buttons=(Gtk.STOCK_CANCEL,
-                                                 Gtk.ResponseType.CANCEL,
-                                                 Gtk.STOCK_OPEN,
-                                                 Gtk.ResponseType.OK))
-        chooser.set_local_only(True)
-        chooser.run()
-        chooser.hide()
-        path = chooser.get_filename()
-        self.trans.install_file(path, reply_handler=self._simulate_trans,
-                             error_handler=self._on_error)
-        self.run()
-    '''
     def handler_confirm_deps(self, service, conf_info):
         GObject.idle_add(self.exec_confirm_deps, conf_info)
         time.sleep(0.1) 
@@ -430,21 +363,17 @@ class ControlWindow(object):
         else:
             self.trans.cancel()
             self.exec_transaction_error(_("Transaction canceled:"), _("Transaction fail."), )
-            self.mainApp.refresh()
-            self.exiting('')
+            self.exiting("")
         ''' For pac
         self.mainApp._confDialog.hide()
-        self.mainApp.refresh()
         self.trans.finalize()
-        self.mainApp.refresh()
         if not self.trans.details:
             self.trans.release()
-            self.exiting('')
+            self.exiting("")
         '''
 
     def exec_transaction_start(self, message):
         self.mainApp._cancelButton.hide()
-        self.mainApp.refresh()
 
     def exec_reply(self, message):
         end_iter = self.mainApp._terminalTextBuffer.get_end_iter()
@@ -487,48 +416,43 @@ class ControlWindow(object):
                 self.mainApp._terminalTextView.show()
             self.mainApp._terminalExpander.set_sensitive(False) #commented spices
             self.mainApp._terminalExpander.set_expanded(False)
-        self.mainApp.refresh()
 
     def exec_role(self, role_translate):
         end_iter = self.mainApp._terminalTextBuffer.get_end_iter()
         self.mainApp._terminalTextBuffer.insert(end_iter, role_translate+"\n")
         self.mainApp._roleLabel.set_markup("<big><b>%s</b></big>" % role_translate)
-        self.mainApp.refresh()
 
     def exec_icon(self, icon_name):
         if icon_name is None:
             icon_name = Gtk.STOCK_MISSING_IMAGE
         self.mainApp._actionImage.set_from_icon_name(icon_name, Gtk.IconSize.BUTTON)
-        self.mainApp.refresh()
 
     def exec_percent(self, percent):
-        if percent > 1:
+        if percent > 100:
+            self.mainApp._progressBar.set_fraction(1)
             self.mainApp._progressBar.pulse()
-            if percent > 2:
-                self.mainApp._progressBar.set_text('')
+            if percent > 200:
+                self.mainApp._progressBar.set_text("")
         else:
-            self.mainApp._progressBar.set_fraction(percent)
-        self.mainApp.refresh()
+            self.mainApp._progressBar.set_fraction(float(percent)/100)
 
     def exec_target(self, text):
         self.mainApp._progressBar.set_text(text)
-        self.mainApp.refresh()
 
     def exec_need_details(self, need):
         self.mainApp._terminalExpander.set_expanded(need)
         self.details = need;
-        self.mainApp.refresh()
 
     def exec_updates(self, syncfirst=True, updates=None):
         #syncfirst, updates = update_data
         if self.transaction_done:
-            self.exiting('')
+            self.exiting("")
         elif updates:
-            self.mainApp._errorDialog.format_secondary_text(_('Some updates are available.\nPlease update your system first'))
+            self.mainApp._errorDialog.format_secondary_text(_("Some updates are available.\nPlease update your system first"))
             response = self.mainApp._errorDialog.run()
             if response:
                 self.mainApp._errorDialog.hide()
-                self.exiting('')
+                self.exiting("")
 
     def exec_cancellable_changed(self, cancellable):
         self.mainApp._cancelButton.set_sensitive(cancellable)
@@ -579,7 +503,7 @@ class ControlWindow(object):
         tags = textbuffer.get_tag_table()
         name = "error"+str(self.tag_count)
         tag_default = Gtk.TextTag.new(name)
-        tag_default.set_properties(background='red')
+        tag_default.set_properties(background="red")
         tags.add(tag_default)
         self._insert_tagged_text(end_iter, textbuffer, msg, name)
         self.tag_count += 1
@@ -590,7 +514,7 @@ class ControlWindow(object):
         tags = textbuffer.get_tag_table()
         name = "warning"+str(self.tag_count)
         tag_default = Gtk.TextTag.new(name)
-        tag_default.set_properties(background='yellow')
+        tag_default.set_properties(background="yellow")
         tags.add(tag_default)
         self._insert_tagged_text(end_iter, textbuffer, msg, name)
         self.tag_count += 1
@@ -603,7 +527,7 @@ class ControlWindow(object):
                 provider_selected  = set()
                 for row in self.mainApp.choose_list:
                     if row[0] is True:
-                        provider_selected .add(row[1].split(':')[0]) # split done in case of optdep choice
+                        provider_selected .add(row[1].split(":")[0]) # split done in case of optdep choice
         else:
             confirmation = True
         if confirmation:
@@ -612,9 +536,8 @@ class ControlWindow(object):
         else:
             self.trans.release()
             self.exec_transaction_error(_("Transaction canceled:"), _("Transaction fail."), )
-            self.mainApp.refresh()
             self.trans.release()
-            self.exiting('')
+            self.exiting("")
 
     def exec_config_change(self, data):
         pass
@@ -636,15 +559,15 @@ class ControlWindow(object):
         tags.add(tag_default)
         tag_add = Gtk.TextTag.new("add")
         tag_add.set_properties(font="Mono",
-                               background='#8ae234')
+                               background="#8ae234")
         tags.add(tag_add)
         tag_remove = Gtk.TextTag.new("remove")
         tag_remove.set_properties(font="Mono",
-                                  background='#ef2929')
+                                  background="#ef2929")
         tags.add(tag_remove)
         tag_num = Gtk.TextTag.new("number")
         tag_num.set_properties(font="Mono",
-                               background='#eee')
+                               background="#eee")
         tags.add(tag_num)
         try:
             with open(from_path) as fp:
@@ -686,69 +609,69 @@ class ControlWindow(object):
         iterOffset = textbuffer.get_iter_at_offset(offset)
         textbuffer.apply_tag_by_name(tag, iterOffset, iter)
 
-    def _config_signals(self):
-        self.trans.connect("EmitTransactionConfirmation", self.handler_confirm_deps)
-        self.trans.connect("EmitTransactionDone", self.handler_reply)
-        self.trans.connect("EmitTransactionError", self.handler_transaction_error)
-        self.trans.connect("EmitTransactionCancellable", self.handler_cancellable_changed)
-        self.trans.connect("EmitTransactionStart", self.handler_transaction_start)
-        self.trans.connect("EmitAvailableUpdates", self.handler_updates)
-        self.trans.connect("EmitStatus", self.handler_status)
-        self.trans.connect("EmitRole", self.handler_role)
-        self.trans.connect("EmitIcon", self.handler_icon)
-        self.trans.connect("EmitTarget", self.handler_target)
-        self.trans.connect("EmitPercent", self.handler_percent)
-        self.trans.connect("EmitDownloadChildStart", self.handler_start_childs)
-        self.trans.connect("EmitDownloadPercentChild", self.handler_percent_childs)
-        self.trans.connect("EmitTerminalAttached", self.handler_terminal_attached)
-        self.trans.connect("EmitNeedDetails", self.handler_need_details)
-        self.trans.connect("EmitLogError", self.handler_log_error)
-        self.trans.connect("EmitLogWarning", self.handler_log_warning)
-        self.trans.connect("EmitConflictFile", self.handler_conflict_file)
-        self.trans.connect("EmitChooseProvider", self.handler_choose_provider)
-        self.trans.connect("EmitReloadConfig", self.handler_config_change)
-        self.trans.connect("EmitMediumRequired", self.handler_medium_required)
+    def connect_all_signals(self):
+        if self.trans:
+            self.trans.connect("EmitTransactionConfirmation", self.handler_confirm_deps)
+            self.trans.connect("EmitTransactionDone", self.handler_reply)
+            self.trans.connect("EmitTransactionError", self.handler_transaction_error)
+            self.trans.connect("EmitTransactionCancellable", self.handler_cancellable_changed)
+            self.trans.connect("EmitTransactionStart", self.handler_transaction_start)
+            self.trans.connect("EmitAvailableUpdates", self.handler_updates)
+            self.trans.connect("EmitStatus", self.handler_status)
+            self.trans.connect("EmitRole", self.handler_role)
+            self.trans.connect("EmitIcon", self.handler_icon)
+            self.trans.connect("EmitTarget", self.handler_target)
+            self.trans.connect("EmitPercent", self.handler_percent)
+            self.trans.connect("EmitDownloadChildStart", self.handler_start_childs)
+            self.trans.connect("EmitDownloadPercentChild", self.handler_percent_childs)
+            self.trans.connect("EmitTerminalAttached", self.handler_terminal_attached)
+            self.trans.connect("EmitNeedDetails", self.handler_need_details)
+            self.trans.connect("EmitLogError", self.handler_log_error)
+            self.trans.connect("EmitLogWarning", self.handler_log_warning)
+            self.trans.connect("EmitConflictFile", self.handler_conflict_file)
+            self.trans.connect("EmitChooseProvider", self.handler_choose_provider)
+            self.trans.connect("EmitReloadConfig", self.handler_config_change)
+            self.trans.connect("EmitMediumRequired", self.handler_medium_required)
+
+    def disconnect_all_signals(self):    
+        if self.trans:
+            self.trans.disconnect_all_signals()
     '''
     def get_updates(self):
         self.updateGtk()
-        self.status_handler(None, _('Checking for updates')+'...')
-        self.icon_handler(None, 'cinnamon-installer-search')
-        self.target_handler(None, '')
+        self.status_handler(None, _("Checking for updates")+"...")
+        self.icon_handler(None, "cinnamon-installer-search")
+        self.target_handler(None, "")
         self.percent_handler(None, 0)
         self.mainApp._cancelButton.set_visible(False)
         self.mainApp._closeButton.set_visible(False)
         self.mainApp._terminalExpander.set_visible(False)
         self.mainApp.show()
-        self.mainApp.refresh()
         self.trans.checkUpdates()
-        self.mainApp.refresh()
 
     def refresh(self, force_update = False):
         self.updateGtk()
-        self.status_handler(None, _('Refreshing')+'...')
-        self.icon_handler(None, 'cinnamon-installer-refresh')
-        self.target_handler(None, '')
+        self.status_handler(None, _("Refreshing")+"...")
+        self.icon_handler(None, "cinnamon-installer-refresh")
+        self.target_handler(None, "")
         self.percent_handler(None, 0)
         self.mainApp._cancelButton.set_visible(True)
         self.mainApp._closeButton.set_visible(False)
         self.mainApp._terminalExpander.set_visible(True)
         self.mainApp.show()
-        self.mainApp.refresh()
         self.trans.Refresh(force_update)
 
     def sysupgrade(self, show_updates = True, downgrade = False):
-        self.status_handler(None, _('Preparing')+'...')
-        self.icon_handler(None, 'cinnamon-installer-setup')
-        self.target_handler(None, '')
+        self.status_handler(None, _("Preparing")+"...")
+        self.icon_handler(None, "cinnamon-installer-setup")
+        self.target_handler(None, "")
         self.percent_handler(None, 0)
         self.mainApp._terminalTextBuffer.delete(self.mainApp._terminalTextBuffer.get_start_iter(), self.mainApp._terminalTextBuffer.get_end_iter())
         self.mainApp._cancelButton.set_visible(False)
         self.mainApp._closeButton.set_visible(False)
         self.mainApp._terminalExpander.set_visible(True)
         self.mainApp.show()
-        self.mainApp.refresh()
         self.mainApp._cancelButton.set_visible(True)
-        self.mainApp.refresh()
         time.sleep(0.1)
         self.trans.sysupgrade(show_updates, downgrade)
 
@@ -759,21 +682,19 @@ class ControlWindow(object):
             # packages in to_build have no deps or makedeps 
             # so we build and install the first one
             # the next ones will be built by the caller
-            self.mainApp.refresh()
             pkg = self.trans.to_build[0]
             path = self.trans.get_build_path(pkg)
             new_pkgs = self.trans.get_new_build(path)
             # sources are identicals for splitted packages
             # (not complete) download(new_pkgs[0].source, path)
-            action = _('Building {pkgname}').format(pkgname = pkg.name)+'...'
+            action = _("Building {pkgname}").format(pkgname = pkg.name)+"..."
             self.mainApp._statusLabel.set_text(action)
-            self.action_long_handler(None, action+'\n')
+            self.action_long_handler(None, action+"\n")
             self.mainApp._cancelButton.set_visible(True)
             self.mainApp._closeButton.set_visible(False)
             self.mainApp._terminalExpander.set_visible(True)
             self.mainApp._terminalExpander.set_expanded(True)
             self.trans.build_proc(path)
-            self.mainApp.refresh()
             time.sleep(0.1)
             poll = self.trans.build_proc.poll()
             if poll is None:
@@ -786,7 +707,7 @@ class ControlWindow(object):
                 build = self.trans.build_next(path, pkg)
                 if build:
                     error = self.trans.build_more(build)
-                    if error == '':
+                    if error == "":
                         if self.trans.to_Remove():
                             self.trans.set_transaction_sum()
                             self.mainApp._confDialog.show_all()
@@ -804,7 +725,7 @@ class ControlWindow(object):
                 # Build finish with an error
                 self.mainApp._cancelButton.set_visible(False)
                 self.mainApp._closeButton.set_visible(True)
-                self.action_long_handler(None, _('Build process failed.'))
+                self.action_long_handler(None, _("Build process failed."))
     '''
 
 class MainApp():
@@ -814,69 +735,71 @@ class MainApp():
     """
     def __init__(self):
         self.builder = Gtk.Builder()
-        self.builder.set_translation_domain('cinnamon-installer')
-        self.builder.add_from_file(DIR_PATH + 'gui/main.ui')
-        self._mainWindow = self.builder.get_object('Installer')
-        self._appNameLabel = self.builder.get_object('appNameLabel')
-        self._cancelButton = self.builder.get_object('cancelButton')
-        self._closeButton = self.builder.get_object('closeButton')
-        self._terminalExpander = self.builder.get_object('terminalExpander')
-        self._terminalTextView = self.builder.get_object('terminalTextView')
+        self.builder.set_translation_domain("cinnamon-installer")
+        self.builder.add_from_file(DIR_PATH + "gui/main.ui")
+        self._mainWindow = self.builder.get_object("Installer")
+        self._appNameLabel = self.builder.get_object("appNameLabel")
+        self._cancelButton = self.builder.get_object("cancelButton")
+        self._closeButton = self.builder.get_object("closeButton")
+        self._terminalExpander = self.builder.get_object("terminalExpander")
+        self._terminalTextView = self.builder.get_object("terminalTextView")
         self._terminalTextBuffer = self._terminalTextView.get_buffer()
-        self._terminalScrolled = self.builder.get_object('terminalScrolledWindow')
-        self._terminalBox = self.builder.get_object('terminalBox')
-        self._downloadScrolled = self.builder.get_object('downloadScrolledWindow')
-        self._downloadTreeView = self.builder.get_object('downloadTreeView')
-        self._downloadListModel = self.builder.get_object('downloadListModel')
-        self._progressColumn = self.builder.get_object('progressColumn')
-        self._nameColumn = self.builder.get_object('nameColumn')
-        self._descriptionColumn = self.builder.get_object('descriptionColumn')
-        self._progressCell = self.builder.get_object('progressCell')
-        self._nameCell = self.builder.get_object('nameCell')
-        self._descriptionCell = self.builder.get_object('descriptionCell')
+        self._terminalScrolled = self.builder.get_object("terminalScrolledWindow")
+        self._terminalBox = self.builder.get_object("terminalBox")
+        self._downloadScrolled = self.builder.get_object("downloadScrolledWindow")
+        self._downloadTreeView = self.builder.get_object("downloadTreeView")
+        self._downloadListModel = self.builder.get_object("downloadListModel")
+        self._progressColumn = self.builder.get_object("progressColumn")
+        self._nameColumn = self.builder.get_object("nameColumn")
+        self._descriptionColumn = self.builder.get_object("descriptionColumn")
+        self._progressCell = self.builder.get_object("progressCell")
+        self._nameCell = self.builder.get_object("nameCell")
+        self._descriptionCell = self.builder.get_object("descriptionCell")
 
-        self._progressBar = self.builder.get_object('progressBar')
-        self._roleLabel = self.builder.get_object('roleLabel')
-        self._statusLabel = self.builder.get_object('statusLabel')
-        self._actionImage = self.builder.get_object('actionImage')
-        self._confTopLabel = self.builder.get_object('confTopLabel')
-        self._confBottomLabel = self.builder.get_object('confBottomLabel')
+        self._progressBar = self.builder.get_object("progressBar")
+        self._roleLabel = self.builder.get_object("roleLabel")
+        self._statusLabel = self.builder.get_object("statusLabel")
+        self._actionImage = self.builder.get_object("actionImage")
+        self._confTopLabel = self.builder.get_object("confTopLabel")
+        self._confBottomLabel = self.builder.get_object("confBottomLabel")
 
-        self._infoDialog = self.builder.get_object('InfoDialog')
-        self._errorDialog = self.builder.get_object('ErrorDialog')
-        self._errorDetails = self.builder.get_object('errorDetails')
-        self._errorExpander = self.builder.get_object('errorBoxExpander')
+        self._infoDialog = self.builder.get_object("InfoDialog")
+        self._errorDialog = self.builder.get_object("ErrorDialog")
+        self._errorDetails = self.builder.get_object("errorDetails")
+        self._errorExpander = self.builder.get_object("errorBoxExpander")
 
-        self._confDialog = self.builder.get_object('ConfDialog')
-        self._confTreeView = self.builder.get_object('configTreeView')
-        self._confScrolledWindow = self.builder.get_object('confScrolledWindow')
-        self._confActionColumn = self.builder.get_object('confActionColumn')
-        self._confImgCell = self.builder.get_object('confImgCell')
-        self._confDesCell = self.builder.get_object('confDesCell')
+        self._confDialog = self.builder.get_object("ConfDialog")
+        self._confTreeView = self.builder.get_object("configTreeView")
+        self._confScrolledWindow = self.builder.get_object("confScrolledWindow")
+        self._confActionColumn = self.builder.get_object("confActionColumn")
+        self._confImgCell = self.builder.get_object("confImgCell")
+        self._confDesCell = self.builder.get_object("confDesCell")
 
-        self._fileConfDialog = self.builder.get_object('FileConfDialog')
-        self._fileConfTextView = self.builder.get_object('fileConfTextView')
+        self._fileConfDialog = self.builder.get_object("FileConfDialog")
+        self._fileConfTextView = self.builder.get_object("fileConfTextView")
 
-        self._chooseDialog = self.builder.get_object('ChooseDialog')
-        #self._chooseLabelModel = self.builder.get_object('chooseLabelModel')
+        self._chooseDialog = self.builder.get_object("ChooseDialog")
+        #self._chooseLabelModel = self.builder.get_object("chooseLabelModel")
 
-        self._questionDialog = self.builder.get_object('QuestionDialog')
-        self._warningDialog = self.builder.get_object('WarningDialog')
-        self._preferencesWindow = self.builder.get_object('PreferencesWindow')
+        self._questionDialog = self.builder.get_object("QuestionDialog")
+        self._warningDialog = self.builder.get_object("WarningDialog")
+        self._preferencesWindow = self.builder.get_object("PreferencesWindow")
 
-        #self._transactionSum = self.builder.get_object('transaction_sum')
+        #self._transactionSum = self.builder.get_object("transaction_sum")
 
-        #self._downloadList = self.builder.get_object('download_list')
-        #self._column_download = self.builder.get_object('column_download')
+        #self._downloadList = self.builder.get_object("download_list")
+        #self._column_download = self.builder.get_object("column_download")
 
-        self._chooseList = self.builder.get_object('chooseListModel')
-        self._chooseToggleCell = self.builder.get_object('chooseToggleCell')
-        self._enableAURButton = self.builder.get_object('enableAURButton')
-        self._removeUnrequiredDepsButton = self.builder.get_object('RemoveUnrequiredDepsButton')
-        self._refreshPeriodSpinButton = self.builder.get_object('refreshPeriodSpinButton')
-        #refreshPeriodLabel = self.builder.get_object('refreshPeriodLabel')
+        self._chooseList = self.builder.get_object("chooseListModel")
+        self._chooseToggleCell = self.builder.get_object("chooseToggleCell")
+        self._enableAURButton = self.builder.get_object("enableAURButton")
+        self._removeUnrequiredDepsButton = self.builder.get_object("RemoveUnrequiredDepsButton")
+        self._refreshPeriodSpinButton = self.builder.get_object("refreshPeriodSpinButton")
+        #refreshPeriodLabel = self.builder.get_object("refreshPeriodLabel")
         #self._mainWindow.connect("delete-event", self.closeWindows)
         self._init_common_values()
+        self.loop = GObject.MainLoop()
+        #self.time_id = 0
 
     def _init_common_values(self):
         self._statusLabel.set_max_width_chars(15)
@@ -885,9 +808,26 @@ class MainApp():
         #self.mainApp._progressBar.set_size_request(350, -1)
 
     def show(self):
-        self._mainWindow.show()
-        #self._mainWindow.get_window().set_cursor(Gdk.Cursor(Gdk.CursorType.WATCH))
-        #self.refresh()
+        if not self._mainWindow.get_visible():
+            self._mainWindow.show()
+            #self._mainWindow.get_window().set_cursor(Gdk.Cursor(Gdk.CursorType.WATCH))
+            #self.time_id = GObject.timeout_add(1500, self._windows_start)
+            #self.loop.run()
+
+    def _windows_start(self):
+        #print("release")
+        self.loop.quit()
+        if(self.time_id > 0):
+            GObject.source_remove(self.time_id)
+            self.time_id = 0
+
+    def run(self):
+        self.loop.run()
+        #Gtk.main() #commented spices
+
+    def exit(self):
+        self.loop.quit()
+        #Gtk.main_quit()#commented spices
 
     def hide(self):
         model = self._downloadTreeView.get_model()
@@ -897,13 +837,6 @@ class MainApp():
     def closeWindows(self, windows, event):
         Gtk.main_quit()
 
-    def refresh(self, force_update = False):
-        while Gtk.events_pending():
-            Gtk.main_iteration()
-        while Gtk.events_pending():
-            Gtk.main_iteration()
-        #Refresh(force_update)
-
     def show_info(self, title, message):
         self._infoDialog.set_markup("<b>%s</b>" % title)
         self._infoDialog.format_secondary_markup(message)
@@ -912,9 +845,9 @@ class MainApp():
             self._infoDialog.hide()
 
     def show_providers(self, info_prov):
-        self._chooseDialog.set_markup("<b>%s</b>" % info_prov['title'])
-        self._chooseDialog.format_secondary_markup(info_prov['description'])
-        list_providers = info_prov['providers']##need to be filled.
+        self._chooseDialog.set_markup("<b>%s</b>" % info_prov["title"])
+        self._chooseDialog.format_secondary_markup(info_prov["description"])
+        list_providers = info_prov["providers"]##need to be filled.
         self._chooseList.clear()
         for name in providers:
             self._chooseList.append([False, str(name)])
@@ -946,7 +879,7 @@ class MainApp():
             self._confTreeView.set_model(self._treestoreModel)
         else:
             self._treestoreModel.clear()
-        packages_list = infoConf['dependencies']
+        packages_list = infoConf["dependencies"]
         for msg in packages_list:
             piter = self._treestoreModel.append(None, ["<b>%s</b>" % msg])
             collect = packages_list[msg]
@@ -967,8 +900,8 @@ class MainApp():
         else:
             self._confTreeView.set_size_request(350, 200)
             self._confTreeView.collapse_all()
-        self._confDialog.set_markup("<b>%s</b>" % infoConf['title'])
-        self._confDialog.format_secondary_markup(infoConf['description'])
+        self._confDialog.set_markup("<b>%s</b>" % infoConf["title"])
+        self._confDialog.format_secondary_markup(infoConf["description"])
         res = self._confDialog.run()
         self._confDialog.hide()
         return res == Gtk.ResponseType.OK

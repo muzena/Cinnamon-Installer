@@ -40,73 +40,77 @@ import urllib, requests
 
 # i18n
 import gettext, locale
-LOCALE_PATH = DIR_PATH + 'locale'
-DOMAIN = 'cinnamon-installer'
+LOCALE_PATH = DIR_PATH + "locale"
+DOMAIN = "cinnamon-installer"
 locale.bindtextdomain(DOMAIN , LOCALE_PATH)
-locale.bind_textdomain_codeset(DOMAIN , 'UTF-8')
+locale.bind_textdomain_codeset(DOMAIN , "UTF-8")
 gettext.bindtextdomain(DOMAIN, LOCALE_PATH)
-gettext.bind_textdomain_codeset(DOMAIN , 'UTF-8')
+gettext.bind_textdomain_codeset(DOMAIN , "UTF-8")
 gettext.textdomain(DOMAIN)
 _ = gettext.gettext
 
 def format_error(data):
-    errstr = data[0].strip('\n')
+    errstr = data[0].strip("\n")
     errno = data[1]
     detail = data[2]
     if detail:
-        # detail is a list of '\n' terminated strings
-        return '{}:\n'.format(errstr) + ''.join(i for i in detail)
+        # detail is a list of "\n" terminated strings
+        return "{}:\n".format(errstr) + "".join(i for i in detail)
     else:
         return errstr
 
 class InstallerModule():
     def __init__(self):
         self.validTypes = ["package"]
+        self.service = None
 
-    def priority_for_action(self, action):
-        if action in self.validTypes:
+    def priority_for_collection(self, collect_type):
+        if collect_type in self.validTypes:
             return 1
         return 0
     
     def get_service(self):
-        return InstallerService()
+        if self.service is None:
+            self.service = InstallerService()
+        self.service.set_parent_module(self)
+        return self.service
 
 class InstallerService(GObject.GObject):
     __gsignals__ = {
-        'EmitTransactionDone': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
-        'EmitTransactionError': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING,)),
-        'EmitAvailableUpdates': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_BOOLEAN, GObject.TYPE_BOOLEAN,)),
-        'EmitStatus': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING,)),
-        'EmitRole': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
-        'EmitNeedDetails': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_BOOLEAN,)),
-        'EmitIcon': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
-        'EmitTarget': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
-        'EmitPercent': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_FLOAT,)),
-        'EmitDownloadPercentChild': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING, GObject.TYPE_FLOAT, GObject.TYPE_STRING,)),
-        'EmitDownloadChildStart': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_BOOLEAN,)),
-        'EmitLogError': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
-        'EmitLogWarning': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
-        'EmitTransactionStart': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
-        'EmitReloadConfig': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
-        'EmitTransactionConfirmation': (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_PYOBJECT,)),
-        'EmitTransactionCancellable': (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_BOOLEAN,)),
-        'EmitTerminalAttached': (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_BOOLEAN,)),
-        'EmitConflictFile': (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING,)),
-        'EmitChooseProvider': (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_PYOBJECT,)),
-        'EmitMediumRequired': (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING, GObject.TYPE_STRING))
+        "EmitTransactionDone": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
+        "EmitTransactionError": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING,)),
+        "EmitAvailableUpdates": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_BOOLEAN, GObject.TYPE_BOOLEAN,)),
+        "EmitStatus": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING,)),
+        "EmitRole": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
+        "EmitNeedDetails": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_BOOLEAN,)),
+        "EmitIcon": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
+        "EmitTarget": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
+        "EmitPercent": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_FLOAT,)),
+        "EmitDownloadPercentChild": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING, GObject.TYPE_FLOAT, GObject.TYPE_STRING,)),
+        "EmitDownloadChildStart": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_BOOLEAN,)),
+        "EmitLogError": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
+        "EmitLogWarning": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
+        "EmitTransactionStart": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
+        "EmitReloadConfig": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
+        "EmitTransactionConfirmation": (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_PYOBJECT,)),
+        "EmitTransactionCancellable": (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_BOOLEAN,)),
+        "EmitTerminalAttached": (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_BOOLEAN,)),
+        "EmitConflictFile": (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING,)),
+        "EmitChooseProvider": (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_PYOBJECT,)),
+        "EmitMediumRequired": (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING, GObject.TYPE_STRING))
     }
 
     def __init__(self):
         GObject.GObject.__init__(self)
         self.t = None
         self.task = None
-        self.error = ''
-        self.warning = ''
+        self.error = ""
+        self.warning = ""
         self.providers = []
-        self.previous_status = ''
-        self.previous_role = ''
-        self.previous_icon = ''
-        self.previous_target = ''
+        self.previous_status = ""
+        self.previous_role = ""
+        self.previous_icon = ""
+        self.previous_target = ""
         self.previous_percent = 0
         self.total_size = 0
         self.already_transferred = 0
@@ -134,17 +138,18 @@ class InstallerService(GObject.GObject):
         self.make_depends = set()
         self.build_depends = set()
         self.to_build = []
-        self.base_devel = ('autoconf', 'automake', 'binutils', 'bison', 'fakeroot', 
-                           'file', 'findutils', 'flex', 'gawk', 'gcc', 'gettext', 
-                           'grep', 'groff', 'gzip', 'libtool', 'm4', 'make', 'patch', 
-                           'pkg-config', 'sed', 'sudo', 'texinfo', 'util-linux', 'which')
-        self.colors_regexp = re.compile('\\033\[(\d;)?\d*m')
+        self.base_devel = ("autoconf", "automake", "binutils", "bison", "fakeroot", 
+                           "file", "findutils", "flex", "gawk", "gcc", "gettext", 
+                           "grep", "groff", "gzip", "libtool", "m4", "make", "patch", 
+                           "pkg-config", "sed", "sudo", "texinfo", "util-linux", "which")
+        self.colors_regexp = re.compile("\\033\[(\d;)?\d*m")
         #mycode
         self.lastedSearch = {}
         self.status_local_dir = Gio.file_new_for_path(self.handle.dbpath + "local")
         self.status_sync_dir = Gio.file_new_for_path(self.handle.dbpath + "sync")
         self.monitor_local = self.status_local_dir.monitor_directory(Gio.FileMonitorFlags.NONE, None)
         self.monitor_sync = self.status_sync_dir.monitor_directory(Gio.FileMonitorFlags.NONE, None)
+        self.module = None
         if self.monitor_local:
             self.monitor_local.connect("changed", self._changed)
         if self.monitor_sync:
@@ -168,14 +173,26 @@ class InstallerService(GObject.GObject):
     def is_service_idle(self):
         return self.lock_trans.locked()
 
-    def load_cache(self, async):
+    def load_cache(self, async, collect_type=None):
         pass
+
+    def have_cache(self, collect_type=None):
+        return True
+
+    def set_parent_module(self, module):
+        self.module = module
+
+    def get_parent_module(self):
+        return self.module
 
     def _init_configuration(self):
         self.config = {}
-        self.config['EnableAUR'] = config.enable_aur
-        self.config['RemoveUnrequiredDeps'] = config.recurse
-        self.config['RefreshPeriod'] = config.refresh_period
+        self.config["EnableAUR"] = config.enable_aur
+        self.config["RemoveUnrequiredDeps"] = config.recurse
+        self.config["RefreshPeriod"] = config.refresh_period
+
+    def get_cache_folder(self, collect_type=None):
+        return ""
 
     def search_files(self, path, loop, result):
         '''Return the package that ships the given file.
@@ -200,7 +217,7 @@ class InstallerService(GObject.GObject):
         sleep(0.1)
         loop.quit()
 
-    def get_all_local_packages(self, loop, result):
+    def get_all_local_packages(self, loop, result, collect_type=None):
         local_packages = []
         result.append(local_packages)
         try:
@@ -217,7 +234,7 @@ class InstallerService(GObject.GObject):
         sleep(0.1)
         loop.quit()
 
-    def get_all_remote_packages(self, loop, result):
+    def get_all_remote_packages(self, loop, result, collect_type=None):
         local_packages = []
         result.append(local_packages)
         try:
@@ -234,7 +251,7 @@ class InstallerService(GObject.GObject):
         sleep(0.1)
         loop.quit()
 
-    def get_local_packages(self, packages, loop, result):
+    def get_local_packages(self, packages, loop, result, collect_type=None):
         local_packages = []
         result.append(local_packages)
         try:
@@ -252,7 +269,7 @@ class InstallerService(GObject.GObject):
         sleep(0.1)
         loop.quit()
 
-    def get_remote_packages(self, packages, loop, result):
+    def get_remote_packages(self, packages, loop, result, collect_type=None):
         local_packages = []
         result.append(local_packages)
         try:
@@ -269,7 +286,7 @@ class InstallerService(GObject.GObject):
         sleep(0.1)
         loop.quit()
 
-    def get_local_search(self, pattern, loop, result):
+    def get_local_search(self, pattern, loop, result, collect_type=None):
         local_packages = []
         result.append(local_packages)
         try:
@@ -286,7 +303,7 @@ class InstallerService(GObject.GObject):
         sleep(0.1)
         loop.quit()
                     
-    def get_remote_search(self, pattern, loop, result):
+    def get_remote_search(self, pattern, loop, result, collect_type=None):
         local_packages = []
         result.append(local_packages)
         try:
@@ -325,25 +342,25 @@ class InstallerService(GObject.GObject):
 
     def _likely_packaged(self, file):
         '''Check whether the given file is likely to belong to a package.'''
-        pkg_whitelist = ['/bin/', '/boot', '/etc/', '/initrd', '/lib', '/sbin/',
-                         '/opt', '/usr/', '/var']  # packages only ship executables in these directories
+        pkg_whitelist = ["/bin/", "/boot", "/etc/", "/initrd", "/lib", "/sbin/",
+                         "/opt", "/usr/", "/var"]  # packages only ship executables in these directories
 
         whitelist_match = False
         for i in pkg_whitelist:
             if file.startswith(i):
                 whitelist_match = True
                 break
-        return whitelist_match and not file.startswith('/usr/local/') and not \
-            file.startswith('/var/lib/')
+        return whitelist_match and not file.startswith("/usr/local/") and not \
+            file.startswith("/var/lib/")
 
     def _get_file_package(self, file):
         '''Return the package a file belongs to.
         Return None if the file is not shipped by any package.
         '''
         # check if the file is a diversion
-        dpkg = subprocess.Popen(['pacman', '-Qo', file],
+        dpkg = subprocess.Popen(["pacman", "-Qo", file],
                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        out = dpkg.communicate()[0].decode('UTF-8')
+        out = dpkg.communicate()[0].decode("UTF-8")
         if dpkg.returncode == 0 and out:
             outList = out.split()
             pkg = outList[-2]# + "-" +outList[-1]
@@ -353,8 +370,8 @@ class InstallerService(GObject.GObject):
 
         all_lists = []
         likely_lists = []
-        for f in glob.glob('/var/lib/dpkg/info/*.list'):
-            p = os.path.splitext(os.path.basename(f))[0].lower().split(':')[0]
+        for f in glob.glob("/var/lib/dpkg/info/*.list"):
+            p = os.path.splitext(os.path.basename(f))[0].lower().split(":")[0]
             if p in fname or fname in p:
                 likely_lists.append(f)
             else:
@@ -366,7 +383,7 @@ class InstallerService(GObject.GObject):
             match = self.__fgrep_files(file, all_lists)
 
         if match:
-            return os.path.splitext(os.path.basename(match))[0].split(':')[0]
+            return os.path.splitext(os.path.basename(match))[0].split(":")[0]
 
         return None
 
@@ -379,10 +396,10 @@ class InstallerService(GObject.GObject):
         i = 0
 
         while not match and i < len(file_list):
-            p = subprocess.Popen(['fgrep', '-lxm', '1', '--', pattern] +
+            p = subprocess.Popen(["fgrep", "-lxm", "1", "--", pattern] +
                                  file_list[i:(i + slice_size)], stdin=subprocess.PIPE,
                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            out = p.communicate()[0].decode('UTF-8')
+            out = p.communicate()[0].decode("UTF-8")
             if p.returncode == 0:
                 match = out
             i += slice_size
@@ -447,140 +464,140 @@ class InstallerService(GObject.GObject):
         status = self.previous_status
         role = self.previous_role
         icon = self.previous_icon
-        if event == 'ALPM_EVENT_CHECKDEPS_START':
-            status = _('Checking dependencies')+'...'
-            role = status+'\n'
-            icon = 'cinnamon-installer-search'
-        elif event == 'ALPM_EVENT_CHECKDEPS_DONE':
+        if event == "ALPM_EVENT_CHECKDEPS_START":
+            status = _("Checking dependencies")+"..."
+            role = status+"\n"
+            icon = "cinnamon-installer-search"
+        elif event == "ALPM_EVENT_CHECKDEPS_DONE":
             if self.warning:
                 self.EmitLogWarning(self.warning)
-                self.warning = ''
-        elif event == 'ALPM_EVENT_FILECONFLICTS_START':
-            status = _('Checking file conflicts')+'...'
-            role = status+'\n'
-            icon = 'cinnamon-installer-search'
-        elif event == 'ALPM_EVENT_FILECONFLICTS_DONE':
+                self.warning = ""
+        elif event == "ALPM_EVENT_FILECONFLICTS_START":
+            status = _("Checking file conflicts")+"..."
+            role = status+"\n"
+            icon = "cinnamon-installer-search"
+        elif event == "ALPM_EVENT_FILECONFLICTS_DONE":
             pass
-        elif event == 'ALPM_EVENT_RESOLVEDEPS_START':
-            status = _('Resolving dependencies')+'...'
-            role = status+'\n'
-            icon = 'cinnamon-installer-setup'
-        elif event == 'ALPM_EVENT_RESOLVEDEPS_DONE':
+        elif event == "ALPM_EVENT_RESOLVEDEPS_START":
+            status = _("Resolving dependencies")+"..."
+            role = status+"\n"
+            icon = "cinnamon-installer-setup"
+        elif event == "ALPM_EVENT_RESOLVEDEPS_DONE":
             if self.warning:
                 self.EmitLogWarning(self.warning)
-                self.warning = ''
-        elif event == 'ALPM_EVENT_INTERCONFLICTS_START':
-            status = _('Checking inter conflicts')+'...'
-            role = status+'\n'
-            icon = 'cinnamon-installer-search'
-        elif event == 'ALPM_EVENT_INTERCONFLICTS_DONE':
+                self.warning = ""
+        elif event == "ALPM_EVENT_INTERCONFLICTS_START":
+            status = _("Checking inter conflicts")+"..."
+            role = status+"\n"
+            icon = "cinnamon-installer-search"
+        elif event == "ALPM_EVENT_INTERCONFLICTS_DONE":
             if self.warning:
                 self.EmitLogWarning(self.warning)
-                self.warning = ''
-        elif event == 'ALPM_EVENT_ADD_START':
-            string = _('Installing {pkgname}').format(pkgname = tupel[0].name)
-            status = string+'...'
-            role = '{} ({})...\n'.format(string, tupel[0].version)
-            icon = 'cinnamon-installer-add'
-        elif event == 'ALPM_EVENT_ADD_DONE':
-            formatted_event = 'Installed {pkgname} ({pkgversion})'.format(pkgname = tupel[0].name, pkgversion = tupel[0].version)
+                self.warning = ""
+        elif event == "ALPM_EVENT_ADD_START":
+            string = _("Installing {pkgname}").format(pkgname = tupel[0].name)
+            status = string+"..."
+            role = "{} ({})...\n".format(string, tupel[0].version)
+            icon = "cinnamon-installer-add"
+        elif event == "ALPM_EVENT_ADD_DONE":
+            formatted_event = "Installed {pkgname} ({pkgversion})".format(pkgname = tupel[0].name, pkgversion = tupel[0].version)
             common.write_log_file(formatted_event)
-        elif event == 'ALPM_EVENT_REMOVE_START':
-            string = _('Removing {pkgname}').format(pkgname = tupel[0].name)
-            status = string+'...'
-            role = '{} ({})...\n'.format(string, tupel[0].version)
-            icon = 'cinnamon-installer-delete'
-        elif event == 'ALPM_EVENT_REMOVE_DONE':
-            formatted_event = 'Removed {pkgname} ({pkgversion})'.format(pkgname = tupel[0].name, pkgversion = tupel[0].version)
+        elif event == "ALPM_EVENT_REMOVE_START":
+            string = _("Removing {pkgname}").format(pkgname = tupel[0].name)
+            status = string+"..."
+            role = "{} ({})...\n".format(string, tupel[0].version)
+            icon = "cinnamon-installer-delete"
+        elif event == "ALPM_EVENT_REMOVE_DONE":
+            formatted_event = "Removed {pkgname} ({pkgversion})".format(pkgname = tupel[0].name, pkgversion = tupel[0].version)
             common.write_log_file(formatted_event)
-        elif event == 'ALPM_EVENT_UPGRADE_START':
-            string = _('Upgrading {pkgname}').format(pkgname = tupel[1].name)
-            status = string+'...'
-            role = '{} ({} => {})...\n'.format(string, tupel[1].version, tupel[0].version)
-            icon = 'cinnamon-installer-update'
-        elif event == 'ALPM_EVENT_UPGRADE_DONE':
-            formatted_event = 'Upgraded {pkgname} ({oldversion} -> {newversion})'.format(pkgname = tupel[1].name, oldversion = tupel[1].version, newversion = tupel[0].version)
+        elif event == "ALPM_EVENT_UPGRADE_START":
+            string = _("Upgrading {pkgname}").format(pkgname = tupel[1].name)
+            status = string+"..."
+            role = "{} ({} => {})...\n".format(string, tupel[1].version, tupel[0].version)
+            icon = "cinnamon-installer-update"
+        elif event == "ALPM_EVENT_UPGRADE_DONE":
+            formatted_event = "Upgraded {pkgname} ({oldversion} -> {newversion})".format(pkgname = tupel[1].name, oldversion = tupel[1].version, newversion = tupel[0].version)
             common.write_log_file(formatted_event)
-        elif event == 'ALPM_EVENT_DOWNGRADE_START':
-            string = _('Downgrading {pkgname}').format(pkgname = tupel[1].name)
-            status = string+'...'
-            role = '{} ({} => {})...\n'.format(string, tupel[1].version, tupel[0].version)
-            icon = 'cinnamon-installer-add'
-        elif event == 'ALPM_EVENT_DOWNGRADE_DONE':
-            formatted_event = 'Downgraded {pkgname} ({oldversion} -> {newversion})'.format(pkgname = tupel[1].name, oldversion = tupel[1].version, newversion = tupel[0].version)
+        elif event == "ALPM_EVENT_DOWNGRADE_START":
+            string = _("Downgrading {pkgname}").format(pkgname = tupel[1].name)
+            status = string+"..."
+            role = "{} ({} => {})...\n".format(string, tupel[1].version, tupel[0].version)
+            icon = "cinnamon-installer-add"
+        elif event == "ALPM_EVENT_DOWNGRADE_DONE":
+            formatted_event = "Downgraded {pkgname} ({oldversion} -> {newversion})".format(pkgname = tupel[1].name, oldversion = tupel[1].version, newversion = tupel[0].version)
             common.write_log_file(formatted_event)
-        elif event == 'ALPM_EVENT_REINSTALL_START':
-            string = _('Reinstalling {pkgname}').format(pkgname = tupel[0].name)
-            status = string+'...'
-            role = '{} ({})...\n'.format(string, tupel[0].version)
-            icon = 'cinnamon-installer-add'
-        elif event == 'ALPM_EVENT_REINSTALL_DONE':
-            formatted_event = 'Reinstalled {pkgname} ({pkgversion})'.format(pkgname = tupel[0].name, pkgversion = tupel[0].version)
+        elif event == "ALPM_EVENT_REINSTALL_START":
+            string = _("Reinstalling {pkgname}").format(pkgname = tupel[0].name)
+            status = string+"..."
+            role = "{} ({})...\n".format(string, tupel[0].version)
+            icon = "cinnamon-installer-add"
+        elif event == "ALPM_EVENT_REINSTALL_DONE":
+            formatted_event = "Reinstalled {pkgname} ({pkgversion})".format(pkgname = tupel[0].name, pkgversion = tupel[0].version)
             common.write_log_file(formatted_event)
-        elif event == 'ALPM_EVENT_INTEGRITY_START':
-            status = _('Checking integrity')+'...'
-            role = status+'\n'
-            icon = 'cinnamon-installer-search'
+        elif event == "ALPM_EVENT_INTEGRITY_START":
+            status = _("Checking integrity")+"..."
+            role = status+"\n"
+            icon = "cinnamon-installer-search"
             self.already_transferred = 0
-        elif event == 'ALPM_EVENT_INTEGRITY_DONE':
+        elif event == "ALPM_EVENT_INTEGRITY_DONE":
             pass
-        elif event == 'ALPM_EVENT_LOAD_START':
-            status = _('Loading packages files')+'...'
-            role = status+'\n'
-            icon = 'cinnamon-installer-search'
-        elif event == 'ALPM_EVENT_LOAD_DONE':
+        elif event == "ALPM_EVENT_LOAD_START":
+            status = _("Loading packages files")+"..."
+            role = status+"\n"
+            icon = "cinnamon-installer-search"
+        elif event == "ALPM_EVENT_LOAD_DONE":
             pass
-        elif event == 'ALPM_EVENT_DELTA_INTEGRITY_START':
-            status = _('Checking delta integrity')+'...'
-            role = status+'\n'
-            icon = 'cinnamon-installer-search'
-        elif event == 'ALPM_EVENT_DELTA_INTEGRITY_DONE':
+        elif event == "ALPM_EVENT_DELTA_INTEGRITY_START":
+            status = _("Checking delta integrity")+"..."
+            role = status+"\n"
+            icon = "cinnamon-installer-search"
+        elif event == "ALPM_EVENT_DELTA_INTEGRITY_DONE":
             pass
-        elif event == 'ALPM_EVENT_DELTA_PATCHES_START':
-            status = _('Applying deltas')+'...'
-            role = status+'\n'
-            icon = 'cinnamon-installer-setup'
-        elif event == 'ALPM_EVENT_DELTA_PATCHES_DONE':
+        elif event == "ALPM_EVENT_DELTA_PATCHES_START":
+            status = _("Applying deltas")+"..."
+            role = status+"\n"
+            icon = "cinnamon-installer-setup"
+        elif event == "ALPM_EVENT_DELTA_PATCHES_DONE":
             pass
-        elif event == 'ALPM_EVENT_DELTA_PATCH_START':
-            status = _('Generating {} with {}').format(tupel[0], tupel[1])+'...'
-            role = status+'\n'
-            icon = 'cinnamon-installer-setup'
-        elif event == 'ALPM_EVENT_DELTA_PATCH_DONE':
-            status = _('Generation succeeded!')
-            role = status+'\n'
-        elif event == 'ALPM_EVENT_DELTA_PATCH_FAILED':
-            status = _('Generation failed.')
-            role = status+'\n'
-        elif event == 'ALPM_EVENT_SCRIPTLET_INFO':
-            status =_('Configuring {pkgname}').format(pkgname = self.previous_target)+'...'
+        elif event == "ALPM_EVENT_DELTA_PATCH_START":
+            status = _("Generating {} with {}").format(tupel[0], tupel[1])+"..."
+            role = status+"\n"
+            icon = "cinnamon-installer-setup"
+        elif event == "ALPM_EVENT_DELTA_PATCH_DONE":
+            status = _("Generation succeeded!")
+            role = status+"\n"
+        elif event == "ALPM_EVENT_DELTA_PATCH_FAILED":
+            status = _("Generation failed.")
+            role = status+"\n"
+        elif event == "ALPM_EVENT_SCRIPTLET_INFO":
+            status =_("Configuring {pkgname}").format(pkgname = self.previous_target)+"..."
             role = tupel[0]
-            icon = 'cinnamon-installer-setup'
+            icon = "cinnamon-installer-setup"
             self.EmitNeedDetails(True)
-        elif event == 'ALPM_EVENT_RETRIEVE_START':
-            status = _('Downloading')+'...'
-            role = status+'\n'
-            icon = 'cinnamon-installer-download'
-        elif event == 'ALPM_EVENT_DISKSPACE_START':
-            status = _('Checking available disk space')+'...'
-            role = status+'\n'
-            icon = 'cinnamon-installer-search'
-        elif event == 'ALPM_EVENT_OPTDEP_REQUIRED':
-            print('Optionnal deps exist')
-        elif event == 'ALPM_EVENT_DATABASE_MISSING':
-            #status =_('Database file for {} does not exist').format(tupel[0])+'...'
+        elif event == "ALPM_EVENT_RETRIEVE_START":
+            status = _("Downloading")+"..."
+            role = status+"\n"
+            icon = "cinnamon-installer-download"
+        elif event == "ALPM_EVENT_DISKSPACE_START":
+            status = _("Checking available disk space")+"..."
+            role = status+"\n"
+            icon = "cinnamon-installer-search"
+        elif event == "ALPM_EVENT_OPTDEP_REQUIRED":
+            print("Optionnal deps exist")
+        elif event == "ALPM_EVENT_DATABASE_MISSING":
+            #status =_("Database file for {} does not exist").format(tupel[0])+"..."
             #role = status
             pass
-        elif event == 'ALPM_EVENT_KEYRING_START':
-            status = _('Checking keyring')+'...'
-            role = status+'\n'
-            icon = 'cinnamon-installer-search'
-        elif event == 'ALPM_EVENT_KEYRING_DONE':
+        elif event == "ALPM_EVENT_KEYRING_START":
+            status = _("Checking keyring")+"..."
+            role = status+"\n"
+            icon = "cinnamon-installer-search"
+        elif event == "ALPM_EVENT_KEYRING_DONE":
             pass
-        elif event == 'ALPM_EVENT_KEY_DOWNLOAD_START':
-            status = _('Downloading required keys')+'...'
-            role = status+'\n'
-        elif event == 'ALPM_EVENT_KEY_DOWNLOAD_DONE':
+        elif event == "ALPM_EVENT_KEY_DOWNLOAD_START":
+            status = _("Downloading required keys")+"..."
+            role = status+"\n"
+        elif event == "ALPM_EVENT_KEY_DOWNLOAD_DONE":
             pass
         if status != self.previous_status:
             self.previous_status = status
@@ -594,25 +611,25 @@ class InstallerService(GObject.GObject):
         print(str(event))
 
     def _on_cb_question(self, event, data_tupel, extra_data):
-        if event == 'ALPM_QUESTION_INSTALL_IGNOREPKG':
+        if event == "ALPM_QUESTION_INSTALL_IGNOREPKG":
             return 0 # Do not install package in IgnorePkg/IgnoreGroup
-        if event == 'ALPM_QUESTION_REPLACE_PKG':
-            self.warning += _('{pkgname1} will be replaced by {pkgname2}').format(pkgname1 = data_tupel[0].name, pkgname2 = data_tupel[1].name)+'\n'
+        if event == "ALPM_QUESTION_REPLACE_PKG":
+            self.warning += _("{pkgname1} will be replaced by {pkgname2}").format(pkgname1 = data_tupel[0].name, pkgname2 = data_tupel[1].name)+"\n"
             return 1 # Auto-remove conflicts in case of replaces
-        if event == 'ALPM_QUESTION_CONFLICT_PKG':
-            self.warning += _('{pkgname1} conflicts with {pkgname2}').format(pkgname1 = data_tupel[0], pkgname2 = data_tupel[1])+'\n'
+        if event == "ALPM_QUESTION_CONFLICT_PKG":
+            self.warning += _("{pkgname1} conflicts with {pkgname2}").format(pkgname1 = data_tupel[0], pkgname2 = data_tupel[1])+"\n"
             return 1 # Auto-remove conflicts
-        if event == 'ALPM_QUESTION_CORRUPTED_PKG':
+        if event == "ALPM_QUESTION_CORRUPTED_PKG":
             return 1 # Auto-remove corrupted pkgs in cache
-        if event == 'ALPM_QUESTION_REMOVE_PKGS':
+        if event == "ALPM_QUESTION_REMOVE_PKGS":
             return 1 # Do not upgrade packages which have unresolvable dependencies
-        if event == 'ALPM_QUESTION_SELECT_PROVIDER':
+        if event == "ALPM_QUESTION_SELECT_PROVIDER":
             ## In this case we populate providers with different choices
             ## the client will have to release transaction and re-init one 
             ## with the chosen package added to it
             self.providers.append(([pkg.name for pkg in data_tupel[0]], data_tupel[1]))
             return 0 # return the first choice, this is not important because the transaction will be released
-        if event == 'ALPM_QUESTION_IMPORT_KEY':
+        if event == "ALPM_QUESTION_IMPORT_KEY":
             ## data_tupel = (revoked(int), length(int), pubkey_algo(string), fingerprint(string), uid(string), created_time(int))
             if data_tupel[0] is 0: # not revoked
                 return 1 # Auto get not revoked key
@@ -625,13 +642,13 @@ class InstallerService(GObject.GObject):
             return
         if level & pyalpm.LOG_ERROR:
             #self.EmitLogError(line)
-            _error = _('Error: ')+line
+            _error = _("Error: ")+line
             self.EmitRole(_error)
             self.EmitNeedDetails(True)
             print(line)
         elif level & pyalpm.LOG_WARNING:
             self.warning += line
-            _warning = _('Warning: ')+line
+            _warning = _("Warning: ")+line
             self.EmitRole(_warning)
         elif level & pyalpm.LOG_DEBUG:
             line = "DEBUG: " + line
@@ -644,23 +661,23 @@ class InstallerService(GObject.GObject):
         self.total_size = _total_size
 
     def _on_cb_dl(self, _target, _transferred, _total):
-        if _target.endswith('.db'):
-            status = _('Refreshing {repo}').format(repo = _target.replace('.db', ''))+'...'
-            role = ''
-            icon = 'cinnamon-installer-refresh'
+        if _target.endswith(".db"):
+            status = _("Refreshing {repo}").format(repo = _target.replace(".db", ""))+"..."
+            role = ""
+            icon = "cinnamon-installer-refresh"
         else:
-            status = _('Downloading {pkgname}').format(pkgname = _target.replace('.pkg.tar.xz', ''))+'...'
-            role = status+'\n'
-            icon = 'cinnamon-installer-download'
+            status = _("Downloading {pkgname}").format(pkgname = _target.replace(".pkg.tar.xz", ""))+"..."
+            role = status+"\n"
+            icon = "cinnamon-installer-download"
         if self.total_size > 0:
             percent = round((_transferred+self.already_transferred)/self.total_size, 2)
             if _transferred+self.already_transferred <= self.total_size:
-                target = '{transferred}/{size}'.format(transferred = common.format_size(_transferred+self.already_transferred), size = common.format_size(self.total_size))
+                target = "{transferred}/{size}".format(transferred = common.format_size(_transferred+self.already_transferred), size = common.format_size(self.total_size))
             else:
-                target = ''
+                target = ""
         else:
             percent = round(_transferred/_total, 2)
-            target = ''
+            target = ""
         if status != self.previous_status:
             self.previous_status = status
             self.EmitStatus(status, status)
@@ -675,7 +692,7 @@ class InstallerService(GObject.GObject):
             self.EmitTarget(target)
         if percent != self.previous_percent:
             self.previous_percent = percent
-            self.EmitPercent(percent)
+            self.EmitPercent(100*percent)
         elif _transferred == _total:
             self.already_transferred += _total
 
@@ -686,20 +703,20 @@ class InstallerService(GObject.GObject):
             _percent = target
             target = event
             event = i
-        if event and event in ('ALPM_PROGRESS_ADD_START', 'ALPM_PROGRESS_UPGRADE_START',
-                               'ALPM_PROGRESS_DOWNGRADE_START', 'ALPM_PROGRESS_REINSTALL_START', 'ALPM_PROGRESS_REMOVE_START'):
+        if event and event in ("ALPM_PROGRESS_ADD_START", "ALPM_PROGRESS_UPGRADE_START",
+                               "ALPM_PROGRESS_DOWNGRADE_START", "ALPM_PROGRESS_REINSTALL_START", "ALPM_PROGRESS_REMOVE_START"):
             percent = round(((i-1)/n)+(_percent/(100*n)), 2)
         else:
             percent = round(_percent/100, 2)
         if target != self.previous_target:
             self.previous_target = target
         if percent >= self.previous_percent + 1:
-            self.EmitTarget('{}/{}'.format(str(i), str(n)))
+            self.EmitTarget("{}/{}".format(str(i), str(n)))
             self.previous_percent = percent
-            self.EmitPercent(percent)
+            self.EmitPercent(100*percent)
 
     def _set_pkg_reason(self, pkgname, reason):
-        error = ''
+        error = ""
         try:
             pkg = self.localdb.get_pkg(pkgname)
             if pkg:
@@ -711,29 +728,29 @@ class InstallerService(GObject.GObject):
 
     def _policykit_test(self, sender, connexion, action):
         bus = dbus.SystemBus()
-        proxy_dbus = connexion.get_object('org.freedesktop.DBus','/org/freedesktop/DBus/Bus', False)
-        dbus_info = dbus.Interface(proxy_dbus,'org.freedesktop.DBus')
+        proxy_dbus = connexion.get_object("org.freedesktop.DBus", "/org/freedesktop/DBus/Bus", False)
+        dbus_info = dbus.Interface(proxy_dbus, "org.freedesktop.DBus")
         sender_pid = dbus_info.GetConnectionUnixProcessID(sender)
-        proxy_policykit = bus.get_object('org.freedesktop.PolicyKit1','/org/freedesktop/PolicyKit1/Authority',False)
-        policykit_authority = dbus.Interface(proxy_policykit,'org.freedesktop.PolicyKit1.Authority')
+        proxy_policykit = bus.get_object("org.freedesktop.PolicyKit1", "/org/freedesktop/PolicyKit1/Authority", False)
+        policykit_authority = dbus.Interface(proxy_policykit, "org.freedesktop.PolicyKit1.Authority")
 
-        Subject = ('unix-process', {'pid': dbus.UInt32(sender_pid, variant_level=1),
-        'start-time': dbus.UInt64(0, variant_level=1)})
+        Subject = ("unix-process", {"pid": dbus.UInt32(sender_pid, variant_level=1),
+        "start-time": dbus.UInt64(0, variant_level=1)})
         # We would like an infinite timeout, but dbus-python won't allow it.
         # Pass the longest timeout dbus-python will accept
-        (is_authorized,is_challenge,details) = policykit_authority.CheckAuthorization(Subject, action, {'': ''}, dbus.UInt32(1), '',timeout=2147483)
+        (is_authorized,is_challenge,details) = policykit_authority.CheckAuthorization(Subject, action, {"": ""}, dbus.UInt32(1), "",timeout=2147483)
         return is_authorized
 
     '''
     def _set_pkg_reason(self, pkgname, reason, sender=None, connexion=None):
         try:
-            authorized = self._policykit_test(sender,connexion,'org.manjaro.pamac.commit')
+            authorized = self._policykit_test(sender, connexion, "org.manjaro.pamac.commit")
         except dbus.exceptions.DBusException:
             e = sys.exc_info()[1]
-            return _('Authentication failed')
+            return _("Authentication failed")
         else:
             if authorized:
-                error = ''
+                error = ""
                 try:
                     pkg = self.localdb.get_pkg(pkgname)
                     if pkg:
@@ -743,11 +760,11 @@ class InstallerService(GObject.GObject):
                     error = format_error(e.args)
                 return error
            else :
-                return _('Authentication failed')
+                return _("Authentication failed")
     '''
-    def _check_updates(self, success=None, nosuccess=None):
+    def _check_updates(self, success=None, nosuccess=None, collect_type=None):
         if success:
-            success('')
+            success("")
         syncfirst = False
         updates = []
         _ignorepkgs = set()
@@ -770,7 +787,7 @@ class InstallerService(GObject.GObject):
                     candidate = pyalpm.sync_newversion(pkg, self.syncdbs)
                     if candidate:
                         syncfirst = True
-                        updates.append((candidate.name, candidate.version, candidate.db.name, '', candidate.download_size))
+                        updates.append((candidate.name, candidate.version, candidate.db.name, "", candidate.download_size))
         if not updates:
             local_packages = set()
             if config.enable_aur:
@@ -781,7 +798,7 @@ class InstallerService(GObject.GObject):
                 if not pkg.name in _ignorepkgs:
                     candidate = pyalpm.sync_newversion(pkg, self.syncdbs)
                     if candidate:
-                        updates.append((candidate.name, candidate.version, candidate.db.name, '', candidate.download_size))
+                        updates.append((candidate.name, candidate.version, candidate.db.name, "", candidate.download_size))
                         local_packages.discard(pkg.name)
             if config.enable_aur:
                 if not self.aur_updates_checked:
@@ -798,9 +815,9 @@ class InstallerService(GObject.GObject):
     def _refresh_pylamp(self, force_update):
         print("Refresh")
         def refresh():
-            self.target = ''
+            self.target = ""
             self.percent = 0
-            error = ''
+            error = ""
             for db in self.syncdbs:
                 try:
                     self.t = self.handle.init_transaction()
@@ -814,20 +831,20 @@ class InstallerService(GObject.GObject):
             if error:
                 self.EmitTransactionError(_("Transaction fail:"), error)
             else:
-                self.EmitTransactionDone('')
+                self.EmitTransactionDone("")
         self.task = Process(target=refresh)
         self.task.start()
         GObject.timeout_add(100, self._check_finished_commit)
 
     '''
     def _init_trans(self, options):
-        error = ''
+        error = ""
         try:
             #self.subject = Polkit.UnixProcess.new(os.getppid())
             #self.subject.set_uid(0)
             #self._get_handle()
             self.t = self.handle.init_transaction(**options)
-            print('Init:' + self.t.flags)
+            print("Init:" + self.t.flags)
         except pyalpm.error:
             e = sys.exc_info()[1]
             print(str(e))
@@ -837,13 +854,13 @@ class InstallerService(GObject.GObject):
     '''
 
     def _init_trans(self, **options):
-        error = ''
+        error = ""
         try:
             #self.subject = Polkit.UnixProcess.new(os.getppid())
             #self.subject.set_uid(0)
             #self._get_handle()
             self.t = self.handle.init_transaction(**options)
-            #print('Init:' + self.t.flags)
+            #print("Init:" + self.t.flags)
         except pyalpm.error:
             e = sys.exc_info()[1]
             print(str(e))
@@ -852,7 +869,7 @@ class InstallerService(GObject.GObject):
             return error
 
     def _sys_upgrade(self, downgrade):
-        error = ''
+        error = ""
         try:
             self.t.sysupgrade(downgrade = bool(downgrade))
         except pyalpm.error:
@@ -863,7 +880,7 @@ class InstallerService(GObject.GObject):
             return error
 
     def _remove_pkg(self, pkgname):
-        error = ''
+        error = ""
         try:
             pkg = self.localdb.get_pkg(pkgname)
             if pkg is not None:
@@ -875,7 +892,7 @@ class InstallerService(GObject.GObject):
             return error
 
     def _add_pkg(self, pkgname):
-        error = ''
+        error = ""
         try:
             for db in self.syncdbs:
                 # this is a security, in case of virtual package it will
@@ -892,13 +909,13 @@ class InstallerService(GObject.GObject):
             return error
 
     def _load_file(self, tarball_path):
-        error = ''
+        error = ""
         try:
             pkg = self.handle.load_pkg(tarball_path)
             if pkg:
                 self.t.add_pkg(pkg)
         except pyalpm.error:
-            error = _('{pkgname} is not a valid path or package name').format(pkgname = tarball_path)
+            error = _("{pkgname} is not a valid path or package name").format(pkgname = tarball_path)
         finally:
             return error
 
@@ -909,7 +926,7 @@ class InstallerService(GObject.GObject):
         already_checked = set(pkg.name for pkg in to_check)
         depends = [to_check]
         # get installed kernels and modules
-        pkgs = self.localdb.search('linux')
+        pkgs = self.localdb.search("linux")
         installed_kernels = set()
         installed_modules = set()
         for pkg in pkgs:
@@ -938,7 +955,7 @@ class InstallerService(GObject.GObject):
                                 # Check we won't remove a third party kernel
                                 third_party = False
                                 for provide in _pkg.provides:
-                                    if 'linux=' in provide:
+                                    if "linux=" in provide:
                                         third_party = True
                                 if not third_party:
                                     to_remove.add(pkgname)
@@ -999,7 +1016,7 @@ class InstallerService(GObject.GObject):
             # end of the loop
 
     def _prepare_pyalpm(self):
-        error = ''
+        error = ""
         self.providers.clear()
         self._check_extra_modules()
         try:
@@ -1011,7 +1028,7 @@ class InstallerService(GObject.GObject):
         else:
             for pkg in self.t.to_remove:
                 if pkg.name in config.holdpkg:
-                    error = _('The transaction cannot be performed because it needs to remove {pkgname1} which is a locked package').format(pkgname1 = pkg.name)
+                    error = _("The transaction cannot be performed because it needs to remove {pkgname1} which is a locked package").format(pkgname1 = pkg.name)
                     self.t.release()
                     break
         finally:
@@ -1021,13 +1038,13 @@ class InstallerService(GObject.GObject):
                 return [((), error)]
             if summ == 0:
                 self.t.release()
-                return [((), _('Nothing to do'))]
+                return [((), _("Nothing to do"))]
             elif error:
                 return [((), error)]
             elif self.providers:
                 return self.providers
             else:
-                return [((), '')]
+                return [((), "")]
 
     def _to_remove_pyalpm(self):
         _list = []
@@ -1066,7 +1083,7 @@ class InstallerService(GObject.GObject):
             self.client_response = True
             self.client_condition.notify()
             self.client_condition.release()
-        error = ''
+        error = ""
         try:
             self.t.commit()
         except pyalpm.error:
@@ -1078,16 +1095,16 @@ class InstallerService(GObject.GObject):
             self.t.release()
             if self.warning:
                 self.EmitLogWarning(self.warning)
-                self.warning = ''
+                self.warning = ""
             if error:
                 self.EmitTransactionError(_("Transaction fail:"), error)
             else:
-                self.EmitTransactionDone(_('Transaction successfully finished'))
+                self.EmitTransactionDone(_("Transaction successfully finished"))
             self.release_all()
     '''
     def commit(self, success, nosuccess, sender=None, connexion=None):
         def commit():
-            error = ''
+            error = ""
             try:
                 self.t.commit()
             except pyalpm.error:
@@ -1099,17 +1116,17 @@ class InstallerService(GObject.GObject):
                 self.t.release()
                 if self.warning:
                     self.EmitLogWarning(self.warning)
-                    self.warning = ''
+                    self.warning = ""
                 if error:
                     self.EmitTransactionError(_("Transaction fail:"), error)
                 else:
-                    self.EmitTransactionDone(_('Transaction successfully finished'))
-        success('')
+                    self.EmitTransactionDone(_("Transaction successfully finished"))
+        success("")
         try:
-            authorized = self._policykit_test(sender,connexion,'org.manjaro.pamac.commit')
+            authorized = self._policykit_test(sender,connexion, "org.manjaro.pamac.commit")
         except dbus.exceptions.DBusException:
             e = sys.exc_info()[1]
-            self.EmitTransactionError(_("Transaction fail:"), _('Authentication failed'))
+            self.EmitTransactionError(_("Transaction fail:"), _("Authentication failed"))
         else:
             if authorized:
                 self.task = Process(target=commit)
@@ -1117,7 +1134,7 @@ class InstallerService(GObject.GObject):
                 GObject.timeout_add(100, self.check_finished_commit)
             else :
                 self.t.release()
-                self.EmitTransactionError(_("Transaction fail:"), _('Authentication failed'))
+                self.EmitTransactionError(_("Transaction fail:"), _("Authentication failed"))
     '''
     def release_all(self):
         try:
@@ -1132,29 +1149,31 @@ class InstallerService(GObject.GObject):
         except:
             pass
 
-    def write_config(self, array, sender=None, connexion=None):
+    def write_config(self, array, collect_type=None):
+        sender = None
+        connexion = None
         need_update = False
-        if array['EnableAUR'] != self.config['EnableAUR']:
+        if array["EnableAUR"] != self.config["EnableAUR"]:
             need_update = True
-        if array['RemoveUnrequiredDeps'] != self.config['RemoveUnrequiredDeps']:
+        if array["RemoveUnrequiredDeps"] != self.config["RemoveUnrequiredDeps"]:
             need_update = True
-        if array['RefreshPeriod'] != self.config['RefreshPeriod']:
+        if array["RefreshPeriod"] != self.config["RefreshPeriod"]:
             need_update = True
         if need_update:
             try:
-                authorized = self._policykit_test(sender,connexion,'org.manjaro.pamac.write_config')
+                authorized = self._policykit_test(sender,connexion, "org.manjaro.pamac.write_config")
             except dbus.exceptions.DBusException:
                 e = sys.exc_info()[1]
-                self.EmitLogError(_('Authentication failed'))
+                self.EmitLogError(_("Authentication failed"))
             else:
                 if authorized:
                     self._write_config(array)
                 else:
-                    self.EmitLogError(_('Authentication failed'))
+                    self.EmitLogError(_("Authentication failed"))
 
     def _write_config(self, array):
-        error = ''
-        with open(config.INSTALLER_PATH, 'r') as conffile:
+        error = ""
+        with open(config.INSTALLER_PATH, "r") as conffile:
             data = conffile.readlines()
         i = 0
         while i < len(data):
@@ -1162,40 +1181,40 @@ class InstallerService(GObject.GObject):
             if len(line) == 0:
                 i += 1
                 continue
-            if line[0] == '#':
-                line = line.lstrip('#')
-            if line == '\n':
+            if line[0] == "#":
+                line = line.lstrip("#")
+            if line == "\n":
                 i += 1
                 continue
-            old_key, equal, old_value = [x.strip() for x in line.partition('=')]
+            old_key, equal, old_value = [x.strip() for x in line.partition("=")]
             for tupel in array:
                 new_key = tupel[0]
                 new_value = tupel[1]
                 if old_key == new_key:
                     # i is equal to the line number where we find the key in the file
                     if new_key in config.SINGLE_OPTIONS:
-                        data[i] = '{} = {}\n'.format(new_key, new_value)
+                        data[i] = "{} = {}\n".format(new_key, new_value)
                     elif new_key in config.BOOLEAN_OPTIONS:
-                        if new_value == 'False': 
-                            data[i] = '#{}\n'.format(new_key)
+                        if new_value == "False": 
+                            data[i] = "#{}\n".format(new_key)
                         else:
-                            data[i] = '{}\n'.format(new_key)
+                            data[i] = "{}\n".format(new_key)
             i += 1
-        with open(config.INSTALLER_PATH, 'w') as conffile:
+        with open(config.INSTALLER_PATH, "w") as conffile:
             conffile.writelines(data)
-        self.EmitReloadConfig('')
+        self.EmitReloadConfig("")
 #Mycode
-    def prepare_transaction_install(self, pkgs, cascade = True, recurse = False):
-        self.EmitTransactionStart('')
+    def prepare_transaction_install(self, pkgs, collect_type=None, cascade = True, recurse = False):
+        self.EmitTransactionStart("")
         self.to_add = set()
         self.to_update = set()
         self.to_load = set()
         self.to_remove = set()
         error = self._get_pkgs_to_install(pkgs)
-        if error != '':
+        if error != "":
             self.EmitTransactionError(_("Transaction fail:"), error)
         elif ((len(self.to_add) == 0) and (len(self.to_load) == 0) and (len(self.to_build) == 0)):
-            error = _('{pkgname} is not a valid path or package name').format(pkgname = name)
+            error = _("{pkgname} is not a valid path or package name").format(pkgname = name)
             self.EmitTransactionError(_("Transaction fail:"), error)
         else:
             if self.to_build:
@@ -1204,7 +1223,7 @@ class InstallerService(GObject.GObject):
             if not error:
                 if len(self.to_add) > 0 or len(self.to_remove) > 0 or len(self.to_load) > 0:
                     self.EmitTransactionCancellable(True)
-                    trans_flags = {'cascade': cascade, 'recurse': recurse}
+                    trans_flags = {"cascade": cascade, "recurse": recurse}
                     error += self.init_transaction(**trans_flags)
                     if not error:
                         for name in self.to_add:
@@ -1216,7 +1235,7 @@ class InstallerService(GObject.GObject):
                         if not error:
                             error += self._prepare(trans_flags)
                 else:
-                    self.EmitTransactionError(_("Transaction fail:"),_('Nothing to do'))
+                    self.EmitTransactionError(_("Transaction fail:"), _("Nothing to do"))
                 if not error:
                     dependencies = self._get_dependencies()
                     print("Dep:" + str(dependencies))
@@ -1229,8 +1248,8 @@ class InstallerService(GObject.GObject):
                 self.release_all()
                 self.EmitTransactionError(_("Transaction fail:"), error)
 
-    def prepare_transaction_remove(self, pkgs, cascade = True, recurse = False):
-        self.EmitTransactionStart('')
+    def prepare_transaction_remove(self, pkgs, collect_type=None, cascade = True, recurse = False):
+        self.EmitTransactionStart("")
         self.to_add = set()
         self.to_update = set()
         self.to_load = set()
@@ -1245,7 +1264,7 @@ class InstallerService(GObject.GObject):
             if not error:
                 if len(self.to_add) > 0 or len(self.to_remove) > 0 or len(self.to_load) > 0:
                     self.EmitTransactionCancellable(True)
-                    trans_flags = {'cascade': cascade, 'recurse': recurse}
+                    trans_flags = {"cascade": cascade, "recurse": recurse}
                     error += self.init_transaction(**trans_flags)
                     if not error:
                         for name in self.to_add:
@@ -1257,7 +1276,7 @@ class InstallerService(GObject.GObject):
                         if not error:
                             error += self._prepare(trans_flags)
                 else:
-                    self.EmitTransactionError(_("Transaction fail:"),_('Nothing to do'))
+                    self.EmitTransactionError(_("Transaction fail:"),_("Nothing to do"))
                 if not error:
                     dependencies = self._get_dependencies()
                     print("Dep:" + str(dependencies))
@@ -1270,9 +1289,9 @@ class InstallerService(GObject.GObject):
                 self.EmitTransactionError(_("Transaction fail:"), error)
 
     def _get_pkgs_to_install(self, pkgs):
-        error = ''
+        error = ""
         for name in pkgs:
-            if '.pkg.tar.' in name:
+            if ".pkg.tar." in name:
                 full_path = abspath(name)
                 self.to_load.add(full_path)
             elif self._get_syncpkg(name):
@@ -1285,19 +1304,19 @@ class InstallerService(GObject.GObject):
                         self.to_build.append(aur_pkg)
                 if not aur_pkg:
                     if error:
-                        error += '\n'
-                    error += _('{pkgname} is not a valid path or package name').format(pkgname = name)
+                        error += "\n"
+                    error += _("{pkgname} is not a valid path or package name").format(pkgname = name)
         return error
 
     def _get_pkgs_to_remove(self, pkgs):
-        error = ''
+        error = ""
         for name in pkgs:
             print(name)
             if self._get_localpkg(name):
                 print("get local")
                 self.to_remove.add(name)
         if len(self.to_remove) == 0:
-            error = _('{pkgname} is not a valid path or package name').format(pkgname = name)
+            error = _("{pkgname} is not a valid path or package name").format(pkgname = name)
         return error
 #Transaction
 
@@ -1311,18 +1330,18 @@ class InstallerService(GObject.GObject):
                 return pkg
         return None
 
-    def refresh_service(force_update = False):
-        self.EmitTransactionStart('')
+    def refresh_cache(force_update = False, collect_type=None):
+        self.EmitTransactionStart("")
         self.EmitTransactionCancellable(True)
-        self.EmitIcon('cinnamon-installer-refresh')
-        self.EmitStatus(_('Refreshing')+'...', _('Refreshing')+'...')
-        self.EmitTarget('')
+        self.EmitIcon("cinnamon-installer-refresh")
+        self.EmitStatus(_("Refreshing")+"...", _("Refreshing")+"...")
+        self.EmitTarget("")
         self.EmitPercent(0)
         self._refresh_pylamp(force_update)
 
     def init_transaction(self, **options):
         return self._init_trans(**options)
-        #return _init_trans(dbus.Dictionary(options, signature='sb'))
+        #return _init_trans(dbus.Dictionary(options, signature="sb"))
 
     def check_to_build(self):
         self.make_depends = set()
@@ -1334,7 +1353,7 @@ class InstallerService(GObject.GObject):
         already_checked = set()
         build_order = []
         i = 0
-        error = ''
+        error = ""
         while i < len(self.to_build):
             pkg = self.to_build[i]
             # if current pkg is not in build_order add it at the end of the list
@@ -1344,14 +1363,14 @@ class InstallerService(GObject.GObject):
             srcdir = aur.get_extract_tarball(pkg)
             if srcdir:
                 # get PKGBUILD and parse it to create a new pkg object with makedeps and deps 
-                new_pkgs = aur.get_pkgs(srcdir + '/PKGBUILD')
+                new_pkgs = aur.get_pkgs(srcdir + "/PKGBUILD")
                 for new_pkg in new_pkgs:
-                    print('checking' + new_pkg.name)
+                    print("checking " + new_pkg.name)
                     # check if some makedeps must be installed
                     for makedepend in new_pkg.makedepends:
                         if not makedepend in already_checked:
                             if not pyalpm.find_satisfier(self.localdb.pkgcache, makedepend):
-                                print('found make dep:' + makedepend)
+                                print("found make dep: " + makedepend)
                                 for db in self.syncdbs:
                                     provider = pyalpm.find_satisfier(db.pkgcache, makedepend)
                                     if provider:
@@ -1381,13 +1400,13 @@ class InstallerService(GObject.GObject):
                                             self.to_mark_as_dep.add(raw_makedepend)
                                         else:
                                             if error:
-                                                error += '\n'
-                                            error += _('{pkgname} depends on {dependname} but it is not installable').format(pkgname = pkg.name, dependname = makedepend)
+                                                error += "\n"
+                                            error += _("{pkgname} depends on {dependname} but it is not installable").format(pkgname = pkg.name, dependname = makedepend)
                     # check if some deps must be installed or built
                     for depend in new_pkg.depends:
                         if not depend in already_checked:
                             if not pyalpm.find_satisfier(self.localdb.pkgcache, depend):
-                                print('found dep:' + depend)
+                                print("found dep: " + depend)
                                 for db in self.syncdbs:
                                     provider = pyalpm.find_satisfier(db.pkgcache, depend)
                                     if provider:
@@ -1418,12 +1437,12 @@ class InstallerService(GObject.GObject):
                                             self.to_mark_as_dep.add(raw_depend)
                                         else:
                                             if error:
-                                                error += '\n'
-                                            error += _('{pkgname} depends on {dependname} but it is not installable').format(pkgname = pkg.name, dependname = depend)
+                                                error += "\n"
+                                            error += _("{pkgname} depends on {dependname} but it is not installable").format(pkgname = pkg.name, dependname = depend)
             else:
                 if error:
-                    error += '\n'
-                error += _('Failed to get {pkgname} archive from AUR').format(pkgname = pkg.name)
+                    error += "\n"
+                error += _("Failed to get {pkgname} archive from AUR").format(pkgname = pkg.name)
             i += 1
         if error:
             return error
@@ -1436,23 +1455,23 @@ class InstallerService(GObject.GObject):
             self.to_mark_as_dep.add(name)
         # reorder to_build following build_order
         self.to_build.sort(key = lambda pkg: build_order.index(pkg.name))
-        #print('order:' + build_order)
-        print('to build:' + self.to_build)
-        print('makedeps:' + self.make_depends)
-        print('builddeps:' + self.build_depends)
+        #print("order:" + build_order)
+        print("to build:" + self.to_build)
+        print("makedeps:" + self.make_depends)
+        print("builddeps:" + self.build_depends)
         return error
 
     '''
     def run(self, cascade = True, recurse = False):
         if self.to_add or self.to_remove or self.to_load or self.to_build:
-            error = ''
+            error = ""
             if self.to_build:
                 # check if packages in to_build have deps or makedeps which need to be install first
                 error += self.check_to_build()
             if not error:
                 if self.to_add or self.to_remove or self.to_load:
                     self.EmitTransactionCancellable(True)
-                    trans_flags = {'cascade': cascade, 'recurse': recurse}
+                    trans_flags = {"cascade": cascade, "recurse": recurse}
                     error += self.init_transaction(**trans_flags)
                     if not error:
                         for name in self.to_add:
@@ -1475,12 +1494,12 @@ class InstallerService(GObject.GObject):
                 self.EmitTransactionError(_("Transaction fail:"), error)
                 return(error)
         else:
-            return (_('Nothing to do'))
+            return (_("Nothing to do"))
     '''
     def _prepare(self, trans_flags):
-        error = ''
+        error = ""
         ret = self._prepare_pyalpm()
-        # ret type is a(ass) so [([''], '')]
+        # ret type is a(ass) so [([""], "")]
         if ret[0][0]: # providers are emitted
             self.release_all()#Release?
             for item in ret:
@@ -1513,11 +1532,11 @@ class InstallerService(GObject.GObject):
             virtual_dep = str(data[1])
             print("Seeee2>" + virtual_dep)
             providers = data[0]
-            self.provider_data = { 'title': "", 'description': "", 'providers': [] }
-            self.provider_data['title'] = _('{pkgname} is provided by {number} packages.').format(pkgname = virtual_dep, number = str(len(providers)))
-            self.provider_data['description'] = _('Please choose those you would like to install:')
+            self.provider_data = { "title": "", "description": "", "providers": [] }
+            self.provider_data["title"] = _("{pkgname} is provided by {number} packages.").format(pkgname = virtual_dep, number = str(len(providers)))
+            self.provider_data["description"] = _("Please choose those you would like to install:")
             for name in providers:
-                self.provider_data['providers'].append(str(name))
+                self.provider_data["providers"].append(str(name))
             print("call")
             self.EmitChooseProvider(self.provider_data)
 
@@ -1528,10 +1547,10 @@ class InstallerService(GObject.GObject):
          print("what?")
 
     def resolve_package_providers(self, provider_select):
-        if provider_select and provider_select in self.provider_data['providers']:
+        if provider_select and provider_select in self.provider_data["providers"]:
             self.to_add.append(provider_select)
         else:
-            self.to_add.add(self.provider_data['providers'][0])# add first provider
+            self.to_add.add(self.provider_data["providers"][0])# add first provider
         if not self.client_response:
             self.client_condition.acquire()
             self.client_response = True
@@ -1540,7 +1559,7 @@ class InstallerService(GObject.GObject):
 
     def _check_finished_build(self, data):
         def handle_timeout(*args):
-            raise Exception('timeout')
+            raise Exception("timeout")
         def no_handle_timeout(*args):
             try:
                 pass
@@ -1555,9 +1574,9 @@ class InstallerService(GObject.GObject):
             signal.signal(signal.SIGALRM, handle_timeout)
             signal.setitimer(signal.ITIMER_REAL, 0.05) # 50 ms timeout
             try:
-                line = self.build_proc.stdout.readline().decode(encoding='UTF-8')
-                line = re.sub(colors_regexp, '', line)
-                #print(line.rstrip('\n'))
+                line = self.build_proc.stdout.readline().decode(encoding="UTF-8")
+                line = re.sub(colors_regexp, "", line)
+                #print(line.rstrip("\n"))
                 progress_buffer.insert_at_cursor(line)
             except Exception:
                 pass
@@ -1565,29 +1584,29 @@ class InstallerService(GObject.GObject):
                 signal.signal(signal.SIGALRM, no_handle_timeout)
             finally:
                 #progress_bar.pulse()
-                self.EmitPercent(2)
+                self.EmitPercent(200)
                 return True
         elif self.build_proc.poll() == 0:
             # Build successfully finished
             built = []
             # parse again PKGBUILD to have new pkg objects in case of a pkgver() function
             # was used so pkgver was changed during build process
-            new_pkgs = aur.get_pkgs(path + '/PKGBUILD')
+            new_pkgs = aur.get_pkgs(path + "/PKGBUILD")
             # find built packages
             for new_pkg in new_pkgs:
                 for item in os.listdir(path):
                     if os.path.isfile(os.path.join(path, item)):
                         # add a * before pkgver if there an epoch variable
-                        if fnmatch.fnmatch(item, '{}-*{}-*.pkg.tar.?z'.format(new_pkg.name, new_pkg.version)):
+                        if fnmatch.fnmatch(item, "{}-*{}-*.pkg.tar.?z".format(new_pkg.name, new_pkg.version)):
                             built.append(os.path.join(path, item))
                             break
             if built:
-                print('successfully built:' + str(built))
+                print("successfully built:" + str(built))
                 self.build_proc = None
                 if pkg in self.to_build:
                     self.to_build.remove(pkg)
                 # install built packages
-                error = ''
+                error = ""
                 error += self.init_transaction()
                 if not error:
                     for pkg_path in built:
@@ -1607,11 +1626,11 @@ class InstallerService(GObject.GObject):
                         self.release_all()
                         self.EmitTransactionError(error, error)
             else:
-                self.EmitTransactionError(_('Build process failed.'), _('Build process failed.'))
+                self.EmitTransactionError(_("Build process failed."), _("Build process failed."))
             return False
         elif self.build_proc.poll() == 1:
             # Build finish with an error
-            self.EmitTransactionError(_('Build process failed.'), _('Build process failed.'))
+            self.EmitTransactionError(_("Build process failed."), _("Build process failed."))
             return False
 
     def Download(self, url_list, path):
@@ -1619,29 +1638,29 @@ class InstallerService(GObject.GObject):
             if self.cancel_download:
                 if ftp:
                     ftp.quit()
-                raise Exception('Download cancelled')
+                raise Exception("Download cancelled")
                 return
             f.write(chunk)
             self.aur_transferred += len(chunk)
             if total_size > 0:
                 percent = round(self.aur_transferred/total_size, 2)
                 if self.aur_transferred <= total_size:
-                    target = '{transferred}/{size}'.format(transferred = common.format_size(self.aur_transferred), size = common.format_size(total_size))
+                    target = "{transferred}/{size}".format(transferred = common.format_size(self.aur_transferred), size = common.format_size(total_size))
                 else:
-                    target = ''
+                    target = ""
             if target != self.previous_target:
                 self.previous_target = target
                 self.EmitTarget(target)
             if percent >= self.previous_percent + 1:
                 self.previous_percent = percent
-                self.EmitPercent(percent)
-        error = ''
+                self.EmitPercent(100*percent)
+        error = ""
         self.cancel_download = False
         ftp = None
         total_size = 0
         self.aur_transferred = 0
         parsed_urls = []
-        self.EmitIcon('cinnamon-installer-download')
+        self.EmitIcon("cinnamon-installer-download")
         self.EmitTransactionCancellable(True)
         for url in url_list:
             url_components = urlparse(url)
@@ -1649,33 +1668,33 @@ class InstallerService(GObject.GObject):
                 parsed_urls.append(url_components)
         print(parsed_urls)
         for url_components in parsed_urls:
-            if url_components.scheme == 'http':
+            if url_components.scheme == "http":
                 print("hola")
-                total_size += int(requests.get(url).headers['Content-Length'])
+                total_size += int(requests.get(url).headers["Content-Length"])
                 print("bye")
-            elif url_components.scheme == 'ftp':
+            elif url_components.scheme == "ftp":
                 ftp = FTP(url_components.netloc)
-                ftp.login('anonymous', '')
+                ftp.login("anonymous", "")
                 total_size += int(ftp.size(url_components.path))
         print(str(total_size))
         for url_components in parsed_urls:
-            filename = url_components.path.split('/')[-1]
+            filename = url_components.path.split("/")[-1]
             print(filename)
-            status = _('Downloading {pkgname}').format(pkgname = filename)+'...'
-            role = status+'\n'
+            status = _("Downloading {pkgname}").format(pkgname = filename)+"..."
+            role = status+"\n"
             if status != self.previous_status:
                 self.previous_status = status
                 self.EmitStatus(status, status)
             if role != self.previous_role:
                 self.previous_role != role
                 self.EmitRole(role)
-            with open(os.path.join(path, filename), 'wb') as f:
-                if url_components.scheme == 'http':
+            with open(os.path.join(path, filename), "wb") as f:
+                if url_components.scheme == "http":
                     try:
                         r = requests.get(url, stream = True)
                         for chunk in r.iter_content(1024):
                             if self.cancel_download:
-                                raise Exception('Download cancelled')
+                                raise Exception("Download cancelled")
                                 break
                             else:
                                 write_file(f, chunk)
@@ -1683,11 +1702,11 @@ class InstallerService(GObject.GObject):
                         e = sys.exc_info()[1]
                         print(str(e))
                         self.cancel_download = False
-                elif url_components.scheme == 'ftp':
+                elif url_components.scheme == "ftp":
                     try:
                         ftp = FTP(url_components.netloc)
-                        ftp.login('anonymous', '') 
-                        ftp.retrbinary('RETR '+url_components.path, write_file, f, blocksize=1024)
+                        ftp.login("anonymous", "") 
+                        ftp.retrbinary("RETR "+url_components.path, write_file, f, blocksize=1024)
                     except Exception:
                         e = sys.exc_info()[1]
                         print(str(e))
@@ -1700,17 +1719,17 @@ class InstallerService(GObject.GObject):
         built = []
         # parse again PKGBUILD to have new pkg objects in case of a pkgver() function
         # was used so pkgver was changed during build process
-        new_pkgs = aur.get_pkgs(path + '/PKGBUILD')
+        new_pkgs = aur.get_pkgs(path + "/PKGBUILD")
         # find built packages
         for new_pkg in new_pkgs:
             for item in os.listdir(path):
                 if os.path.isfile(os.path.join(path, item)):
                     # add a * before pkgver if there an epoch variable
-                    if fnmatch.fnmatch(item, '{}-*{}-*.pkg.tar.?z'.format(new_pkg.name, new_pkg.version)):
+                    if fnmatch.fnmatch(item, "{}-*{}-*.pkg.tar.?z".format(new_pkg.name, new_pkg.version)):
                         built.append(os.path.join(path, item))
                         break
         if built:
-            print('successfully built:' + built)
+            print("successfully built:" + built)
             self.build_proc = None
             if pkg in self.to_build:
                 self.to_build.remove(pkg)
@@ -1723,14 +1742,14 @@ class InstallerService(GObject.GObject):
     def _build_next(self):
         pkg = self.to_build[0]
         path = os.path.join(aur.srcpkgdir, aur.get_name(pkg))
-        new_pkgs = aur.get_pkgs(path + '/PKGBUILD')
+        new_pkgs = aur.get_pkgs(path + "/PKGBUILD")
         # sources are identicals for splitted packages
         # (not complete) download(new_pkgs[0].source, path)
-        action = _('Building {pkgname}').format(pkgname = pkg.name)+'...'
+        action = _("Building {pkgname}").format(pkgname = pkg.name)+"..."
         self.EmitStatus(action, action)
-        self.EmitRole(action+'\n')
-        self.EmitIcon('cinnamon-installer-setup')
-        self.EmitTarget('')
+        self.EmitRole(action+"\n")
+        self.EmitIcon("cinnamon-installer-setup")
+        self.EmitTarget("")
         self.EmitPercent(0)
         self.EmitCancellable(True)
         self.EmitNeedDetails(True)
@@ -1762,20 +1781,20 @@ class InstallerService(GObject.GObject):
                 else:
                     self.to_mark_as_dep.discard(name)
 
-    def check_updates(self):
-        self.EmitTransactionStart('')
-        action = _('Checking for updates')+'...'
+    def check_updates(self, collect_type=None):
+        self.EmitTransactionStart("")
+        action = _("Checking for updates")+"..."
         self.EmitStatus(action, action)
-        self.EmitRole(action+'\n')
-        self.EmitIcon('cinnamon-installer-search')
-        self.EmitTarget('')
+        self.EmitRole(action+"\n")
+        self.EmitIcon("cinnamon-installer-search")
+        self.EmitTarget("")
         self.EmitPercent(0)
         self.EmitCancellable(False)
         self.EmitNeedDetails(False)
         self._check_updates(None, None)
 
     def _get_transaction_summary(self, dependencies, show_updates = True):
-        infoConf = { 'title': "", 'description': "", 'dependencies': {} }
+        infoConf = { "title": "", "description": "", "dependencies": {} }
         for index, msg in enumerate(["Install",
                                      "Reinstall",
                                      "Remove",
@@ -1785,13 +1804,13 @@ class InstallerService(GObject.GObject):
                                      "Skip upgrade",
                                      "Build"]):
             if len(dependencies[index]) > 0:
-                listPiter = infoConf['dependencies']["%s" % msg] = []
+                listPiter = infoConf["dependencies"]["%s" % msg] = []
                 for pkg in dependencies[index]:
                     for object in self._map_package(pkg):
                         listPiter.append(str(object))
         msg = _("Please take a look at the list of changes below.")
         title = ""
-        if len(infoConf['dependencies'].keys()) == 1:
+        if len(infoConf["dependencies"].keys()) == 1:
             if len(dependencies[0]) > 0:
                 title = _("Additional software has to be installed")
             elif len(dependencies[1]) > 0:
@@ -1819,8 +1838,8 @@ class InstallerService(GObject.GObject):
             msg += (_("%sB more disk space will be used.") %
                     self._format_size(total_size))
 
-        infoConf['title'] = title
-        infoConf['description'] = msg
+        infoConf["title"] = title
+        infoConf["description"] = msg
         return infoConf
 
     def _map_package(self, pkg):
@@ -1830,11 +1849,11 @@ class InstallerService(GObject.GObject):
                             #In  RI  Re  Pu  Up  Do  Sk  Bu
         transaction_dict = [ [], [], [], [], [], [], [], [] ]
         for pkg in self.to_build:
-            transaction_dict[7].append(pkg.name+' '+pkg.version)
+            transaction_dict[7].append(pkg.name+" "+pkg.version)
         _to_remove = sorted(self._to_remove_pyalpm())
         for name, version in _to_remove:
             #if name not in self.pkgToTrans:
-            transaction_dict[2].append(name+' '+version)
+            transaction_dict[2].append(name+" "+version)
         others = sorted(self._to_add_pyalpm())
         for name, version, dsize in others:
             #if name not in self.pkgToTrans:
@@ -1842,47 +1861,47 @@ class InstallerService(GObject.GObject):
             if pkg:
                 comp = pyalpm.vercmp(version, pkg.version)
                 if comp == 1:
-                    transaction_dict[4].append((name+' '+version, dsize))
+                    transaction_dict[4].append((name+" "+version, dsize))
                 elif comp == 0:
-                    transaction_dict[1].append((name+' '+version, dsize))
+                    transaction_dict[1].append((name+" "+version, dsize))
                 elif comp == -1:
-                    transaction_dict[5].append((name+' '+version, dsize))
+                    transaction_dict[5].append((name+" "+version, dsize))
             else:
-                transaction_dict[0].append((name+' '+version, dsize))
+                transaction_dict[0].append((name+" "+version, dsize))
         return transaction_dict
     '''
     def get_transaction_sum(self):
-        transaction_dict = {'to_remove': [], 'to_build': [], 'to_install': [], 'to_update': [], 'to_reinstall': [], 'to_downgrade': []}
+        transaction_dict = {"to_remove": [], "to_build": [], "to_install": [], "to_update": [], "to_reinstall": [], "to_downgrade": []}
         for pkg in self.to_build:
-            transaction_dict['to_build'].append(pkg.name+' '+pkg.version)
+            transaction_dict["to_build"].append(pkg.name+" "+pkg.version)
         _to_remove = sorted(self._to_remove_pyalpm())
         for name, version in _to_remove:
-            transaction_dict['to_remove'].append(name+' '+version)
+            transaction_dict["to_remove"].append(name+" "+version)
         others = sorted(self._to_add_pyalpm())
         for name, version, dsize in others:
             pkg = self._get_localpkg(name)
             if pkg:
                 comp = executer.pyalpm.vercmp(version, pkg.version)
                 if comp == 1:
-                    transaction_dict['to_update'].append((name+' '+version, dsize))
+                    transaction_dict["to_update"].append((name+" "+version, dsize))
                 elif comp == 0:
-                    transaction_dict['to_reinstall'].append((name+' '+version, dsize))
+                    transaction_dict["to_reinstall"].append((name+" "+version, dsize))
                 elif comp == -1:
-                    transaction_dict['to_downgrade'].append((name+' '+version, dsize))
+                    transaction_dict["to_downgrade"].append((name+" "+version, dsize))
             else:
-                transaction_dict['to_install'].append((name+' '+version, dsize))
-        #~ if transaction_dict['to_build']:
-            #~ print('To build:' + str([name for name in transaction_dict['to_build']]))
-        #~ if transaction_dict['to_install']:
-            #~ print('To install:' + str([name for name, size in transaction_dict['to_install']]))
-        #~ if transaction_dict['to_reinstall']:
-            #~ print('To reinstall:' + str([name for name, size in transaction_dict['to_reinstall']]))
-        #~ if transaction_dict['to_downgrade']:
-            #~ print('To downgrade:' + str([name for name, size in transaction_dict['to_downgrade']]))
-        #~ if transaction_dict['to_remove']:
-            #~ print('To remove:' + str([name for name in transaction_dict['to_remove']]))
-        #~ if transaction_dict['to_update']:
-            #~ print('To update:' + str([name for name, size in transaction_dict['to_update']]))
+                transaction_dict["to_install"].append((name+" "+version, dsize))
+        #~ if transaction_dict["to_build"]:
+            #~ print("To build:" + str([name for name in transaction_dict["to_build"]]))
+        #~ if transaction_dict["to_install"]:
+            #~ print("To install:" + str([name for name, size in transaction_dict["to_install"]]))
+        #~ if transaction_dict["to_reinstall"]:
+            #~ print("To reinstall:" + str([name for name, size in transaction_dict["to_reinstall"]]))
+        #~ if transaction_dict["to_downgrade"]:
+            #~ print("To downgrade:" + str([name for name, size in transaction_dict["to_downgrade"]]))
+        #~ if transaction_dict["to_remove"]:
+            #~ print("To remove:" + str([name for name in transaction_dict["to_remove"]]))
+        #~ if transaction_dict["to_update"]:
+            #~ print("To update:" + str([name for name, size in transaction_dict["to_update"]]))
         return transaction_dict
     '''
     def _estimate_size(self, dependecies):
@@ -1920,86 +1939,86 @@ class InstallerService(GObject.GObject):
         
         self.mainApp._transactionSum.clear()
         transaction_dict = self.get_transaction_sum()
-        self.mainApp._sumTopLabel.set_markup('<big><b>{}</b></big>'.format(_('Transaction Summary')))
-        if transaction_dict['to_remove']:
-            self.mainApp._transactionSum.append([_('To remove')+':', transaction_dict['to_remove'][0]])
+        self.mainApp._sumTopLabel.set_markup("<big><b>{}</b></big>".format(_("Transaction Summary")))
+        if transaction_dict["to_remove"]:
+            self.mainApp._transactionSum.append([_("To remove")+":", transaction_dict["to_remove"][0]])
             i = 1
-            while i < len(transaction_dict['to_remove']):
-                self.mainApp._transactionSum.append(['', transaction_dict['to_remove'][i]])
+            while i < len(transaction_dict["to_remove"]):
+                self.mainApp._transactionSum.append(["", transaction_dict["to_remove"][i]])
                 i += 1
-        if transaction_dict['to_downgrade']:
-            self.mainApp._transactionSum.append([_('To downgrade')+':', transaction_dict['to_downgrade'][0][0]])
-            dsize += transaction_dict['to_downgrade'][0][1]
+        if transaction_dict["to_downgrade"]:
+            self.mainApp._transactionSum.append([_("To downgrade")+":", transaction_dict["to_downgrade"][0][0]])
+            dsize += transaction_dict["to_downgrade"][0][1]
             i = 1
-            while i < len(transaction_dict['to_downgrade']):
-                self.mainApp._transactionSum.append(['', transaction_dict['to_downgrade'][i][0]])
-                dsize += transaction_dict['to_downgrade'][i][1]
+            while i < len(transaction_dict["to_downgrade"]):
+                self.mainApp._transactionSum.append(["", transaction_dict["to_downgrade"][i][0]])
+                dsize += transaction_dict["to_downgrade"][i][1]
                 i += 1
-        if transaction_dict['to_build']:
-            self.mainApp._transactionSum.append([_('To build')+':', transaction_dict['to_build'][0]])
+        if transaction_dict["to_build"]:
+            self.mainApp._transactionSum.append([_("To build")+":", transaction_dict["to_build"][0]])
             i = 1
-            while i < len(transaction_dict['to_build']):
-                self.mainApp._transactionSum.append(['', transaction_dict['to_build'][i]])
+            while i < len(transaction_dict["to_build"]):
+                self.mainApp._transactionSum.append(["", transaction_dict["to_build"][i]])
                 i += 1
-        if transaction_dict['to_install']:
-            self.mainApp._transactionSum.append([_('To install')+':', transaction_dict['to_install'][0][0]])
-            dsize += transaction_dict['to_install'][0][1]
+        if transaction_dict["to_install"]:
+            self.mainApp._transactionSum.append([_("To install")+":", transaction_dict["to_install"][0][0]])
+            dsize += transaction_dict["to_install"][0][1]
             i = 1
-            while i < len(transaction_dict['to_install']):
-                self.mainApp._transactionSum.append(['', transaction_dict['to_install'][i][0]])
-                dsize += transaction_dict['to_install'][i][1]
+            while i < len(transaction_dict["to_install"]):
+                self.mainApp._transactionSum.append(["", transaction_dict["to_install"][i][0]])
+                dsize += transaction_dict["to_install"][i][1]
                 i += 1
-        if transaction_dict['to_reinstall']:
-            self.mainApp._transactionSum.append([_('To reinstall')+':', transaction_dict['to_reinstall'][0][0]])
-            dsize += transaction_dict['to_reinstall'][0][1]
+        if transaction_dict["to_reinstall"]:
+            self.mainApp._transactionSum.append([_("To reinstall")+":", transaction_dict["to_reinstall"][0][0]])
+            dsize += transaction_dict["to_reinstall"][0][1]
             i = 1
-            while i < len(transaction_dict['to_reinstall']):
-                self.mainApp._transactionSum.append(['', transaction_dict['to_reinstall'][i][0]])
-                dsize += transaction_dict['to_reinstall'][i][1]
+            while i < len(transaction_dict["to_reinstall"]):
+                self.mainApp._transactionSum.append(["", transaction_dict["to_reinstall"][i][0]])
+                dsize += transaction_dict["to_reinstall"][i][1]
                 i += 1
         if show_updates:
-            if transaction_dict['to_update']:
-                self.mainApp._transactionSum.append([_('To update')+':', transaction_dict['to_update'][0][0]])
-                dsize += transaction_dict['to_update'][0][1]
+            if transaction_dict["to_update"]:
+                self.mainApp._transactionSum.append([_("To update")+":", transaction_dict["to_update"][0][0]])
+                dsize += transaction_dict["to_update"][0][1]
                 i = 1
-                while i < len(transaction_dict['to_update']):
-                    self.mainApp._transactionSum.append(['', transaction_dict['to_update'][i][0]])
-                    dsize += transaction_dict['to_update'][i][1]
+                while i < len(transaction_dict["to_update"]):
+                    self.mainApp._transactionSum.append(["", transaction_dict["to_update"][i][0]])
+                    dsize += transaction_dict["to_update"][i][1]
                     i += 1
         else:
-            for name, size in transaction_dict['to_update']:
+            for name, size in transaction_dict["to_update"]:
                 dsize += size
         if dsize == 0:
-            self.mainApp._sumBottomLabel.set_markup('')
+            self.mainApp._sumBottomLabel.set_markup("")
         else:
-            self.mainApp._sumBottomLabel.set_markup('<b>{} {}</b>'.format(_('Total download size:'), common.format_size(dsize)))
+            self.mainApp._sumBottomLabel.set_markup("<b>{} {}</b>".format(_("Total download size:"), common.format_size(dsize)))
     '''
 
-    def system_upgrade(self, show_updates = True, downgrade = False):
+    def system_upgrade(self, show_updates = True, downgrade = False, collect_type=None):
         syncfirst, updates = self.available_updates
         if updates:
-            self.EmitTransactionStart('')
+            self.EmitTransactionStart("")
             ########progress_buffer
             self.to_update.clear()
             self.to_add.clear()
             self.to_remove.clear()
-            self.EmitStatus(_('Preparing')+'...', _('Preparing')+'...')
-            self.EmitIcon('cinnamon-installer--setup')
-            self.EmitTarget('')
+            self.EmitStatus(_("Preparing")+"...", _("Preparing")+"...")
+            self.EmitIcon("cinnamon-installer--setup")
+            self.EmitTarget("")
             self.EmitPercent(0)
             ########progress_buffer.delete(progress_buffer.get_start_iter(), progress_buffer.get_end_iter())
             self.EmitTransactionCancellable(False)
             #progress_expander.set_visible(True)
             #ProgressWindow.show()
             for name, version, db, tarpath, size in updates:
-                if db == 'AUR':
+                if db == "AUR":
                     # call AURPkg constructor directly to avoid a request to AUR
-                    infos = {'name': name, 'version': version, 'Description': '', 'URLPath': tarpath}
+                    infos = {"name": name, "version": version, "Description": "", "URLPath": tarpath}
                     pkg = aur.AURPkg(infos)
                     self.to_build.append(pkg)
                 else:
                     self.to_update.add(name)
-            error = ''
+            error = ""
             if syncfirst:
                 self.EmitTransactionCancellable(True)
                 error += self.init_transaction()
@@ -2019,7 +2038,7 @@ class InstallerService(GObject.GObject):
                     if not error:
                         if self.to_update:
                             error += self._sys_upgrade(downgrade)
-                        _error = ''
+                        _error = ""
                         for name in self.to_add:
                             _error += self._add_pkg(name)
                         if _error:

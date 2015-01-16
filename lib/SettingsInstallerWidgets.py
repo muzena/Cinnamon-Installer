@@ -62,7 +62,7 @@ except Exception:
 class EditableEntry (Gtk.Notebook):
 
     __gsignals__ = {
-        'changed': (GObject.SIGNAL_RUN_FIRST, None,
+        "changed": (GObject.SIGNAL_RUN_FIRST, None,
                       (str,))
     }
 
@@ -255,9 +255,9 @@ class PictureChooserButton (Gtk.Button):
             else:
                 menuitem.add(image)
             if id is not None:
-                menuitem.connect('activate', self._on_picture_selected, path, callback, id)
+                menuitem.connect("activate", self._on_picture_selected, path, callback, id)
             else:
-                menuitem.connect('activate', self._on_picture_selected, path, callback)
+                menuitem.connect("activate", self._on_picture_selected, path, callback)
             self.menu.attach(menuitem, self.col, self.col+1, self.row, self.row+1)
             self.col = (self.col+1) % self.num_cols
             if (self.col == 0):
@@ -309,7 +309,7 @@ class SidePage:
         # top-level widget
         if not self.is_standalone:
             for widget in self.widgets:
-                if hasattr(widget, 'expand'):
+                if hasattr(widget, "expand"):
                     self.content_box.pack_start(widget, True, True, 2)
                 else:
                     self.content_box.pack_start(widget, False, False, 2)
@@ -459,7 +459,7 @@ class SectionBg(Gtk.Viewport):
 class IndentedHBox(Gtk.HBox):
     def __init__(self):
         super(IndentedHBox, self).__init__()
-        indent = Gtk.Label.new('\t')
+        indent = Gtk.Label.new("\t")
         self.pack_start(indent, False, False, 0)
 
     def add(self, item):
@@ -476,13 +476,13 @@ class GSettingsCheckButton(Gtk.CheckButton):
         self.settings = Gio.Settings.new(schema)        
         self.set_active(self.settings.get_boolean(self.key))
         self.settings.connect("changed::"+self.key, self.on_my_setting_changed)
-        self.connectorId = self.connect('toggled', self.on_my_value_changed)
+        self.connectorId = self.connect("toggled", self.on_my_value_changed)
         self.dependency_invert = False
         if self.dep_key is not None:
-            if self.dep_key[0] == '!':
+            if self.dep_key[0] == "!":
                 self.dependency_invert = True
                 self.dep_key = self.dep_key[1:]
-            split = self.dep_key.split('/')
+            split = self.dep_key.split("/")
             self.dep_settings = Gio.Settings.new(split[0])
             self.dep_key = split[1]
             self.dep_settings.connect("changed::"+self.dep_key, self.on_dependency_setting_changed)
@@ -491,7 +491,7 @@ class GSettingsCheckButton(Gtk.CheckButton):
     def on_my_setting_changed(self, settings, key):
         self.disconnect(self.connectorId)                     #  panel-edit-mode can trigger changed:: twice in certain instances,
         self.set_active(self.settings.get_boolean(self.key))  #  so disconnect temporarily when we are simply updating the widget state
-        self.connectorId = self.connect('toggled', self.on_my_value_changed)
+        self.connectorId = self.connect("toggled", self.on_my_value_changed)
 
     def on_my_value_changed(self, widget):
         self.settings.set_boolean(self.key, self.get_active())
@@ -534,13 +534,13 @@ class GSettingsSpinButton(Gtk.HBox):
         self.content_widget.set_increments(step, page)
         self.content_widget.set_value(self.settings.get_int(self.key))
         self.settings.connect("changed::"+self.key, self.on_my_setting_changed)
-        self.content_widget.connect('value-changed', self.on_my_value_changed)
+        self.content_widget.connect("value-changed", self.on_my_value_changed)
         self.dependency_invert = False
         if self.dep_key is not None:
-            if self.dep_key[0] == '!':
+            if self.dep_key[0] == "!":
                 self.dependency_invert = True
                 self.dep_key = self.dep_key[1:]
-            split = self.dep_key.split('/')
+            split = self.dep_key.split("/")
             self.dep_settings = Gio.Settings.new(split[0])
             self.dep_key = split[1]
             self.dep_settings.connect("changed::"+self.dep_key, self.on_dependency_setting_changed)
@@ -578,14 +578,14 @@ class GSettingsEntry(Gtk.HBox):
         self.settings = Gio.Settings.new(schema)        
         self.content_widget.set_text(self.settings.get_string(self.key))
         self.settings.connect("changed::"+self.key, self.on_my_setting_changed)
-        self.content_widget.connect('focus-out-event', self.on_my_value_changed)     
+        self.content_widget.connect("focus-out-event", self.on_my_value_changed)     
         self.content_widget.show_all()
         self.dependency_invert = False
         if self.dep_key is not None:
-            if self.dep_key[0] == '!':
+            if self.dep_key[0] == "!":
                 self.dependency_invert = True
                 self.dep_key = self.dep_key[1:]
-            split = self.dep_key.split('/')
+            split = self.dep_key.split("/")
             self.dep_settings = Gio.Settings.new(split[0])
             self.dep_key = split[1]
             self.dep_settings.connect("changed::"+self.dep_key, self.on_dependency_setting_changed)
@@ -626,16 +626,16 @@ class GSettingsFileChooser(Gtk.HBox):
             if value=="":
                 self.content_widget.set_sensitive(False)
         
-        self.content_widget.connect('file-set', self.on_my_value_changed)
+        self.content_widget.connect("file-set", self.on_my_value_changed)
         if self.show_none_cb:
-            self.show_none_cb_widget.connect('toggled', self.on_my_value_changed)
+            self.show_none_cb_widget.connect("toggled", self.on_my_value_changed)
         self.content_widget.show_all()
         self.dependency_invert = False
         if self.dep_key is not None:
-            if self.dep_key[0] == '!':
+            if self.dep_key[0] == "!":
                 self.dependency_invert = True
                 self.dep_key = self.dep_key[1:]
-            split = self.dep_key.split('/')
+            split = self.dep_key.split("/")
             self.dep_settings = Gio.Settings.new(split[0])
             self.dep_key = split[1]
             self.dep_settings.connect("changed::"+self.dep_key, self.on_dependency_setting_changed)
@@ -679,14 +679,14 @@ class GSettingsFontButton(Gtk.HBox):
         if (label != ""):
             self.pack_start(self.label, False, False, 2)
         self.pack_start(self.content_widget, False, False, 2)
-        self.content_widget.connect('font-set', self.on_my_value_changed)
+        self.content_widget.connect("font-set", self.on_my_value_changed)
         self.content_widget.show_all()
         self.dependency_invert = False
         if self.dep_key is not None:
-            if self.dep_key[0] == '!':
+            if self.dep_key[0] == "!":
                 self.dependency_invert = True
                 self.dep_key = self.dep_key[1:]
-            split = self.dep_key.split('/')
+            split = self.dep_key.split("/")
             self.dep_settings = Gio.Settings.new(split[0])
             self.dep_key = split[1]
             self.dep_settings.connect("changed::"+self.dep_key, self.on_dependency_setting_changed)
@@ -714,19 +714,19 @@ class GSettingsFontButton(Gtk.HBox):
 #        #returned variant is range:(min, max)
 #        _min, _max = self.settings.get_range(self.key)[1]
 #
-#        self.content_widget = Gtk.HScale.new_with_range(_min, _max, options.get('adjustment_step', 1))
+#        self.content_widget = Gtk.HScale.new_with_range(_min, _max, options.get("adjustment_step", 1))
 #        self.content_widget.set_value(self.value)
 #        if (label != ""):
 #            self.pack_start(self.label, False, False, 2)
 #        self.pack_start(self.content_widget, True, True, 2)
-#        self.content_widget.connect('value-changed', self.on_my_value_changed)
+#        self.content_widget.connect("value-changed", self.on_my_value_changed)
 #        self.content_widget.show_all()
 #        self.dependency_invert = False
 #        if self.dep_key is not None:
-#            if self.dep_key[0] == '!':
+#            if self.dep_key[0] == "!":
 #                self.dependency_invert = True
 #                self.dep_key = self.dep_key[1:]
-#            split = self.dep_key.split('/')
+#            split = self.dep_key.split("/")
 #            self.dep_settings = Gio.Settings.new(split[0])
 #            self.dep_key = split[1]
 #            self.dep_settings.connect("changed::"+self.dep_key, self.on_dependency_setting_changed)
@@ -769,7 +769,7 @@ class GSettingsRange(Gtk.HBox):
         self.inverted = inverted
         self.exponential = exponential
         self._range = (hi_limit - low_limit) * 1.0
-        self._step = options.get('adjustment_step', 1)
+        self._step = options.get("adjustment_step", 1)
         self._min = low_limit * 1.0
         self._max = hi_limit * 1.0
         self.content_widget = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, 0, 1, (self._step / self._range))
@@ -787,17 +787,17 @@ class GSettingsRange(Gtk.HBox):
             self.grid.attach(self.hi_label, 3, 0, 1, 1)
         self.pack_start(self.grid, True, True, 2)
         self._dragging = False
-        self.content_widget.connect('value-changed', self.on_my_value_changed)
-        self.content_widget.connect('button-press-event', self.on_mouse_down)
-        self.content_widget.connect('button-release-event', self.on_mouse_up)
+        self.content_widget.connect("value-changed", self.on_my_value_changed)
+        self.content_widget.connect("button-press-event", self.on_mouse_down)
+        self.content_widget.connect("button-release-event", self.on_mouse_up)
         self.content_widget.connect("scroll-event", self.on_mouse_scroll_event)
         self.content_widget.show_all()
         self.dependency_invert = False
         if self.dep_key is not None:
-            if self.dep_key[0] == '!':
+            if self.dep_key[0] == "!":
                 self.dependency_invert = True
                 self.dep_key = self.dep_key[1:]
-            split = self.dep_key.split('/')
+            split = self.dep_key.split("/")
             self.dep_settings = Gio.Settings.new(split[0])
             self.dep_key = split[1]
             self.dep_settings.connect("changed::"+self.dep_key, self.on_dependency_setting_changed)
@@ -896,7 +896,7 @@ class GSettingsRangeSpin(Gtk.HBox):
         self.settings = Gio.Settings.new(schema)
 
         _min, _max = self.settings.get_range(self.key)[1]
-        _increment = options.get('adjustment_step', 1)
+        _increment = options.get("adjustment_step", 1)
 
         self.content_widget.set_range(_min, _max)
         self.content_widget.set_increments(_increment, _increment)
@@ -905,13 +905,13 @@ class GSettingsRangeSpin(Gtk.HBox):
         self.content_widget.set_value(self.settings.get_double(self.key))
 
         self.settings.connect("changed::"+self.key, self.on_my_setting_changed)
-        self.content_widget.connect('value-changed', self.on_my_value_changed)
+        self.content_widget.connect("value-changed", self.on_my_value_changed)
         self.dependency_invert = False
         if self.dep_key is not None:
-            if self.dep_key[0] == '!':
+            if self.dep_key[0] == "!":
                 self.dependency_invert = True
                 self.dep_key = self.dep_key[1:]
-            split = self.dep_key.split('/')
+            split = self.dep_key.split("/")
             self.dep_settings = Gio.Settings.new(split[0])
             self.dep_key = split[1]
             self.dep_settings.connect("changed::"+self.dep_key, self.on_dependency_setting_changed)
@@ -960,14 +960,14 @@ class GSettingsComboBox(Gtk.HBox):
         if (label != ""):
             self.pack_start(self.label, False, False, 2)                
         self.pack_start(self.content_widget, True, True, 2)                     
-        self.content_widget.connect('changed', self.on_my_value_changed)
+        self.content_widget.connect("changed", self.on_my_value_changed)
         self.content_widget.show_all()
         self.dependency_invert = False
         if self.dep_key is not None:
-            if self.dep_key[0] == '!':
+            if self.dep_key[0] == "!":
                 self.dependency_invert = True
                 self.dep_key = self.dep_key[1:]
-            split = self.dep_key.split('/')
+            split = self.dep_key.split("/")
             self.dep_settings = Gio.Settings.new(split[0])
             self.dep_key = split[1]
             self.dep_settings.connect("changed::"+self.dep_key, self.on_dependency_setting_changed)
@@ -1018,14 +1018,14 @@ class GSettingsIntComboBox(Gtk.HBox):
         if (label != ""):
             self.pack_start(self.label, False, False, 2)
         self.pack_start(self.content_widget, False, True, 2)
-        self.content_widget.connect('changed', self.on_my_value_changed)
+        self.content_widget.connect("changed", self.on_my_value_changed)
         self.content_widget.show_all()
         self.dependency_invert = False
         if self.dep_key is not None:
-            if self.dep_key[0] == '!':
+            if self.dep_key[0] == "!":
                 self.dependency_invert = True
                 self.dep_key = self.dep_key[1:]
-            split = self.dep_key.split('/')
+            split = self.dep_key.split("/")
             self.dep_settings = Gio.Settings.new(split[0])
             self.dep_key = split[1]
             self.dep_settings.connect("changed::"+self.dep_key, self.on_dependency_setting_changed)
@@ -1074,7 +1074,7 @@ class GSettingsUIntComboBox(Gtk.HBox):
         if (label != ""):
             self.pack_start(self.label, False, False, 2)
         self.pack_start(self.content_widget, False, True, 2)
-        self.content_widget.connect('changed', self.on_my_value_changed)
+        self.content_widget.connect("changed", self.on_my_value_changed)
         self.content_widget.show_all()
 
     def on_my_value_changed(self, widget):
@@ -1095,10 +1095,10 @@ class GSettingsColorChooser(Gtk.ColorButton):
         self._schema.connect("changed::"+key, self._on_settings_value_changed)
         self.dependency_invert = False
         if self.dep_key is not None:
-            if self.dep_key[0] == '!':
+            if self.dep_key[0] == "!":
                 self.dependency_invert = True
                 self.dep_key = self.dep_key[1:]
-            split = self.dep_key.split('/')
+            split = self.dep_key.split("/")
             self.dep_settings = Gio.Settings.new(split[0])
             self.dep_key = split[1]
             self.dep_settings.connect("changed::"+self.dep_key, self.on_dependency_setting_changed)
@@ -1134,7 +1134,7 @@ class GSettingsColorChooser(Gtk.ColorButton):
 #         if (label != ""):
 #             self.pack_start(self.label, False, False, 2)
 #         self.pack_start(self.content_widget, False, False, 2)
-#         self.content_widget.connect('font-set', self.on_my_value_changed)
+#         self.content_widget.connect("font-set", self.on_my_value_changed)
 #         self.content_widget.show_all()
 #     def on_my_value_changed(self, widget):
 #         self.settings.set_string(self.key, widget.get_font_name())
@@ -1169,7 +1169,7 @@ class GSettingsColorChooser(Gtk.ColorButton):
 #         if (label != ""):
 #             self.pack_start(self.label, False, False, 2)                
 #         self.pack_start(self.content_widget, False, False, 2)                     
-#         self.content_widget.connect('changed', self.on_my_value_changed)
+#         self.content_widget.connect("changed", self.on_my_value_changed)
 #         # The on_my_setting_changed callback raises a segmentation fault, need to investigate that
 #         #self.settings.add_dir(os.path.split(key)[0], gconf.CLIENT_PRELOAD_NONE)
 #         #self.settings.notify_add(self.key, self.on_my_setting_changed)
@@ -1190,7 +1190,7 @@ class GSettingsColorChooser(Gtk.ColorButton):
 #         self.settings = gconf.client_get_default()
 #         self.set_active(self.settings.get_bool(self.key))
 #         self.settings.notify_add(self.key, self.on_my_setting_changed)
-#         self.connect('toggled', self.on_my_value_changed)            
+#         self.connect("toggled", self.on_my_value_changed)            
     
 #     def on_my_setting_changed(self, client, cnxn_id, entry):
 #         value = entry.value.get_bool()
@@ -1207,7 +1207,7 @@ class DBusCheckButton(Gtk.CheckButton):
         self.dbus_get_method = get_method
         self.dbus_set_method = set_method
         self.set_active(getattr(self.dbus_iface, get_method)()[1])
-        self.connect('toggled', self.on_my_value_changed)
+        self.connect("toggled", self.on_my_value_changed)
         
     def on_my_value_changed(self, widget):
         getattr(self.dbus_iface, self.dbus_set_method)(self.get_active())

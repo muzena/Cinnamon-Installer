@@ -30,7 +30,7 @@ from gi.repository import Gtk, Gdk, GObject, GdkPixbuf
 
 class EyeDropper(Gtk.HBox):
     __gsignals__ = {
-        'color-picked': (GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_STRING,))
+        "color-picked": (GObject.SignalFlags.RUN_LAST, None, (GObject.TYPE_STRING,))
     }
 
     def __init__(self):
@@ -39,7 +39,7 @@ class EyeDropper(Gtk.HBox):
         self.button = Gtk.Button("")
         self.button.set_tooltip_text(_("Click the eyedropper, then click a color anywhere on your screen to select that color"))
         self.button.set_image(Gtk.Image().new_from_stock(Gtk.STOCK_COLOR_PICKER, Gtk.IconSize.BUTTON))
-        self.button.get_property('image').show()
+        self.button.get_property("image").show()
         self.button.set_events(Gdk.EventMask.POINTER_MOTION_MASK | Gdk.EventMask.POINTER_MOTION_HINT_MASK);
 
         self.pack_start(self.button, False, False, 2)
@@ -119,7 +119,7 @@ class EyeDropper(Gtk.HBox):
         color.red = r / 255.0
         color.green = g / 255.0
         color.blue = b / 255.0
-        self.emit('color-picked', color.to_string())
+        self.emit("color-picked", color.to_string())
         self.ungrab(device)
 
     def ungrab(self, device):

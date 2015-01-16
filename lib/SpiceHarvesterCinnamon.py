@@ -62,8 +62,8 @@ except ImportError:
 import SpicesInstaller
 
 home = os.path.expanduser("~")
-locale_inst = '%s/.local/share/locale' % home
-settings_dir = '%s/.cinnamon/configs/' % home
+locale_inst = "%s/.local/share/locale" % home
+settings_dir = "%s/.cinnamon/configs/" % home
 
 URL_SPICES_HOME = "http://cinnamon-spices.linuxmint.com"
 URL_SPICES_APPLET_LIST = URL_SPICES_HOME + "/json/applets.json"
@@ -119,17 +119,17 @@ class Spice_Harvester_Cinnamon(SpicesInstaller.Spice_Harvester):
         if (self.has_cache and not force):
             self.load_cache()
         elif force:
-            self.parent.emit('EmitTransactionStart', _("Refreshing index..."))
+            self.parent.emit("EmitTransactionStart", _("Refreshing index..."))
             self.refresh_cache()
-            self.parent.emit('EmitTransactionDone', "")
+            self.parent.emit("EmitTransactionDone", "")
         onDone(self.index_cache)
 
     def refresh_cache(self, load_assets=True):
         self.download_url = self.get_index_url()
-        self.parent.emit('EmitPercent', 2)
+        self.parent.emit("EmitPercent", 2)
 
         filename = os.path.join(self.cache_folder, "index.json")
-        f = open(filename, 'w')
+        f = open(filename, "w")
         self.download(f, filename)
         
         self.load_cache()
@@ -141,8 +141,8 @@ class Spice_Harvester_Cinnamon(SpicesInstaller.Spice_Harvester):
     def load_assets(self):
         #self.progresslabel.set_text(_("Refreshing cache..."))
         #self.progress_button_abort.set_sensitive(True)
-        self.parent.emit('EmitTransactionStart', _("Refreshing index..."))
-        self.parent.emit('EmitTransactionCancellable', True)
+        self.parent.emit("EmitTransactionStart", _("Refreshing index..."))
+        self.parent.emit("EmitTransactionCancellable", True)
 
         needs_refresh = 0
         used_thumbs = []
@@ -151,16 +151,16 @@ class Spice_Harvester_Cinnamon(SpicesInstaller.Spice_Harvester):
 
         for uuid in uuids:
             if not self.themes:
-                icon_basename = os.path.basename(self.index_cache[uuid]['icon'])
+                icon_basename = os.path.basename(self.index_cache[uuid]["icon"])
                 icon_path = os.path.join(self.cache_folder, icon_basename)
                 used_thumbs.append(icon_basename)
             else:
-                icon_basename = self.sanitize_thumb(os.path.basename(self.index_cache[uuid]['screenshot']))
+                icon_basename = self.sanitize_thumb(os.path.basename(self.index_cache[uuid]["screenshot"]))
                 icon_path = os.path.join(self.cache_folder, icon_basename)
                 used_thumbs.append(icon_basename)
 
-            self.index_cache[uuid]['icon_filename'] = icon_basename
-            self.index_cache[uuid]['icon_path'] = icon_path
+            self.index_cache[uuid]["icon_filename"] = icon_basename
+            self.index_cache[uuid]["icon_path"] = icon_path
 
             if not os.path.isfile(icon_path):
                 needs_refresh += 1
@@ -172,15 +172,15 @@ class Spice_Harvester_Cinnamon(SpicesInstaller.Spice_Harvester):
             if self.abort_download > ABORT_NONE:
                 return
 
-            icon_path = self.index_cache[uuid]['icon_path']
+            icon_path = self.index_cache[uuid]["icon_path"]
             if not os.path.isfile(icon_path):
                 #self.progress_bar_pulse()
                 self.download_current_file += 1
-                f = open(icon_path, 'w')
+                f = open(icon_path, "w")
                 if not self.themes:
-                    self.download_url = URL_SPICES_HOME + self.index_cache[uuid]['icon']
+                    self.download_url = URL_SPICES_HOME + self.index_cache[uuid]["icon"]
                 else:
-                    self.download_url = URL_SPICES_HOME + "/uploads/themes/thumbs/" + self.index_cache[uuid]['icon_filename']
+                    self.download_url = URL_SPICES_HOME + "/uploads/themes/thumbs/" + self.index_cache[uuid]["icon_filename"]
                 valid = True
                 try:
                     urllib2.urlopen(self.download_url).getcode()
@@ -202,7 +202,7 @@ class Spice_Harvester_Cinnamon(SpicesInstaller.Spice_Harvester):
                 pass
 
         #self.progress_window.hide()
-        self.parent.emit('EmitTransactionDone', "")
+        self.parent.emit("EmitTransactionDone", "")
 
         self.download_total_files = 0
         self.download_current_file = 0
@@ -210,7 +210,7 @@ class Spice_Harvester_Cinnamon(SpicesInstaller.Spice_Harvester):
     def download(self, outfd, outfile):
         url = self.download_url
         #self.progress_button_abort.set_sensitive(True)
-        self.parent.emit('EmitTransactionCancellable', True)
+        self.parent.emit("EmitTransactionCancellable", True)
         try:
             self.url_retrieve(url, outfd, self.reporthook)
         except KeyboardInterrupt:
@@ -219,10 +219,10 @@ class Spice_Harvester_Cinnamon(SpicesInstaller.Spice_Harvester):
             except OSError:
                 pass
             #self.progress_window.hide()
-            self.parent.emit('EmitTransactionDone', "Error")
+            self.parent.emit("EmitTransactionDone", "Error")
             if self.abort_download == ABORT_ERROR:
                 #self.errorMessage(_("An error occurred while trying to access the server.  Please try again in a little while."), self.error)
-                self.parent.emit('EmitTransactionError', _("An error occurred while trying to access the server.  Please try again in a little while."), "")
+                self.parent.emit("EmitTransactionError", _("An error occurred while trying to access the server.  Please try again in a little while."), "")
             raise Exception(_("Download aborted."))
 
         return outfile
@@ -230,7 +230,7 @@ class Spice_Harvester_Cinnamon(SpicesInstaller.Spice_Harvester):
     def refresh_cache_silent(self):
         download_url = self.get_index_url()
         fd, filename = tempfile.mkstemp()
-        f = open(filename, 'w')
+        f = open(filename, "w")
         self.download_silent(f, filename, download_url)
         print("download finished")
         #self.load_cache()
@@ -290,15 +290,15 @@ class Spice_Harvester_Cinnamon(SpicesInstaller.Spice_Harvester):
     def reporthook(self, count, blockSize, totalSize):
         if self.download_total_files > 1:
             fraction = (float(self.download_current_file) / float(self.download_total_files));
-            self.parent.emit('EmitTarget', "%s - %d / %d files" % (str(int(fraction*100)) + '%', self.download_current_file, self.download_total_files))
+            self.parent.emit("EmitTarget", "%s - %d / %d files" % (str(int(fraction*100)) + "%", self.download_current_file, self.download_total_files))
         else:
             fraction = count * blockSize / float((totalSize / blockSize + 1) * (blockSize))
-            self.parent.emit('EmitTarget', str(int(fraction * 100)) + '%')
+            self.parent.emit("EmitTarget", str(int(fraction * 100)) + "%")
 
         if fraction > 0:
-             self.parent.emit('EmitPercent', fraction)
+             self.parent.emit("EmitPercent", fraction)
         else:
-             self.parent.emit('EmitPercent', 2)
+             self.parent.emit("EmitPercent", 2)
 
         #while Gtk.events_pending():
         #    Gtk.main_iteration()

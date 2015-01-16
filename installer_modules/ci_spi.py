@@ -52,18 +52,18 @@ DIR_PATH = os.path.dirname(ABS_PATH) + "/"
 
 # i18n
 import gettext, locale
-LOCALE_PATH = DIR_PATH + 'locale'
-DOMAIN = 'cinnamon-installer'
+LOCALE_PATH = DIR_PATH + "locale"
+DOMAIN = "cinnamon-installer"
 locale.bindtextdomain(DOMAIN , LOCALE_PATH)
-locale.bind_textdomain_codeset(DOMAIN , 'UTF-8')
+locale.bind_textdomain_codeset(DOMAIN , "UTF-8")
 gettext.bindtextdomain(DOMAIN, LOCALE_PATH)
-gettext.bind_textdomain_codeset(DOMAIN , 'UTF-8')
+gettext.bind_textdomain_codeset(DOMAIN , "UTF-8")
 gettext.textdomain(DOMAIN)
 _ = gettext.gettext
 
 home = os.path.expanduser("~")
-locale_inst = '%s/.local/share/locale' % home
-settings_dir = '%s/.cinnamon/configs/' % home
+locale_inst = "%s/.local/share/locale" % home
+settings_dir = "%s/.cinnamon/configs/" % home
 
 URL_SPICES_HOME = "http://cinnamon-spices.linuxmint.com"
 
@@ -72,50 +72,50 @@ ABORT_ERROR = 1
 ABORT_USER = 2
 
 CI_STATUS = {
-    'RESOLVING_DEPENDENCIES': "Resolving dep",
-    'SETTING_UP': "Setting up",
-    'LOADING_CACHE': "Loading cache",
-    'AUTHENTICATING': "authenticating",
-    'DOWNLOADING': "Downloading",
-    'DOWNLOADING_REPO': "Downloading repo",
-    'RUNNING': "Running",
-    'COMMITTING': "Committing",
-    'INSTALLING': "Installing",
-    'REMOVING': "Removing",
-    'CHECKING': "Checking",
-    'FINISHED': "Finished",
-    'WAITING': "Waiting",
-    'WAITING_LOCK': "Waiting lock",
-    'WAITING_MEDIUM': "Waiting medium",
-    'WAITING_CONFIG_FILE': "Waiting config file",
-    'CANCELLING': "Cancelling",
-    'CLEANING_UP': "Cleaning up",
-    'QUERY': "Query",
-    'DETAILS': "Details",
-    'UNKNOWN': "Unknown"
+    "RESOLVING_DEPENDENCIES": "Resolving dep",
+    "SETTING_UP": "Setting up",
+    "LOADING_CACHE": "Loading cache",
+    "AUTHENTICATING": "authenticating",
+    "DOWNLOADING": "Downloading",
+    "DOWNLOADING_REPO": "Downloading repo",
+    "RUNNING": "Running",
+    "COMMITTING": "Committing",
+    "INSTALLING": "Installing",
+    "REMOVING": "Removing",
+    "CHECKING": "Checking",
+    "FINISHED": "Finished",
+    "WAITING": "Waiting",
+    "WAITING_LOCK": "Waiting lock",
+    "WAITING_MEDIUM": "Waiting medium",
+    "WAITING_CONFIG_FILE": "Waiting config file",
+    "CANCELLING": "Cancelling",
+    "CLEANING_UP": "Cleaning up",
+    "QUERY": "Query",
+    "DETAILS": "Details",
+    "UNKNOWN": "Unknown"
 }
 '''
 CI_STATUS = {
-    'status-resolving-dep': "RESOLVING_DEPENDENCIES",
-    'status-setting-up': "SETTING-UP",
-    'status-loading-cache': "LOADING_CACHE",
-    'status-authenticating': "AUTHENTICATING",
-    'status-downloading': "DOWNLOADING",
-    'status-downloading-repo': "DOWNLOADING_REPO",
-    'status-running': "RUNNING",
-    'status-committing': "COMMITTING",
-    #'status-installing': "INSTALLING",
-    #'status-removing': "REMOVING",
-    'status-finished': "FINISHED",
-    'status-waiting': "WAITING",
-    'status-waiting-lock': "WAITING_LOCK",
-    'status-waiting-medium': "WAITING_MEDIUM",
-    'status-waiting-config-file-prompt': "WAITING_CONFIG_FILE",
-    'status-cancelling': "CANCELLING",
-    'status-cleaning-up': "CLEANING_UP",
-    'status-query': "QUERY",
-    'status-details': "DETAILS",
-    'status-unknown': "UNKNOWN"
+    "status-resolving-dep": "RESOLVING_DEPENDENCIES",
+    "status-setting-up": "SETTING-UP",
+    "status-loading-cache": "LOADING_CACHE",
+    "status-authenticating": "AUTHENTICATING",
+    "status-downloading": "DOWNLOADING",
+    "status-downloading-repo": "DOWNLOADING_REPO",
+    "status-running": "RUNNING",
+    "status-committing": "COMMITTING",
+    #"status-installing": "INSTALLING",
+    #"status-removing": "REMOVING",
+    "status-finished": "FINISHED",
+    "status-waiting": "WAITING",
+    "status-waiting-lock": "WAITING_LOCK",
+    "status-waiting-medium": "WAITING_MEDIUM",
+    "status-waiting-config-file-prompt": "WAITING_CONFIG_FILE",
+    "status-cancelling": "CANCELLING",
+    "status-cleaning-up": "CLEANING_UP",
+    "status-query": "QUERY",
+    "status-details": "DETAILS",
+    "status-unknown": "UNKNOWN"
 }
 '''
 
@@ -150,48 +150,52 @@ def removeEmptyFolders(path):
 class InstallerModule():
     def __init__(self):
         self.validTypes = ["applet", "desklet", "extension", "theme"]
+        self.service = None
 
-    def priority_for_action(self, action):
-        if action in self.validTypes:
+    def priority_for_collection(self, collect_type):
+        if collect_type in self.validTypes:
             return 1
         return 0
     
     def get_service(self):
-        return InstallerService()
+        if self.service is None:
+            self.service = InstallerService()
+        self.service.set_parent_module(self)
+        return self.service
 
 class InstallerService(GObject.GObject):
     __gsignals__ = {
-        'EmitTransactionDone': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
-        'EmitTransactionError': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING,)),
-        'EmitAvailableUpdates': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_BOOLEAN, GObject.TYPE_BOOLEAN,)),
-        'EmitStatus': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING,)),
-        'EmitRole': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
-        'EmitNeedDetails': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_BOOLEAN,)),
-        'EmitIcon': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
-        'EmitTarget': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
-        'EmitPercent': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_FLOAT,)),
-        'EmitDownloadPercentChild': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING, GObject.TYPE_FLOAT, GObject.TYPE_STRING,)),
-        'EmitDownloadChildStart': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_BOOLEAN,)),
-        'EmitLogError': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
-        'EmitLogWarning': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
-        'EmitTransactionStart': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
-        'EmitReloadConfig': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
-        'EmitTransactionConfirmation': (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_PYOBJECT,)),
-        'EmitTransactionCancellable': (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_BOOLEAN,)),
-        'EmitTerminalAttached': (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_BOOLEAN,)),
-        'EmitConflictFile': (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING,)),
-        'EmitChooseProvider': (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_PYOBJECT,)),
-        'EmitMediumRequired': (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING, GObject.TYPE_STRING))
+        "EmitTransactionDone": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
+        "EmitTransactionError": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING,)),
+        "EmitAvailableUpdates": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_BOOLEAN, GObject.TYPE_BOOLEAN,)),
+        "EmitStatus": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING,)),
+        "EmitRole": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
+        "EmitNeedDetails": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_BOOLEAN,)),
+        "EmitIcon": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
+        "EmitTarget": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
+        "EmitPercent": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_FLOAT,)),
+        "EmitDownloadPercentChild": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING, GObject.TYPE_FLOAT, GObject.TYPE_STRING,)),
+        "EmitDownloadChildStart": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_BOOLEAN,)),
+        "EmitLogError": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
+        "EmitLogWarning": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
+        "EmitTransactionStart": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
+        "EmitReloadConfig": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
+        "EmitTransactionConfirmation": (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_PYOBJECT,)),
+        "EmitTransactionCancellable": (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_BOOLEAN,)),
+        "EmitTerminalAttached": (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_BOOLEAN,)),
+        "EmitConflictFile": (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING,)),
+        "EmitChooseProvider": (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_PYOBJECT,)),
+        "EmitMediumRequired": (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING, GObject.TYPE_STRING))
     }
 
     def __init__(self):
-        GObject.GObject.__init__(self)
         GObject.GObject.__init__(self)
         self.cache = SpicesPackages.SpiceCache()
         self.index_cache = {}
         self.error = None
         self.has_cache = False
         self.collection_type = None
+        self.module = None
         self.max_process = 3
         self.lock = Lock()
         self.validTypes = self.cache.get_valid_types();
@@ -209,40 +213,78 @@ class InstallerService(GObject.GObject):
     def is_service_idle(self):
         return True
 
-    def load_cache(self, async):
-        if async:
-            for collect_type in self.validTypes:
-                thread = Thread(target = self.cache.load_collection_type, args=(collect_type,))
+    def load_cache(self, async, collect_type=None):
+        self.EmitTransactionStart("Start")
+        if (not collect_type):
+            if (async):
+                for collect_type in self.validTypes:
+                    thread = Thread(target = self.cache.load_collection_type, args=(collect_type, self.cache_load_finished))
+                    thread.start()
+            else:
+                self.cache.load(self.cache_load_finished)
+        elif collect_type:
+            if (async):
+                thread = Thread(target = self.cache.load_collection_type, args=(collect_type, self.cache_load_finished))
                 thread.start()
-        else:
-            self.cache.load()
+            else:
+                self.cache.load_collection_type(collect_type, self.cache_load_finished)
         #self.executer.load_cache(async)
+
+    def cache_load_finished(self):
+        self.EmitTransactionDone("Finished")
+        print("finished on_refresh_assets_finished")
+
+    def have_cache(self, collect_type=None):
+        return self.cache.is_load(collect_type)
+
+    def set_parent_module(self, module):
+        self.module = module
+
+    def get_parent_module(self):
+        return self.module
+
+    def get_cache_folder(self, collect_type=None):
+        return self.cache.get_cache_folder(collect_type)
 
     def search_files(self, path, loop, result):
         pass
 
-    def get_all_local_packages(self, loop, result):
+    def get_all_local_packages(self, loop, result, collect_type=None):
+        try:
+            result.append(self.cache.get_local_packages(collect_type))
+        except Exception:
+            result.append([])
+            e = sys.exc_info()[1]
+            print(str(e))
+        time.sleep(0.1)
+        loop.quit()
+
+    def get_all_remote_packages(self, loop, result, collect_type=None):
+        try:
+            result.append(self.cache.get_remote_packages(collect_type))
+        except Exception:
+            result.append([])
+            e = sys.exc_info()[1]
+            print(str(e))
+        time.sleep(0.1)
+        loop.quit()
+
+    def get_local_packages(self, packages, loop, result, collect_type=None):
+        get_local_packages
+
+    def get_remote_packages(self, packages, loop, result, collect_type=None):
         pass
 
-    def get_all_remote_packages(self, loop, result):
+    def get_local_search(self, pattern, loop, result, collect_type=None):
         pass
 
-    def get_local_packages(self, packages, loop, result):
+    def get_remote_search(self, pattern, loop, result, collect_type=None):
         pass
 
-    def get_remote_packages(self, packages, loop, result):
+    def prepare_transaction_install(self, packages, collect_type=None):
         pass
 
-    def get_local_search(self, pattern, loop, result):
-        pass
-
-    def get_remote_search(self, pattern, loop, result):
-        pass
-
-    def prepare_transaction_install(self, packages):
-        pass
-
-    def prepare_transaction_remove(self, packages):
+    def prepare_transaction_remove(self, packages, collect_type=None):
         pass
 
     def commit(self):
@@ -260,29 +302,35 @@ class InstallerService(GObject.GObject):
     def resolve_package_providers(self, provider_select):
         pass
 
-    def check_updates(self):
+    def check_updates(self, success=None, nosuccess=None, collect_type=None):
         pass
 
-    def system_upgrade(self, downgrade):
+    def system_upgrade(self, show_updates, downgrade, collect_type=None):
         pass
 
-    def write_config(self, array, sender=None, connexion=None):
-        pass
-
-    def refresh_service(force_update = False):
+    def write_config(self, array, collect_type=None):
         pass
 
     def release_all(self):
         pass
 
-    def refresh_cache(self, collect_type, load_assets=False): #See if this can be moved or removed
+    def refresh_cache(self, force_update=False, collect_type=None): #See if this can be moved or removed
+        load_assets = force_update
         self.EmitTransactionStart("Start")
-        if (collect_type == "all"):
+        if  collect_type == None:
             self._refresh_all_cache()
-        #elif (self.cache.is_valid_type(collect_type)):
-        #   self.refresh_cache_type(collect_type, load_assets)
-        #self.abort_download = ABORT_NONE
-        #self.cache.refresh_cache_type(collect_type, load_assets)
+            #elif (self.cache.is_valid_type(collect_type)):
+            #   self.refresh_cache_type(collect_type, load_assets)
+            #self.abort_download = ABORT_NONE
+            #self.cache.refresh_cache_type(collect_type, load_assets)
+        else:
+            total_count = 1
+            install_errors = {}
+            valid_task = {}
+            self.EmitStatus("DOWNLOADING", _("Downloading"))
+            valid_task[collect_type] = [Thread(target = self._refresh_cache_type, args=(collect_type, total_count,
+                                        valid_task,)), -1, install_errors]
+            self._try_start_task(valid_task, self.max_process)
 
     def _refresh_all_cache(self):
         total_count = len(self.validTypes)
@@ -312,7 +360,7 @@ class InstallerService(GObject.GObject):
             if valid_task[uuid][1] < 0:
                 procc_count += 1
         count = float(total_count - procc_count - 1)/total_count
-        self.EmitPercent(count)
+        self.EmitPercent(100*count)
         targent = "%s" % (str(int(100*count)) + "%")
         self.EmitTarget(targent)
 
@@ -327,7 +375,7 @@ class InstallerService(GObject.GObject):
         if (self.has_cache and not force):
             self.load_cache()
         else:
-            precentText = ('{transferred}/{size}').format(transferred = self.noun, size = self.cacheTypesLength)
+            precentText = ("{transferred}/{size}").format(transferred = self.noun, size = self.cacheTypesLength)
             target = _("Refreshing %s index...") % (precentText)
             self.EmitTarget(target)
             self.refresh_cache()
@@ -362,7 +410,7 @@ class InstallerService(GObject.GObject):
             self._on_refresh_assets_finished(None, collect_type, "", total_count, valid_task, None)
 
     def _refresh_assets_type_async(self, package, collect_type, download_url, total_count, internal_total_count, valid_task, internal_valid_task):
-        self.EmitDownloadPercentChild(str(package["uuid"]), str(package["name"]), 0, str(package['last_edited']))
+        self.EmitDownloadPercentChild(str(package["uuid"]), str(package["name"]), 0, str(package["last_edited"]))
         self.cache.refresh_asset([package, total_count, internal_total_count, valid_task, internal_valid_task], download_url, self.reporthook_assets)
         error = None
         is_really_finished = self._on_refresh_assets_type_finished(package, download_url, total_count, internal_valid_task, error)
@@ -373,7 +421,7 @@ class InstallerService(GObject.GObject):
     def reporthook_assets(self, count, block_size, total_size, user_param):
         [package, total_count, internal_total_count, valid_task, internal_valid_task] = user_param
         percent = int((float(count*block_size)/total_size)*100)
-        self.EmitDownloadPercentChild(str(package["uuid"]), str(package["name"]), percent, str(package['last_edited']))
+        self.EmitDownloadPercentChild(str(package["uuid"]), str(package["name"]), percent, str(package["last_edited"]))
         internal_procc_count = 0
         for uuid in internal_valid_task:
             if internal_valid_task[uuid][1] < 0:
@@ -384,7 +432,7 @@ class InstallerService(GObject.GObject):
                 procc_count += 1
         out_count = float(total_count - procc_count - 1)/total_count
         int_count = float(internal_total_count - internal_procc_count - 1)/internal_total_count
-        self.EmitPercent(out_count + int_count/total_count)
+        self.EmitPercent(100*(out_count + int_count/total_count))
         targent = "%s" % (str(int(100*(out_count + int_count/total_count))) + "%")
         self.EmitTarget(targent)
 
@@ -441,7 +489,7 @@ class InstallerService(GObject.GObject):
 
     def on_install_finished(self, pkg, total_count, valid_task, error):
         self.lock.acquire()
-        uuid = pkg['uuid']
+        uuid = pkg["uuid"]
         install_errors = valid_task[uuid][2]
         install_errors[uuid] = error
         print("listo")
@@ -463,19 +511,19 @@ class InstallerService(GObject.GObject):
     def _install_single(self, pkg, total_count, on_install_finished, valid_task):
         #print("Start downloading and installation")
         error = None
-        uuid = pkg['uuid']
-        title = pkg['name']
+        uuid = pkg["uuid"]
+        title = pkg["name"]
         error_title = uuid
         try:
-            edited_date = pkg['last_edited']
-            collect_type = pkg['collection']
+            edited_date = pkg["last_edited"]
+            collect_type = pkg["collection"]
 
             #self.progress_window.show()
             #self.progresslabel.set_text(_("Installing %s...") % (title))
             #self.progressbar.set_fraction(0)
             fd, filename = tempfile.mkstemp()
             dirname = tempfile.mkdtemp()
-            f = os.fdopen(fd, 'wb')
+            f = os.fdopen(fd, "wb")
             self.cache.download_packages(pkg, f, filename, self.reporthook)
             zip = zipfile.ZipFile(filename)
             if collect_type == "theme":
@@ -491,7 +539,7 @@ class InstallerService(GObject.GObject):
                     temp_path = os.path.join(dirname, title)
 
                 # Test for correct folder structure - look for cinnamon.css
-                file = open(os.path.join(temp_path, "cinnamon", "cinnamon.css"), 'r')
+                file = open(os.path.join(temp_path, "cinnamon", "cinnamon.css"), "r")
                 file.close()
 
                 md = {}
@@ -499,23 +547,23 @@ class InstallerService(GObject.GObject):
                 md["uuid"] = uuid
                 raw_meta = json.dumps(md, indent=4)
                 final_path = os.path.join(dest, title)
-                file = open(os.path.join(temp_path, "cinnamon", "metadata.json"), 'w+')
+                file = open(os.path.join(temp_path, "cinnamon", "metadata.json"), "w+")
             else:
                 error_title = uuid
                 dest = os.path.join(self.cache.get_install_folder(collect_type), uuid)
                 schema_filename = ""
                 zip.extractall(dirname, self.get_members(zip))
                 for file in self.get_members(zip):
-                    if not (file.filename.endswith('/')): #and ((file.external_attr >> 16L) & 0o755) == 0o755:
+                    if not (file.filename.endswith("/")): #and ((file.external_attr >> 16L) & 0o755) == 0o755:
                         os.chmod(os.path.join(dirname, file.filename), 0o755)
-                    elif file.filename[:3] == 'po/':
+                    elif file.filename[:3] == "po/":
                         parts = os.path.splitext(file.filename)
-                        if parts[1] == '.po':
-                           this_locale_dir = os.path.join(locale_inst, parts[0][3:], 'LC_MESSAGES')
+                        if parts[1] == ".po":
+                           this_locale_dir = os.path.join(locale_inst, parts[0][3:], "LC_MESSAGES")
                            #self.progresslabel.set_text(_("Installing translations for %s...") % title)
                            rec_mkdir(this_locale_dir)
-                           #print("/usr/bin/msgfmt -c %s -o %s" % (os.path.join(dest, file.filename), os.path.join(this_locale_dir, '%s.mo' % uuid)))
-                           subprocess.call(["msgfmt", "-c", os.path.join(dirname, file.filename), "-o", os.path.join(this_locale_dir, '%s.mo' % uuid)])
+                           #print("/usr/bin/msgfmt -c %s -o %s" % (os.path.join(dest, file.filename), os.path.join(this_locale_dir, "%s.mo" % uuid)))
+                           subprocess.call(["msgfmt", "-c", os.path.join(dirname, file.filename), "-o", os.path.join(this_locale_dir, "%s.mo" % uuid)])
                            #self.progresslabel.set_text(_("Installing %s...") % (title))
                     elif "gschema.xml" in file.filename:
                         sentence = _("Please enter your password to install the required settings schema for %s") % (uuid)
@@ -528,7 +576,7 @@ class InstallerService(GObject.GObject):
                         else:
                             error = _("Could not install the settings schema for %s.  You will have to perform this step yourself.") % (uuid)
                             #self.errorMessage(error)
-                file = open(os.path.join(dirname, "metadata.json"), 'r')
+                file = open(os.path.join(dirname, "metadata.json"), "r")
                 raw_meta = file.read()
                 file.close()
                 md = json.loads(raw_meta)
@@ -538,7 +586,7 @@ class InstallerService(GObject.GObject):
                 raw_meta = json.dumps(md, indent=4)
                 temp_path = dirname
                 final_path = dest
-                file = open(os.path.join(dirname, "metadata.json"), 'w+')
+                file = open(os.path.join(dirname, "metadata.json"), "w+")
             file.write(raw_meta)
             file.close()
 
@@ -585,22 +633,22 @@ class InstallerService(GObject.GObject):
         # Browsing the info within the app would be great (ala mintinstall) but until it is fully ready 
         # and it gives a better experience (layout, comments, reviewing) than 
         # browsing online we will open the link with an external browser 
-        os.system("xdg-open '%s/%ss/view/%s'" % (URL_SPICES_HOME, self.collection_type, appletData['spices-id']))
+        os.system("xdg-open '%s/%ss/view/%s'" % (URL_SPICES_HOME, self.collection_type, appletData["spices-id"]))
         return
         
-        screenshot_filename = os.path.basename(appletData['screenshot'])
+        screenshot_filename = os.path.basename(appletData["screenshot"])
         screenshot_path = os.path.join(self.get_cache_folder(), screenshot_filename)
-        appletData['screenshot_path'] = screenshot_path
-        appletData['screenshot_filename'] = screenshot_filename
+        appletData["screenshot_path"] = screenshot_path
+        appletData["screenshot_filename"] = screenshot_filename
 
         if not os.path.exists(screenshot_path):
-            f = open(screenshot_path, 'w')
-            self.download_url = URL_SPICES_HOME + appletData['screenshot']
+            f = open(screenshot_path, "w")
+            self.download_url = URL_SPICES_HOME + appletData["screenshot"]
             self.download_with_progressbar(f, screenshot_path, _("Downloading screenshot"), False)
 
         template = open(os.path.realpath(os.path.dirname(os.path.abspath(__file__)) + "/../data/spices/applet-detail.html")).read()
         subs = {}
-        subs['appletData'] = json.dumps(appletData, sort_keys=False, indent=3)
+        subs["appletData"] = json.dumps(appletData, sort_keys=False, indent=3)
         html = string.Template(template).safe_substitute(subs)
 
         # Prevent flashing previously viewed
@@ -616,11 +664,11 @@ class InstallerService(GObject.GObject):
         if title.startswith("nop"):
             return
         elif title.startswith("install:"):
-            uuid = title.split(':')[1]
+            uuid = title.split(":")[1]
             #self.install(uuid)
         elif title.startswith("uninstall:"):
-            uuid = title.split(':')[1]
-            #self.uninstall(uuid, '')
+            uuid = title.split(":")[1]
+            #self.uninstall(uuid, "")
         return
 
     def browser_console_message(self, view, msg, line, sourceid):
@@ -630,11 +678,11 @@ class InstallerService(GObject.GObject):
     def get_members(self, zip):
         parts = []
         for name in zip.namelist():
-            if not name.endswith('/'):
-                parts.append(name.split('/')[:-1])
-        prefix = os.path.commonprefix(parts) or ''
+            if not name.endswith("/"):
+                parts.append(name.split("/")[:-1])
+        prefix = os.path.commonprefix(parts) or ""
         if prefix:
-            prefix = '/'.join(prefix) + '/'
+            prefix = "/".join(prefix) + "/"
         offset = len(prefix)
         for zipinfo in zip.infolist():
             name = zipinfo.filename
@@ -664,8 +712,8 @@ class InstallerService(GObject.GObject):
                 if (os.path.exists(locale_inst)):
                     i19_folders = os.listdir(locale_inst)
                     for i19_folder in i19_folders:
-                        if os.path.isfile(os.path.join(locale_inst, i19_folder, 'LC_MESSAGES', "%s.mo" % uuid)):
-                            os.remove(os.path.join(locale_inst, i19_folder, 'LC_MESSAGES', "%s.mo" % uuid))
+                        if os.path.isfile(os.path.join(locale_inst, i19_folder, "LC_MESSAGES", "%s.mo" % uuid)):
+                            os.remove(os.path.join(locale_inst, i19_folder, "LC_MESSAGES", "%s.mo" % uuid))
                         # Clean-up this locale folder
                         removeEmptyFolders(os.path.join(locale_inst, i19_folder))
 
@@ -692,9 +740,9 @@ class InstallerService(GObject.GObject):
     def on_refresh_clicked(self):
         self.load_index()
 
-    def download_with_progressbar(self, outfd, outfile, caption='Please wait..', waitForClose=True):
+    def download_with_progressbar(self, outfd, outfile, caption="Please wait..", waitForClose=True):
         self.progressbar.set_fraction(0)
-        self.progressbar.set_text('0%')        
+        self.progressbar.set_text("0%")        
         self.progresslabel.set_text(caption)
         self.progress_window.show()
 
@@ -724,18 +772,18 @@ class InstallerService(GObject.GObject):
         # for install user_param = pkg
         if totalSize > 0:
             fraction = float((count*block_size)/total_size);
-        #targent = "%s - %d / %d files" % (str(int(fraction*100)) + '%', self.download_current_file, self.download_total_files)
-        targent = "%s - %d / %d files"% (str(int(fraction*100)) + '%', 1, 1)
+        #targent = "%s - %d / %d files" % (str(int(fraction*100)) + "%", self.download_current_file, self.download_total_files)
+        targent = "%s - %d / %d files"% (str(int(fraction*100)) + "%", 1, 1)
         self.EmitTarget(targent)
         print(str(block_size/total_size))
         '''
         if self.download_total_files > 1:
             fraction = (float(self.download_current_file) / float(self.download_total_files));
-            self.progressbar.set_text("%s - %d / %d files" % (str(int(fraction*100)) + '%', self.download_current_file, self.download_total_files))
+            self.progressbar.set_text("%s - %d / %d files" % (str(int(fraction*100)) + "%", self.download_current_file, self.download_total_files))
         else:
             fraction = count * blockSize / float((totalSize / blockSize + 1) *
                 (blockSize))
-            self.progressbar.set_text(str(int(fraction * 100)) + '%')
+            self.progressbar.set_text(str(int(fraction * 100)) + "%")
 
         if fraction > 0:
             self.progressbar.set_fraction(fraction)

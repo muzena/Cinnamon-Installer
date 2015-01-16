@@ -59,7 +59,7 @@ except Exception:
     print(str(e))
     sys.exit(1)
 
-#'markup',"<span color='#0000FF'>%s</span>" % _("More info")
+#"markup","<span color='#0000FF'>%s</span>" % _("More info")
 
 home = os.path.expanduser("~")
 
@@ -111,6 +111,23 @@ class ExtensionSidePage (SidePage):
         self.extensions_is_loaded = False
         self.spicesData = None
         self.modelfilter = None
+        self.enable_render = True
+
+    def set_all_cell_data_func(self):
+        #self.column1.set_cell_data_func(cr, self.celldatafunction_checkbox)
+        #self.column2.set_cell_data_func(cr, self.icon_cell_data_func, 4)
+        #self.column5.set_cell_data_func(cr, self.installed_cell_data_func)
+        #self.column6.set_cell_data_func(cr, self.available_cell_data_func)
+        #self.actionColumn.set_cell_data_func(cr, self.action_cell_data_func)
+        self.isActiveColumn.set_cell_data_func(cr, self._is_active_data_func)
+
+    def remove_all_cell_data_func(self):
+        self.column1.set_cell_data_func(cr, None)
+        self.column2.set_cell_data_func(cr, None, 4)
+        self.column5.set_cell_data_func(cr, None)
+        self.column6.set_cell_data_func(cr, None)
+        self.actionColumn.set_cell_data_func(cr, None)
+        self.isActiveColumn.set_cell_data_func(cr, None)
 
     def load(self, window=None):
         if window is not None:
@@ -122,7 +139,7 @@ class ExtensionSidePage (SidePage):
         self._signals = []
 
         self.progress_window = self.builder.get_object("progress_window")
-        self.progresslabel = self.builder.get_object('progresslabel')
+        self.progresslabel = self.builder.get_object("progresslabel")
         self.progressbar = self.builder.get_object("progressbar")
         self.progress_button_abort = self.builder.get_object("btnProgressAbort")
         self.package_details = self.builder.get_object("package_details")
@@ -164,11 +181,11 @@ class ExtensionSidePage (SidePage):
         self.column3.set_clickable(True)
         self.column3.connect("clicked", self.on_column_clicked)
 
-        cr.set_property('wrap-mode', Pango.WrapMode.WORD_CHAR)
-        cr.set_property('wrap-width', 160)
+        cr.set_property("wrap-mode", Pango.WrapMode.WORD_CHAR)
+        cr.set_property("wrap-width", 160)
 
         cr = Gtk.CellRendererText()
-        cr.set_property('xalign', 1.0)
+        cr.set_property("xalign", 1.0)
         self.column4 = Gtk.TreeViewColumn("Score", cr, markup=14, background=17)
         self.column4.set_alignment(1.0)
         self.column4.set_clickable(True)
@@ -176,7 +193,7 @@ class ExtensionSidePage (SidePage):
         self.column4.connect("clicked", self.on_column_clicked)
 
         cr = Gtk.CellRendererText()
-        cr.set_property('xalign', 1.0)
+        cr.set_property("xalign", 1.0)
         self.column5 = Gtk.TreeViewColumn(_("Installed"), cr, background=17)
         self.column5.set_alignment(1.0)
         #self.column5.set_expand(True)
@@ -185,7 +202,7 @@ class ExtensionSidePage (SidePage):
         self.column5.connect("clicked", self.on_column_clicked)
 
         cr = Gtk.CellRendererText()
-        cr.set_property('xalign', 1.0)
+        cr.set_property("xalign", 1.0)
         self.column6 = Gtk.TreeViewColumn(_("Available"), cr, background=17)
         self.column6.set_alignment(1.0)
         self.column6.set_clickable(True)
@@ -233,10 +250,10 @@ class ExtensionSidePage (SidePage):
 
         self.showFilter = SHOW_ALL
 
-        self.treeview.connect('button_press_event', self.on_button_press_event)
+        self.treeview.connect("button_press_event", self.on_button_press_event)
         self.treeview.connect("query-tooltip", self.on_treeview_query_tooltip)
         self.treeview.get_selection().connect("changed", lambda x: self._selection_changed())
-        self.treeview.connect('motion_notify_event', self._on_motion_notify_event)
+        self.treeview.connect("motion_notify_event", self._on_motion_notify_event)
         if self.themes:
             self.treeview.connect("row-activated", self.on_row_activated)
 
@@ -384,81 +401,6 @@ class ExtensionSidePage (SidePage):
 
     def set_installer(self, spices_installer):
         self.spices = spices_installer
-        self.spices.connect('EmitTransactionStart', self._on_trans_start)
-        self.spices.connect('EmitTransactionDone', self._on_trans_done)
-        self.spices.connect('EmitTarget', self._on_target_change)
-        self.spices.connect('EmitPercent', self._on_percent_change)
-        self.spices.connect('EmitTransactionCancellable', self._on_cancellable_change)
-        self.spices.connect('EmitTransactionError', self._on_trans_error)
-
-    def _on_trans_start(self, srv, text):
-        if self.progress_window:
-            GObject.idle_add(self.trans_start, text)
-            time.sleep(0.1)
-        else:
-            print("false start trans")
-
-    def _on_trans_done(self, srv, text):
-        if self.progress_window:
-            GObject.idle_add(self.trans_done, text)
-            time.sleep(0.1)
-
-    def _on_target_change(self, srv, text):
-        if self.progress_window:
-            GObject.idle_add(self.target_change, text)
-            time.sleep(0.1)
-
-    def _on_percent_change(self, srv, precent):
-        if self.progress_window:
-            GObject.idle_add(self.percent_change, precent)
-            time.sleep(0.1)
-
-    def _on_cancellable_change(self, srv, cancel):
-        if self.progress_window:
-            GObject.idle_add(self.cancellable_change, cancel)
-            time.sleep(0.1)
-
-    def _on_trans_error(self, srv, title, desc):
-        if self.progress_window:
-            GObject.idle_add(self.trans_error, title, desc)
-            time.sleep(0.1)
-
-    def trans_start(self, text):
-        self.progressbar.set_fraction(0)
-        self.progresslabel.set_text(text)
-        self.progress_bar_pulse()
-        self.progress_window.show()
-
-    def trans_done(self, text):
-        self.progressbar.set_fraction(0)
-        self.progresslabel.set_text("")
-        self.progress_window.hide()
-
-    def target_change(self, text):
-        self.progressbar.set_text(text)
-
-    def percent_change(self, precent):
-        if precent > 1 or precent < 0:
-            self.progress_bar_pulse()
-        else:
-           self.progressbar.set_fraction(precent)
-
-    def cancellable_change(self, cancel):
-        self.progress_button_abort.set_sensitive(cancel)
-
-    def trans_error(self, title, desc):
-        self.spices.errorMessage(title, desc)
-        print("error")
-
-    def progress_bar_pulse(self):       
-        count = 0
-        self.progressbar.set_pulse_step(0.1)
-        while count < 1:
-            time.sleep(0.1)
-            self.progressbar.pulse()
-            count += 1
-            while Gtk.events_pending():
-                Gtk.main_iteration()
 
     def prepare_swapper(self, filters):
         ##Added one filter to init
@@ -473,7 +415,7 @@ class ExtensionSidePage (SidePage):
                     self.filters[filter_name] = filters[filter_name]
                     fl = self.filters[filter_name]
                     # Don't allow item names (and their translations) to be more than 30 chars long. It looks ugly and it creates huge gaps in the icon views
-                    name = unicode(fl.name,'utf-8')
+                    name = unicode(fl.name, "utf-8")
                     if len(name) > 30:
                         name = "%s..." % name[:30]
                     self.store_filter.append([name, fl.icon, fl])
@@ -487,7 +429,6 @@ class ExtensionSidePage (SidePage):
         model = self.filter_iconview.get_model()
         if not model:
             area = self.filter_iconview.get_area()
-            self.filter_iconview.set_item_width(self.min_pix_length - 50)
 
             pixbuf_renderer = Gtk.CellRendererPixbuf()
             text_renderer = Gtk.CellRendererText(ellipsize=Pango.EllipsizeMode.NONE, wrap_mode=Pango.WrapMode.WORD_CHAR,
@@ -593,7 +534,8 @@ class ExtensionSidePage (SidePage):
         self.packages_box.show_all()
         if self.modelfilter:
             self.modelfilter.refilter()
-        self.set_select_filter(0) #bug on pix
+        GObject.idle_add(self.set_select_filter, 0)
+        #self.set_select_filter(0) #bug on pix
 
     def connect_handlers(self):
         self.instanceButton.connect("clicked", lambda x: self._add_another_instance())
@@ -603,7 +545,7 @@ class ExtensionSidePage (SidePage):
         self.reload_button.connect("clicked", lambda x: self.load_extensions(True))
         self.install_button.connect("clicked", lambda x: self._install_extensions(self.install_list))
         self.select_updated.connect("clicked", lambda x: self.select_updated_extensions())
-        self.search_entry.connect('changed', self.on_entry_refilter)
+        self.search_entry.connect("changed", self.on_entry_refilter)
         self.filter_iconview.connect("item-activated", self.side_view_nav)
         self.filter_iconview.connect("button-release-event", self.filter_button_press)
 
@@ -621,7 +563,7 @@ class ExtensionSidePage (SidePage):
     def refresh_running_uuids(self):
         try:
             if self._proxy:
-                self.running_uuids = self._proxy.GetRunningXletUUIDs('(s)', self.collection_type)
+                self.running_uuids = self._proxy.GetRunningXletUUIDs("(s)", self.collection_type)
             else:
                 self.running_uuids = None
         except:
@@ -669,79 +611,82 @@ class ExtensionSidePage (SidePage):
             
 
     def icon_cell_data_func(self, column, cell, model, iter, data=None):
-        checked = model.get_value(iter, 15)
-        if checked == 3:
-            cell.set_property("cell-background","yellow")
-        elif checked == 2:
-            cell.set_property("cell-background","red")
-        elif checked == -2:
-            cell.set_property("cell-background","green")
-        else:
-            cell.set_property("cell-background","white")
-        wrapper = model.get_value(iter, 18)
-        if not wrapper:
-            img = None
-            icon_filename = model.get_value(iter, 4)
-            if not self.themes:
-                w = ROW_SIZE + 5
-                h = ROW_SIZE + 5
+        if self.enable_render:
+            checked = model.get_value(iter, 15)
+            if checked == 3:
+                cell.set_property("cell-background","yellow")
+            elif checked == 2:
+                cell.set_property("cell-background","red")
+            elif checked == -2:
+                cell.set_property("cell-background","green")
             else:
-                w = -1
-                h = 60
-            if w != -1:
-                w = w * self.window.get_scale_factor()
-            h = h * self.window.get_scale_factor()
+                cell.set_property("cell-background","white")
+            wrapper = model.get_value(iter, 18)
+            if (not wrapper):
+                img = None
+                icon_extension = model.get_value(iter, 4)
+                if not self.themes:
+                    w = ROW_SIZE + 5
+                    h = ROW_SIZE + 5
+                else:
+                    w = -1
+                    h = 60
+                if w != -1:
+                    w = w * self.window.get_scale_factor()
+                h = h * self.window.get_scale_factor()
 
-            if not os.path.exists(icon_filename):
-                theme = Gtk.IconTheme.get_default()
-                if theme.has_icon(icon_filename):
-                    img = theme.load_icon(icon_filename, h, 0)
-                elif theme.has_icon("cs-%ss" % (self.collection_type)):
-                    img = theme.load_icon("cs-%ss" % (self.collection_type), h, 0)
-            else:
-                try:
-                    img = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_filename, w, h)
-                except:
+                if not os.path.exists(icon_extension):
                     theme = Gtk.IconTheme.get_default()
-                    if theme.has_icon("cs-%ss" % (self.collection_type)):
+                    if theme.has_icon(icon_extension):
+                        img = theme.load_icon(icon_extension, h, 0)
+                    elif theme.has_icon("cs-%ss" % (self.collection_type)):
                         img = theme.load_icon("cs-%ss" % (self.collection_type), h, 0)
-            surface = Gdk.cairo_surface_create_from_pixbuf (img, self.window.get_scale_factor(), self.window.get_window())
-            wrapper = SurfaceWrapper(surface)
-            surface = model.set_value(iter, 18, wrapper)
-
-        cell.set_property("surface", wrapper.surface)
+                else:
+                    try:
+                        img = GdkPixbuf.Pixbuf.new_from_file_at_size(icon_extension, w, h)
+                    except:
+                        theme = Gtk.IconTheme.get_default()
+                        if theme.has_icon("cs-%ss" % (self.collection_type)):
+                            img = theme.load_icon("cs-%ss" % (self.collection_type), h, 0)
+                surface = Gdk.cairo_surface_create_from_pixbuf (img, self.window.get_scale_factor(), self.window.get_window())
+                wrapper = SurfaceWrapper(surface)
+                surface = model.set_value(iter, 18, wrapper)
+            cell.set_property("surface", wrapper.surface)
 
     def installed_cell_data_func(self, column, cell, model, iter, data=None):
-        date_av = model.get_value(iter, 16)
-        date_int = model.get_value(iter, 9)
-        installed = model.get_value(iter, 15) > 0
-        if date_av > 0:
-            time = datetime.datetime.fromtimestamp(date_av).strftime('%Y-%m-%d\n%H:%M:%S')
-            cell.set_property("markup", time)
-        elif installed and date_int > 0:
-            time = datetime.datetime.fromtimestamp(date_int).strftime('%Y-%m-%d\n%H:%M:%S')
-            cell.set_property("markup", time)
-        else:
-            cell.set_property("markup", "")
+        if self.enable_render:
+            date_av = model.get_value(iter, 16)
+            date_int = model.get_value(iter, 9)
+            installed = model.get_value(iter, 15) > 0
+            if date_av > 0:
+                time = datetime.datetime.fromtimestamp(date_av).strftime("%Y-%m-%d\n%H:%M:%S")
+                cell.set_property("markup", time)
+            elif installed and date_int > 0:
+                time = datetime.datetime.fromtimestamp(date_int).strftime("%Y-%m-%d\n%H:%M:%S")
+                cell.set_property("markup", time)
+            else:
+                cell.set_property("markup", "")
 
     def available_cell_data_func(self, column, cell, model, iter, data=None):
-        date_int = model.get_value(iter, 9)
-        if date_int > 0:
-            time = datetime.datetime.fromtimestamp(date_int).strftime('%Y-%m-%d\n%H:%M:%S')
-            cell.set_property("markup", '<b><span color="#0000FF">%s</span></b>' % (time))
-        else:
-            cell.set_property("markup", "")
+        if self.enable_render:
+            date_int = model.get_value(iter, 9)
+            if date_int > 0:
+                time = datetime.datetime.fromtimestamp(date_int).strftime("%Y-%m-%d\n%H:%M:%S")
+                cell.set_property("markup", "<b><span color='#0000FF'>%s</span></b>" % (time))
+            else:
+                cell.set_property("markup", "")
 
     def action_cell_data_func(self, column, cell, model, iter, data=None):
-        checked = model.get_value(iter, 15)
-        if checked == 3:
-            cell.set_property("cell-background","yellow")
-        elif checked == 2:
-            cell.set_property("cell-background","red")
-        elif checked == -2:
-            cell.set_property("cell-background","green")
-        else:
-            cell.set_property("cell-background","white")
+        if self.enable_render:
+            checked = model.get_value(iter, 15)
+            if checked == 3:
+                cell.set_property("cell-background","yellow")
+            elif checked == 2:
+                cell.set_property("cell-background","red")
+            elif checked == -2:
+                cell.set_property("cell-background","green")
+            else:
+                cell.set_property("cell-background","white")
 
     def getAdditionalPage(self):
         return None
@@ -751,14 +696,14 @@ class ExtensionSidePage (SidePage):
         if data:
             path, column, x, y=data
             iter = self.modelfilter.get_iter(path)
-            if column.get_property('title')== _("Uninstall") and iter != None:
+            if column.get_property("title") == _("Uninstall") and iter != None:
                 if not self.modelfilter.get_value(iter, 6):
                     tooltip.set_text(_("Cannot be uninstalled"))
                     return True
                 else:
                     return False
-            elif column.get_property('title') == _("Status") and iter != None:
-                can_update = self.modelfilter.get_value(iter, 16) > 0
+            elif column.get_property("title") == _("Status") and iter != None:
+                can_update = self.modelfilter.get_value(iter, 16) < self.modelfilter.get_value(iter, 9)
                 if can_update:
                     tooltip.set_text(_("Update available"))
                     return True
@@ -779,10 +724,10 @@ class ExtensionSidePage (SidePage):
                     markup += _("Problem loading - please check Looking Glass or your system's error log")
                     tooltip.set_markup(markup)
                     return True
-            elif column.get_property('title') == _("Score"):
+            elif column.get_property("title") == _("Score"):
                 tooltip.set_text(_("Popularity"))
                 return True
-            elif column.get_property('title') == _("Available"):
+            elif column.get_property("title") == _("Available"):
                 tooltip.set_text(_("More info"))
                 return True
         return False
@@ -818,7 +763,7 @@ class ExtensionSidePage (SidePage):
                             mark = -2
                             self.model.set_value(row.iter, 17, "green")
                         elif mark == 1:
-                            can_update = self.model.get_value(row.iter, 16) > 0
+                            can_update = self.model.get_value(row.iter, 16) < self.model.get_value(row.iter, 9)
                             if can_update and shouldUpdate:
                                 mark = 3
                                 self.model.set_value(row.iter, 17, "yellow")
@@ -842,7 +787,7 @@ class ExtensionSidePage (SidePage):
                 self.install_list = newExtensions
             else:
                 if uuid not in self.install_list:
-                    is_update = self.model.get_value(row.iter, 16) < 0
+                    is_update = self.model.get_value(row.iter, 16) < self.model.get_value(row.iter, 9)
                     is_active = self.model.get_value(row.iter, 2) > 0
                     self.install_list += [(uuid, is_update, is_active)]
 
@@ -852,29 +797,35 @@ class ExtensionSidePage (SidePage):
                 self.install_button.set_sensitive(False)
 
     def celldatafunction_checkbox(self, column, cell, model, iter, data=None): #fixme
-        checked = model.get_value(iter, 15)
-        cell.set_property("activatable", True)#not installed or can_update
-        if abs(checked) > 1:
-            cell.set_property("active", True)
-            if checked == 3:
-                cell.set_property("cell-background","yellow")
-            elif checked == 2:
-                cell.set_property("cell-background","red")
-            elif checked == -2:
-                cell.set_property("cell-background","green")
-        else:
-            cell.set_property("active", False)
-            cell.set_property("cell-background","white")
+        if self.enable_render:
+            checked = model.get_value(iter, 15)
+            cell.set_property("activatable", True)#not installed or can_update
+            if abs(checked) > 1:
+                cell.set_property("active", True)
+                if checked == 3:
+                    cell.set_property("cell-background","yellow")
+                elif checked == 2:
+                    cell.set_property("cell-background","red")
+                elif checked == -2:
+                    cell.set_property("cell-background","green")
+            else:
+                cell.set_property("active", False)
+                cell.set_property("cell-background","white")
 
     def view_details(self, uuid):
-        self.spices.show_detail(self.collection_type, uuid, lambda x: self.check_mark(uuid, True))
+        if self.model:
+            for row in self.model:
+                if (uuid == self.model.get_value(row.iter, 0)) and (self.model.get_value(row.iter, 19)):
+                    os.system("xdg-open %s" % self.model.get_value(row.iter, 19))
+                    break
+        #self.spices.show_detail(self.collection_type, uuid, lambda x: self.check_mark(uuid, True))
 
     def on_button_press_event(self, widget, event):
         if event.button == 1:
             data = widget.get_path_at_pos(int(event.x),int(event.y))
             if data:
                 path, column, x, y = data
-                if column.get_property('title') == _("Available"):
+                if column.get_property("title") == _("Available"):
                     iter = self.modelfilter.get_iter(path)
                     uuid = self.modelfilter.get_value(iter, 0)
                     self.view_details(uuid)
@@ -900,21 +851,21 @@ class ExtensionSidePage (SidePage):
                     name = self.modelfilter.get_value(iter, 5)
                     checked = self.modelfilter.get_value(iter, 2)
                     mark_install = self.modelfilter.get_value(iter, 15)
-                    can_update = self.modelfilter.get_value(iter, 16) > 0
+                    can_update = self.modelfilter.get_value(iter, 16) < self.modelfilter.get_value(iter, 9)
                     can_modify = self.modelfilter.get_value(iter, 6)
                     marked = abs(mark_install) > 1
                     installed = mark_install > 0
 
                     if self.should_show_config_button(self.modelfilter, iter):
                         item = Gtk.MenuItem(_("Configure"))
-                        item.connect('activate', lambda x: self._item_configure_extension())
+                        item.connect("activate", lambda x: self._item_configure_extension())
                         item.set_sensitive(checked > 0)
                         popup.add(item)
                         popup.add(Gtk.SeparatorMenuItem())
 
                     if self.should_show_ext_config_button(self.modelfilter, iter):
                         item = Gtk.MenuItem(_("Configure"))
-                        item.connect('activate', lambda x: self._external_configure_launch())
+                        item.connect("activate", lambda x: self._external_configure_launch())
                         item.set_sensitive(checked > 0)
                         popup.add(item)
                         popup.add(Gtk.SeparatorMenuItem())
@@ -929,7 +880,7 @@ class ExtensionSidePage (SidePage):
                                 item = Gtk.MenuItem(_("Remove from Cinnamon"))
                             else:
                                 item = Gtk.MenuItem(_("Remove")) 
-                            item.connect('activate', lambda x: self.disable_extension(uuid, name, checked))
+                            item.connect("activate", lambda x: self.disable_extension(uuid, name, checked))
                             popup.add(item)
 
                         max_instances = self.modelfilter.get_value(iter, 3)
@@ -946,11 +897,11 @@ class ExtensionSidePage (SidePage):
                                 item = Gtk.MenuItem(_("Apply theme"))
                             else:
                                 item = Gtk.MenuItem(_("Add"))
-                            item.connect('activate', lambda x: self.enable_extension(uuid, name))
+                            item.connect("activate", lambda x: self.enable_extension(uuid, name))
                             popup.add(item)
                     elif installed and checked <= 0:
                         item = Gtk.MenuItem(_("Apply theme"))
-                        item.connect('activate', lambda x: self.enable_extension(uuid, name))
+                        item.connect("activate", lambda x: self.enable_extension(uuid, name))
                         popup.add(item)
 
                     if installed:
@@ -961,11 +912,11 @@ class ExtensionSidePage (SidePage):
                     if can_modify:
                         if installed:
                             schema_filename = self.modelfilter.get_value(iter, 12)
-                            item_uninstall.connect('activate', lambda x: self.uninstall_extension(uuid, name, schema_filename))
+                            item_uninstall.connect("activate", lambda x: self.uninstall_extension(uuid, name, schema_filename))
                             item_uninstall.set_sensitive(True)
                             item_install.set_sensitive(False)
                         else:
-                            item_install.connect('activate', lambda x: self.install_extension(uuid, not can_update, checked > 0))
+                            item_install.connect("activate", lambda x: self.install_extension(uuid, not can_update, checked > 0))
                             item_install.set_sensitive(True)
                             item_uninstall.set_sensitive(False)
                     else:
@@ -978,23 +929,23 @@ class ExtensionSidePage (SidePage):
                     if (marked):
                         item = Gtk.MenuItem(_("Unmark"))
                         popup.add(item)
-                        item.connect('activate', lambda x: self.check_mark(uuid, False))
+                        item.connect("activate", lambda x: self.check_mark(uuid, False))
                     elif can_modify:
                         if installed:
                             if can_update:
                                 item_upgrade = Gtk.MenuItem(_("Mark for upgrade"))
                                 popup.add(item_upgrade)
-                                item_upgrade.connect('activate', lambda x: self.check_mark(uuid, True))
+                                item_upgrade.connect("activate", lambda x: self.check_mark(uuid, True))
                             item = Gtk.MenuItem(_("Mark for remove"))
                         else:
                             item = Gtk.MenuItem(_("Mark for installation"))
                         popup.add(item)
-                        item.connect('activate', lambda x: self.check_mark(uuid, True, False))
+                        item.connect("activate", lambda x: self.check_mark(uuid, True, False))
 
                     popup.add(Gtk.SeparatorMenuItem())
                     item = Gtk.MenuItem(_("More info"))
                     if can_modify:
-                        item.connect('activate', lambda x: self.view_details(uuid))
+                        item.connect("activate", lambda x: self.view_details(uuid))
                     else:
                         item.set_sensitive(False)
                     popup.add(item)
@@ -1009,41 +960,42 @@ class ExtensionSidePage (SidePage):
             return True
    
     def _is_active_data_func(self, column, cell, model, iter, data=None):
-        update_change = False
-        uuid = model.get_value(iter, 0)
-        enabled = model.get_value(iter, 2) > 0
-        error = model.get_value(iter, 2) < 0
-        checked = model.get_value(iter, 15)
-        installed = checked > 0
-        can_update = model.get_value(iter, 16) > 0
-        if installed:
-            if error and (not self.themes):
-                icon = "cs-xlet-error"
-            elif (enabled) and (not can_update):
-                icon = "cs-xlet-running"
-            elif can_update:
-                icon = "cs-xlet-update"
-                if not uuid in self.update_list: 
-                    self.update_list[uuid] = True
-                    update_change = True
+        if self.enable_render:
+            update_change = False
+            uuid = model.get_value(iter, 0)
+            enabled = model.get_value(iter, 2) > 0
+            error = model.get_value(iter, 2) < 0
+            checked = model.get_value(iter, 15)
+            installed = checked > 0
+            can_update = model.get_value(iter, 16) < model.get_value(iter, 9)
+            if installed:
+                if error and (not self.themes):
+                    icon = "cs-xlet-error"
+                elif (enabled) and (not can_update):
+                    icon = "cs-xlet-running"
+                elif can_update:
+                    icon = "cs-xlet-update"
+                    if not uuid in self.update_list: 
+                        self.update_list[uuid] = True
+                        update_change = True
+                else:
+                    icon = "cs-xlet-installed"
+                if (not can_update) and (uuid in self.update_list.keys()):
+                    del self.update_list[uuid]
             else:
-                icon = "cs-xlet-installed"
-            if (not can_update) and (uuid in self.update_list.keys()):
-                del self.update_list[uuid]
-        else:
-            icon = ""
+                icon = ""
 
-        if checked == 3:
-            cell.set_property("cell-background","yellow")
-        elif checked == 2:
-            cell.set_property("cell-background","red")
-        elif checked == -2:
-            cell.set_property("cell-background","green")
-        else:
-            cell.set_property("cell-background","white")
-        cell.set_property('icon-name', icon)
-        if update_change:
-            self.refresh_update_button()
+            if checked == 3:
+                cell.set_property("cell-background","yellow")
+            elif checked == 2:
+                cell.set_property("cell-background","red")
+            elif checked == -2:
+                cell.set_property("cell-background","green")
+            else:
+                cell.set_property("cell-background","white")
+            cell.set_property("icon-name", icon)
+            if update_change:
+                self.refresh_update_button()
 
     def version_compare(self, uuid, date):
         installed = False
@@ -1069,7 +1021,7 @@ class ExtensionSidePage (SidePage):
         if data:
             path, column, x, y=data
             iter = self.modelfilter.get_iter(path)
-            if column.get_property('title')== _("Available") and iter != None:
+            if column.get_property("title")== _("Available") and iter != None:
                 self.treeview.get_window().set_cursor(Gdk.Cursor.new(Gdk.CursorType.HAND2))
                 return
         self.treeview.get_window().set_cursor(Gdk.Cursor.new(Gdk.CursorType.ARROW))
@@ -1092,7 +1044,7 @@ class ExtensionSidePage (SidePage):
             return (model.get_value(iterr, 2) <= 0)
         if self.showFilter == SHOW_BROKEN:
             return (model.get_value(iterr, 2) < 0)
-        #can_update = model.get_value(iterr, 16) > 0         #SHOW_SETTINGS = 6
+        #can_update = model.get_value(iterr, 16) < model.get_value(iterr, 9)        #SHOW_SETTINGS = 6
         if self.showFilter == SHOW_INSTALLED:
             return (model.get_value(iterr, 15) > 0)
         if self.showFilter == SHOW_ONLINE:
@@ -1125,7 +1077,7 @@ class ExtensionSidePage (SidePage):
 
     def install_extensions(self, install_list):
         if len(install_list) > 0:
-            self.spices.install_all(self.collection_type, install_list, self.install_finished)
+            self.spices.execute_install(self.collection_type, install_list, self.install_finished)
     
     def install_finished(self, need_restart):
         for row in self.model:
@@ -1230,13 +1182,13 @@ Please contact the developer.""")
                     list_remove += ", " + item[1]
         if not self.show_prompt(_("Are you sure you want to completely remove %s?") % (list_remove)):
             return
-        self.spices.uninstall_all(self.collection_type, list_uninstall, self.on_uninstall_finished)
+        self.spices.execute_uninstall(self.collection_type, list_uninstall, self.on_uninstall_finished)
     
     def on_uninstall_finished(self, uuid=None):
         self.load_extensions()
 
     def _enabled_extensions_changed(self):
-        last_selection = ''
+        last_selection = ""
         model, treeiter = self.treeview.get_selection().get_selected()
         self.refresh_running_uuids()
 
@@ -1374,8 +1326,8 @@ Please contact the developer.""")
             elif self.collection_type == "desklet":
                 msg = _("This will restore the default set of enabled desklets. Are you sure you want to do this?")            
             if self.show_prompt(msg):
-                os.system(('gsettings reset org.cinnamon next-%s-id') % (self.collection_type))
-                os.system(('gsettings reset org.cinnamon enabled-%ss') % (self.collection_type))
+                os.system(("gsettings reset org.cinnamon next-%s-id") % (self.collection_type))
+                os.system(("gsettings reset org.cinnamon enabled-%ss") % (self.collection_type))
         else:
             os.system("gsettings reset org.cinnamon.theme name")
 
@@ -1393,391 +1345,193 @@ Please contact the developer.""")
             installed_iter = model.iter_next(installed_iter)
         return None
 
+    def get_number_of_instances(self, uuid):
+        found = 0
+        if self.themes:
+            for enabled_uuid in self.enabled_extensions:
+                if enabled_uuid == uuid:
+                    found = 1
+                elif enabled_uuid == "" and (uuid == "STOCK" or uuid == "cinnamon"):
+                    found = 1
+        else:
+            for enabled_uuid in self.enabled_extensions:
+                if uuid in enabled_uuid:
+                    found += 1
+        return found
+
     def load_extensions(self, force=False):
         #self.install_button.set_sensitive(False)
         self.extensions_is_loading = True
         self.update_list = {}
         if self.model:
             self.model.clear()
-        self.model_new = Gtk.TreeStore(str, str, int, int, str, str, int, bool, str, int, str, str, str, int, int, int, int, str, object)
-        thread = Thread(target = self.spices.load, args=(self.collection_type, self.on_installer_load, force,))
-        thread.start()
+        self.model_new = Gtk.TreeStore(str, str, int, int, str, str, int, bool, str, int, str, str, str, int, int, int, int, str, object, str)
+        if force:
+            thread = Thread(target = self.spices.refresh_cache, args=(force, self.collection_type, self.on_installer_load))
+            thread.start()
+        else:
+            thread = Thread(target = self.spices.load_cache, args=(force, self.collection_type, self.on_installer_load))
+            thread.start()
 
     def on_load_extensions_finished(self):
         if(self.treeview):
-            self.model = self.model_new
-            self.model.set_default_sort_func(self.model_sort_func)
-            self.model.set_sort_column_id(-1, Gtk.SortType.ASCENDING)
-            self.modelfilter = self.model.filter_new()
-            self.modelfilter.set_visible_func(self.only_active)
-            self.treeview.set_model(self.modelfilter)
+            self.update_model()
+            #self.update_model_alternative()
         self.extensions_is_loading = False
         if not self.extensions_is_loaded:
             self.extensions_is_loaded = True
             self.check_third_arg()
 
+    def update_model(self):
+        self.model = self.model_new
+        self.model.set_default_sort_func(self.model_sort_func)
+        self.model.set_sort_column_id(-1, Gtk.SortType.ASCENDING)
+        self.modelfilter = self.model.filter_new()
+        self.modelfilter.set_visible_func(self.only_active)
+        self.treeview.set_model(self.modelfilter)
+    '''
+    def update_model_alternative(self):
+        cut_model = Gtk.TreeStore(str, str, int, int, str, str, int, bool, str, int, str, str, str, int, int, int, int, str, object, str)
+        self.model = self.cut_model_render(self.model_new, cut_model, 0, 15)
+        self.modelfilter = self.model.filter_new()
+        self.treeview.set_model(self.modelfilter)
+        GObject.idle_add(self.connected_render)
+        #self.connected_render()
 
-    def on_installer_load(self, spicesData):
-        #print("total spices loaded: %d" % len(spicesData))
-        self.load_extensions_by_part(self.model_new)
-        self.load_spice_model(spicesData, self.model_new, self.themes, self.collection_type, 
+    def connected_render(self):
+        self.enable_render = False
+        self.cut_model_render(self.model_new, self.model, 15, 100000)
+        #GObject.idle_add(self.connected_ended)
+        GObject.timeout_add(10, self.connected_ended)
+
+    def connected_ended(self):
+        #self.model.set_default_sort_func(self.model_sort_func)
+        #self.model.set_sort_column_id(-1, Gtk.SortType.ASCENDING)
+        self.modelfilter.set_visible_func(self.only_active)
+        self.enable_render = True
+        #rect = self.treeview.get_visible_rect()
+        #self.modelfilter.refilter()
+
+    def cut_model_render(self, model, cut_model, start, end):
+        iter = model.get_iter_first()
+        val = 0
+        while (iter != None) and (val < start):
+            iter = model.iter_next(iter)
+            val = val + 1
+        while (iter != None) and (val < end):
+            iter_new = cut_model.insert_before(None, None)
+            cut_model.set_value(iter_new, 0, model.get_value(iter, 0))
+            cut_model.set_value(iter_new, 1, model.get_value(iter, 1))
+            cut_model.set_value(iter_new, 2, model.get_value(iter, 2))
+            cut_model.set_value(iter_new, 3, model.get_value(iter, 3))
+            cut_model.set_value(iter_new, 4, model.get_value(iter, 4))
+            cut_model.set_value(iter_new, 5, model.get_value(iter, 5))
+            cut_model.set_value(iter_new, 6, model.get_value(iter, 6))
+            cut_model.set_value(iter_new, 7, model.get_value(iter, 7))
+            cut_model.set_value(iter_new, 8, model.get_value(iter, 8))
+            cut_model.set_value(iter_new, 9, model.get_value(iter, 9))
+            cut_model.set_value(iter_new, 10, model.get_value(iter, 10))
+            cut_model.set_value(iter_new, 11, model.get_value(iter, 11))
+            cut_model.set_value(iter_new, 12, model.get_value(iter, 12))
+            cut_model.set_value(iter_new, 13, model.get_value(iter, 13))
+            cut_model.set_value(iter_new, 14, model.get_value(iter, 14))
+            cut_model.set_value(iter_new, 15, model.get_value(iter, 15))
+            cut_model.set_value(iter_new, 16, model.get_value(iter, 16))
+            cut_model.set_value(iter_new, 17, model.get_value(iter, 17))
+            cut_model.set_value(iter_new, 18, model.get_value(iter, 18)) #Wrapper: We don't want load several time the icons and we want fill the model asyncronous...
+            cut_model.set_value(iter_new, 19, model.get_value(iter, 19))
+            iter = model.iter_next(iter)
+        return cut_model
+    '''
+    def on_installer_load(self, installer, msg):
+        try:
+            spicesData = self.spices.get_all_local_packages(self.collection_type)
+            self.load_spice_model(spicesData, self.model_new, self.themes, self.collection_type, 
                               self.spices.get_cache_folder(self.collection_type))
-        self.spicesData = spicesData
+            #print("total spices loaded: %d" % len(spicesData))
+        except Exception:
+            e = sys.exc_info()[1]
+            print("Failed to load extensions %s" % str(e))
+        try:
+            self.spicesData = self.spices.get_all_remote_packages(self.collection_type)
+            self.load_spice_model(self.spicesData, self.model_new, self.themes, self.collection_type, 
+                              self.spices.get_cache_folder(self.collection_type))
+            #print("total spices loaded: %d" % len(self.spicesData))
+        except Exception:
+            e = sys.exc_info()[1]
+            print("Failed to load extensions %s" % str(e))
         GObject.idle_add(self.on_load_extensions_finished)
 
-    def load_extensions_by_part(self, model):
-        if not self.themes:
-            self.load_extensions_in(('%s/.local/share/cinnamon/%ss') % (home, self.collection_type), model,
-                                    self.themes, self.collection_type, self.enabled_extensions)
-            self.load_extensions_in(('/usr/share/cinnamon/%ss') % (self.collection_type), model, self.themes,
-                                    self.collection_type, self.enabled_extensions)
-        else:
-            self.load_extensions_in(('%s/.themes') % (home), model, self.themes, self.collection_type, self.enabled_extensions)
-            self.load_extensions_in('/usr/share', model, self.themes, self.collection_type, self.enabled_extensions, True)
-            self.load_extensions_in('/usr/share/themes', model, self.themes, self.collection_type, self.enabled_extensions)
-
-
-    def load_extensions_in(self, directory, model, is_theme, collection_type, enabled_extensions, stock_theme = False):
-        if not is_theme:  # Applet, Desklet, Extension handling
-            if os.path.exists(directory) and os.path.isdir(directory):
-                extensions = os.listdir(directory)
-                extensions.sort()
-                for extension in extensions:
-                    if self.uuid_already_in_list(extension, model):
-                        continue
-                    try:
-                        if os.path.exists("%s/%s/metadata.json" % (directory, extension)):
-                            json_data=open("%s/%s/metadata.json" % (directory, extension)).read()
-                            setting_type = 0
-                            data = json.loads(json_data)  
-                            extension_uuid = data["uuid"]
-                            extension_name = data["name"]                                        
-                            extension_description = data["description"]                          
-                            try: extension_max_instances = int(data["max-instances"])
-                            except KeyError: extension_max_instances = 1
-                            except ValueError: extension_max_instances = 1
-
-                            try: extension_role = data["role"]
-                            except KeyError: extension_role = None
-                            except ValueError: extension_role = None
-
-                            try: hide_config_button = data["hide-configuration"]
-                            except KeyError: hide_config_button = False
-                            except ValueError: hide_config_button = False
-
-                            try:
-                                ext_config_app = os.path.join(directory, extension, data["external-configuration-app"])
-                                setting_type = SETTING_TYPE_EXTERNAL
-                            except KeyError: ext_config_app = ""
-                            except ValueError: ext_config_app = ""
-
-                            if os.path.exists("%s/%s/settings-schema.json" % (directory, extension)):
-                                setting_type = SETTING_TYPE_INTERNAL
-
-                            try: last_edited = long(data["last-edited"])
-                            except KeyError: last_edited = -1
-                            except ValueError: last_edited = -1
-                            except Exception: last_edited = -1
-                            if last_edited == -1:
-                                try: last_edited = int(data["last-edited"])
-                                except KeyError: last_edited = -1
-                                except ValueError: last_edited = -1
-
-                            try: schema_filename = data["schema-file"]
-                            except KeyError: schema_filename = ""
-                            except ValueError: schema_filename = ""
-
-                            if ext_config_app != "" and not os.path.exists(ext_config_app):
-                                ext_config_app = ""
-
-                            if extension_max_instances < -1:
-                                extension_max_instances = 1
-                                
-                            #if self.search_entry.get_text().upper() in (extension_name + extension_description).upper():
-                            iter = model.insert_before(None, None)
-                            found = 0
-                            for enabled_extension in enabled_extensions:
-                                if extension_uuid in enabled_extension:
-                                    found += 1
-
-                            model.set_value(iter, 0, extension_uuid)
-                            #descrip ='<b>%s</b>\n<b><span foreground="#333333" size="xx-small">%s</span></b>\n \
-                            #         <i><span foreground="#555555" size="x-small">%s</span></i>' % (extension_name, extension_uuid, extension_description)
-                            descrip ='<b>%s</b>\n<b><span foreground="#333333" size="xx-small">%s</span></b>' % (extension_name, extension_uuid)
-                            model.set_value(iter, 1, descrip)
-                            model.set_value(iter, 2, found)
-                            model.set_value(iter, 3, extension_max_instances)
-
-                            icon_extension = ""
-                            if "icon" in data:
-                                icon_extension = data["icon"]
-                            elif os.path.exists("%s/%s/icon.png" % (directory, extension)):
-                                icon_extension = "%s/%s/icon.png" % (directory, extension)
-                            wrapper = None #We don't want load several time the icons and we want fill the model asyncronous...
-                            score = 0
-                            installed = 1
-                            model.set_value(iter, 4, icon_extension)
-
-                            model.set_value(iter, 5, extension_name)
-                            model.set_value(iter, 6, os.access(directory, os.W_OK))
-                            model.set_value(iter, 7, hide_config_button)
-                            model.set_value(iter, 8, ext_config_app)
-                            model.set_value(iter, 9, last_edited)
-
-                            if (os.access(directory, os.W_OK)):
-                                icon = ""
-                            else:
-                                icon = "cs-xlet-system"
-
-                            model.set_value(iter, 10, icon)
-
-                            if (found):
-                                icon = "cs-xlet-running"
-                            else:
-                                icon = ""
-                            model.set_value(iter, 11, icon)
-                            model.set_value(iter, 12, schema_filename)
-                            model.set_value(iter, 13, setting_type)
-                            model.set_value(iter, 14, score)
-                            model.set_value(iter, 15, installed)
-                            model.set_value(iter, 16, -1)
-                            model.set_value(iter, 17, "white")
-                            model.set_value(iter, 18, wrapper)
-                    except Exception:
-                        e = sys.exc_info()[1]
-                        print("Failed to load extension %s: %s" % (extension, str(e)))
-        else: # Theme handling
-            if os.path.exists(directory) and os.path.isdir(directory):
-                if stock_theme:
-                    themes = ["cinnamon"]
-                else:
-                    themes = os.listdir(directory)
-                themes.sort()
-                for theme in themes:
-                    try:
-                        if stock_theme:
-                            path = os.path.join(directory, theme, "theme")
-                        else:
-                            path = os.path.join(directory, theme, "cinnamon")
-                        if os.path.exists(path) and os.path.isdir(path):
-                            theme_last_edited = -1
-                            theme_uuid = ""
-                            metadata = os.path.join(path, "metadata.json")
-                            if os.path.exists(metadata):
-                                json_data=open(metadata).read()
-                                data = json.loads(json_data)  
-                                try: theme_last_edited = long(data["last-edited"])
-                                except KeyError: theme_last_edited = -1
-                                except ValueError: theme_last_edited = -1
-                                except Exception: last_edited = -1
-                                if theme_last_edited == -1:
-                                    try: theme_last_edited = int(data["last-edited"])
-                                    except KeyError: theme_last_edited = -1
-                                    except ValueError: theme_last_edited = -1
-                                try: theme_uuid = data["uuid"]
-                                except KeyError: theme_uuid = ""
-                                except ValueError: theme_uuid = ""
-                            if theme_uuid != "" and self.uuid_already_in_list(theme_uuid, model):
-                                continue
-                            if stock_theme:
-                                theme_name = "Cinnamon"
-                                theme_uuid = "STOCK"
-                            else:
-                                theme_name = theme
-                            theme_description = ""
-                            iter = model.insert_before(None, None)
-                            found = 0
-                            for enabled_theme in enabled_extensions:
-                                if enabled_theme == theme_name:
-                                    found = 1
-                                elif enabled_theme == "" and theme_uuid == "STOCK":
-                                    found = 1
-                            icon_extension = ""
-                            if os.path.exists(os.path.join(path, "thumbnail.png")):
-                                icon_extension = os.path.join(path, "thumbnail.png")
-                            else:
-                                icon_extension = "/usr/lib/cinnamon-settings/data/icons/themes.svg"
-                            wrapper = None #We don't want load several time the icons and we want fill the model asyncronous...
-                            score = 0
-                            installed = 1
-                            model.set_value(iter, 0, theme_uuid)
-                            model.set_value(iter, 1, '<b>%s</b>' % (theme_name))
-                            model.set_value(iter, 2, found)
-                            model.set_value(iter, 3, 1)
-                            model.set_value(iter, 4, icon_extension)
-                            model.set_value(iter, 5, theme_name)
-                            model.set_value(iter, 6, os.access(directory, os.W_OK))
-                            model.set_value(iter, 7, True)
-                            model.set_value(iter, 8, "")
-                            model.set_value(iter, 9, theme_last_edited)
-
-                            if (os.access(directory, os.W_OK)):
-                                icon = ""
-                            else:
-                                icon = "cs-xlet-system"
-
-                            model.set_value(iter, 10, icon)
-                            if (found):
-                                icon = "cs-xlet-installed"
-                            else:
-                                icon = ""
-                            model.set_value(iter, 11, icon)
-                            model.set_value(iter, 13, SETTING_TYPE_NONE)
-                            model.set_value(iter, 14, score)
-                            model.set_value(iter, 15, installed)
-                            model.set_value(iter, 16, -1)
-                            model.set_value(iter, 17, "white")
-                            model.set_value(iter, 18, wrapper)
-                    except Exception:
-                        e = sys.exc_info()[1]
-                        print("Failed to load extension %s: %s" % (theme, str(e)))
-
     def load_spice_model(self, spicesData, model, is_theme, collection_type, cache_folder):
-        print("total spices loaded: %d" % len(spicesData))
-        if not is_theme:
-            for uuid in spicesData:
-                extensionData = spicesData[uuid]
-                extension_name = extensionData['name'].replace('&', '&amp;')
-                iter_already = self.uuid_already_in_list(uuid, model)
-                if iter_already:
-                    try: last_edited = long(extensionData["last_edited"])
-                    except KeyError: last_edited = -1
-                    except ValueError: last_edited = -1
-                    except Exception: last_edited = -1
-                    if last_edited == -1:
-                        try: last_edited = int(extensionData["last_edited"])
-                        except KeyError: last_edited = -1
-                        except ValueError: last_edited = -1
-                    installed_date = model.get_value(iter_already, 9)
-                    if last_edited > installed_date:
-                        model.set_value(iter_already, 9, last_edited)
-                        model.set_value(iter_already, 16, installed_date)
-                    model.set_value(iter_already, 14, int(extensionData['score']))
-                    continue
-                extension_uuid = uuid
-                try: extension_description = extensionData["comments"]
-                except KeyError: extension_description = ""
-                except ValueError: extension_description = ""
-                #if self.search_entry.get_text().upper() in (extension_name + extension_description).upper():
-                try:
-                    try: extension_max_instances = int(extensionData["max-instances"])
-                    except KeyError: extension_max_instances = 1
-                    except ValueError: extension_max_instances = 1
+        for uuid in spicesData:
+            extensionData = spicesData[uuid]
+            #uuid = extensionData["uuid"]
+            iter_already = self.uuid_already_in_list(uuid, model)
+            if iter_already:
+                continue
+            try:
+                name = extensionData["name"]
+                if not is_theme:
+                    #descrip = "<b>%s</b>\n<b><span foreground='#333333' size='xx-small'>%s</span></b>\n \
+                    #          <i><span foreground='#555555' size='x-small'>%s</span></i>" % (name, uuid, description)
+                    descrip = "<b>%s</b>\n<b><span foreground='#333333' size='xx-small'>%s</span></b>" % (name, uuid)
+                else:
+                    descrip = "<b>%s</b>" % (name)
 
-                    iter = model.insert_before(None, None)
-                    found = 0 #Can not be found otherwise uuid_already_in_list is wrong
+                #try: description = extensionData["comments"]
+                #except KeyError: description = ""
+                #except ValueError: description = ""
 
-                    icon_extension = os.path.join(cache_folder, os.path.basename(extensionData['icon']))
-                    wrapper = None #We don't want load several time the icons and we want fill the model asyncronous...
-                    os_access = 1 #Can not be found otherwise uuid_already_in_list is wrong
-                    hide_config_button = True #Can not be found otherwise uuid_already_in_list is wrong
-                    ext_config_app = ""
-                    try: last_edited = long(extensionData["last_edited"])
-                    except KeyError: last_edited = -1
-                    except ValueError: last_edited = -1
-                    except Exception: last_edited = -1
-                    if last_edited == -1:
-                        try: last_edited = int(extensionData["last_edited"])
-                        except KeyError: last_edited = -1
-                        except ValueError: last_edited = -1
-                    setting_type = 0 #Can not be found otherwise uuid_already_in_list is wrong
-                    icon_root = "" #Can not be found otherwise uuid_already_in_list is wrong
-                    icon_running = "" #Can not be found otherwise uuid_already_in_list is wrong
-                    try: schema_filename = extensionData["schema-file"]
-                    except KeyError: schema_filename = ""
-                    except ValueError: schema_filename = ""
-                    #descrip = '<b>%s</b>\n<b><span foreground="#333333" size="xx-small">%s</span></b>\n \
-                    #          <i><span foreground="#555555" size="x-small">%s</span></i>' % (extension_name, extension_uuid, extension_description)
-                    descrip = '<b>%s</b>\n<b><span foreground="#333333" size="xx-small">%s</span></b>' % (extension_name, extension_uuid)
-                    score = int(extensionData['score'])
-                    installed = 0
-                    model.set_value(iter, 0, extension_uuid)
-                    model.set_value(iter, 1, descrip)
-                    model.set_value(iter, 2, found)
-                    model.set_value(iter, 3, extension_max_instances)
-                    model.set_value(iter, 4, icon_extension)
-                    model.set_value(iter, 5, extension_name)
-                    model.set_value(iter, 6, os_access)
-                    model.set_value(iter, 7, hide_config_button)
-                    model.set_value(iter, 8, ext_config_app)
-                    model.set_value(iter, 9, last_edited)
-                    model.set_value(iter, 10, icon_root)
-                    model.set_value(iter, 11, icon_running)
-                    model.set_value(iter, 12, schema_filename)
-                    model.set_value(iter, 13, setting_type)
-                    model.set_value(iter, 14, score)
-                    model.set_value(iter, 15, installed)
-                    model.set_value(iter, 16, -1)
-                    model.set_value(iter, 17, "white")
-                    model.set_value(iter, 18, wrapper)
-                except Exception:
-                    e = sys.exc_info()[1]
-                    print("Failed to load extension %s: %s" % (extension_name, str(e)))
-        else:
-            for uuid in spicesData:
-                extensionData = spicesData[uuid]
-                theme = extensionData['name'].replace('&', '&amp;')
-                iter_already = self.uuid_already_in_list(uuid, model)
-                if iter_already:
-                    try: last_edited = long(extensionData["last_edited"])
-                    except KeyError: last_edited = -1
-                    except ValueError: last_edited = -1
-                    except Exception: last_edited = -1
-                    if last_edited == -1:
-                        try: last_edited = int(extensionData["last_edited"])
-                        except KeyError: last_edited = -1
-                        except ValueError: last_edited = -1
-                    installed_date = model.get_value(iter_already, 9)
-                    if last_edited > installed_date:
-                        model.set_value(iter_already, 9, last_edited)
-                        model.set_value(iter_already, 16, installed_date)
-                    model.set_value(iter_already, 14, int(extensionData['score']))
-                    continue
-                try:
-                    theme_last_edited = -1
-                    theme_uuid = uuid
-                    try: theme_last_edited = long(extensionData['last_edited'])
-                    except KeyError: theme_last_edited = -1
-                    except ValueError: theme_last_edited = -1
-                    except Exception: theme_last_edited = -1
-                    if theme_last_edited == -1:
-                        try: theme_last_edited = int(extensionData["last-edited"])
-                        except KeyError: theme_last_edited = -1
-                        except ValueError: theme_last_edited = -1
-                    theme_name = theme
-                    #theme_description = ""
-                    iter = model.insert_before(None, None)
-                    found = 0
+                max_instances = extensionData["max-instances"]
+                last_edited = extensionData["last-edited"]
+                install_edited = extensionData["install-edited"]
+                setting_type = extensionData["settings-type"]
+                score = extensionData["score"]
+                icon = extensionData["icon"]
+                hide_config_button = extensionData["hide-configuration"]
+                ext_config_app = extensionData["ext-setting-app"]
+                schema_filename = extensionData["schema-file"]
+                spices_show = extensionData["spices-show"]
 
-                    icon_extension = os.path.join(cache_folder, os.path.basename(extensionData['screenshot']))
-                    wrapper = None #We don't want load several time the icons and we want fill the model asyncronous...
-                    os_access = 1 #Can not be found otherwise uuid_already_in_list is wrong
-                    icon_root = "" #Can not be found otherwise uuid_already_in_list is wrong
-                    icon_running = "" #Can not be found otherwise uuid_already_in_list is wrong
-                    score = int(extensionData['score'])
-                    installed = 0
-                    model.set_value(iter, 0, theme_uuid)
-                    model.set_value(iter, 1, '<b>%s</b>' % (theme_name))
-                    model.set_value(iter, 2, found)
-                    model.set_value(iter, 3, 1)
-                    model.set_value(iter, 4, icon_extension)
-                    model.set_value(iter, 5, theme_name)
-                    model.set_value(iter, 6, os_access)
-                    model.set_value(iter, 7, True)
-                    model.set_value(iter, 8, "")
-                    model.set_value(iter, 9, theme_last_edited)
-                    model.set_value(iter, 10, icon_root)
-                    model.set_value(iter, 11, icon_running)
-                    model.set_value(iter, 12, None)
-                    model.set_value(iter, 13, SETTING_TYPE_NONE)
-                    model.set_value(iter, 14, score)
-                    model.set_value(iter, 15, installed)
-                    model.set_value(iter, 16, -1)
-                    model.set_value(iter, 17, "white")
-                    model.set_value(iter, 18, wrapper)
-                except Exception:
-                    e = sys.exc_info()[1]
-                    print("Failed to load extension %s: %s" % (theme, str(e)))
+                found = 0
+                os_access = 1
+                installed_folder = extensionData["installed-folder"]
+                
+                installed = (installed_folder is not "")
+                if installed:
+                    os_access = os.access(installed_folder, os.W_OK)
+                    found = self.get_number_of_instances(uuid)
+                icon_running = ""
+                if (found):
+                    icon_running = "cs-xlet-installed"
+                icon_root = ""
+                if not (os_access):
+                    icon_root = "cs-xlet-system"
+
+                iter = model.insert_before(None, None)
+                model.set_value(iter, 0, uuid)
+                model.set_value(iter, 1, descrip)
+                model.set_value(iter, 2, found)
+                model.set_value(iter, 3, max_instances)
+                model.set_value(iter, 4, icon)
+                model.set_value(iter, 5, name)
+                model.set_value(iter, 6, os_access)
+                model.set_value(iter, 7, hide_config_button)
+                model.set_value(iter, 8, ext_config_app)
+                model.set_value(iter, 9, last_edited)
+                model.set_value(iter, 10, icon_root)
+                model.set_value(iter, 11, icon_running)
+                model.set_value(iter, 12, schema_filename)
+                model.set_value(iter, 13, setting_type)
+                model.set_value(iter, 14, score)
+                model.set_value(iter, 15, installed)
+                model.set_value(iter, 16, install_edited)
+                model.set_value(iter, 17, "white")
+                model.set_value(iter, 18, None) #Wrapper: We don't want load several time the icons and we want fill the model asyncronous...
+                model.set_value(iter, 19, spices_show)
+            except Exception:
+                e = sys.exc_info()[1]
+                print("Failed to load extension %s: %s" % (uuid, str(e)))
 
     def show_prompt(self, msg):
         dialog = Gtk.MessageDialog(transient_for = None,
@@ -1845,41 +1599,41 @@ Please contact the developer.""")
             surface = model.get_value(treeiter, 18).surface
             img_pixbuf = Gdk.pixbuf_get_from_surface(surface, 0, 0, surface.get_width(), surface.get_height())
             if not self.themes:
-                directory = ('%s/.local/share/cinnamon/%ss/%s/metadata.json') % (home, self.collection_type, uuid)
+                directory = ("%s/.local/share/cinnamon/%ss/%s/metadata.json") % (home, self.collection_type, uuid)
                 if not os.path.exists(directory):
-                    directory = ('/usr/share/cinnamon/%ss/%s/metadata.json') % (self.collection_type, uuid)
+                    directory = ("/usr/share/cinnamon/%ss/%s/metadata.json") % (self.collection_type, uuid)
                 if os.path.exists(directory):
                     data = json.loads(open(directory).read())
-                    try: version = data['version']
+                    try: version = data["version"]
                     except KeyError: version = ""
                     except ValueError: version = ""
-                    try: website = data['website']
+                    try: website = data["website"]
                     except KeyError: website = ""
                     except ValueError: website = ""
-                    try: comments = data['comments']
+                    try: comments = data["comments"]
                     except KeyError: comments = ""
                     except ValueError: comments = ""
-                    try: description = data['description']
+                    try: description = data["description"]
                     except KeyError: description = ""
                     except ValueError: description = ""
             else:
-                directory = ('%s/.themes/%s/metadata.json') % (home, uuid)
+                directory = ("%s/.themes/%s/metadata.json") % (home, uuid)
                 if not os.path.exists(directory):
-                    directory = ('/usr/share/%s/metadata.json') % (uuid)
+                    directory = ("/usr/share/%s/metadata.json") % (uuid)
                     if not os.path.exists(directory):
-                        directory = ('/usr/share/themes/%s/metadata.json') % (uuid)
+                        directory = ("/usr/share/themes/%s/metadata.json") % (uuid)
                 if os.path.exists(directory):
                     data = json.loads(open(directory).read())
-                    try: version = data['version']
+                    try: version = data["version"]
                     except KeyError: version = ""
                     except ValueError: version = ""
-                    try: website = data['website']
+                    try: website = data["website"]
                     except KeyError: website = ""
                     except ValueError: website = ""
-                    try: comments = data['comments']
+                    try: comments = data["comments"]
                     except KeyError: comments = ""
                     except ValueError: comments = ""
-                    try: description = data['description']
+                    try: description = data["description"]
                     except KeyError: description = ""
                     except ValueError: description = ""
 
@@ -1890,29 +1644,29 @@ Please contact the developer.""")
                 if extensionData is not None:
                     if not self.themes:
                         if not comments:
-                            try: comments = extensionData['comments']
+                            try: comments = extensionData["comments"]
                             except KeyError: comments = ""
                             except ValueError: comments = ""
                         if not description:
-                            try: description = extensionData['description']
+                            try: description = extensionData["description"]
                             except KeyError: description = ""
                             except ValueError: description = ""
                         if not version:
-                            try: version = extensionData['version']
+                            try: version = extensionData["version"]
                             except KeyError: version = ""
                             except ValueError: version = ""
                     else:
                         extensionData = self.spicesData[uuid]
                         if not comments:
-                            try: comments = extensionData['comments']
+                            try: comments = extensionData["comments"]
                             except KeyError: comments = ""
                             except ValueError: comments = ""
                     if not description:
-                        try: description = extensionData['description']
+                        try: description = extensionData["description"]
                         except KeyError: description = ""
                         except ValueError: description = ""
                         if not version:
-                            try: version = extensionData['version']
+                            try: version = extensionData["version"]
                             except KeyError: version = ""
                             except ValueError: version = ""
 
@@ -1923,12 +1677,13 @@ Please contact the developer.""")
             name_label = self.builder.get_object("name_label")
             desc_label = self.builder.get_object("desc_label")
             vers_label = self.builder.get_object("vers_label")
-            webs_label = self.builder.get_object("webs_label")
             info_image = self.builder.get_object("info_image")
             name_label.set_text(extension_name)
             desc_label.set_text(description)
             vers_label.set_text(version)
-            webs_label.set_markup("<a href=\"%s\" title=\"Visit the website\">Website</a>" % (website))
+            if website != "":
+                webs_label = self.builder.get_object("webs_label")
+                webs_label.set_markup("<a href='%s' title='Visit the website: %s'>Website</a>" % (website, website))
             info_image.set_from_pixbuf(img_pixbuf)
             if comments:
                 desc_label.set_text(comments)

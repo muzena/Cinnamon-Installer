@@ -28,7 +28,7 @@ from __future__ import print_function
 import sys
 try:
     reload(sys)
-    sys.setdefaultencoding('utf-8')
+    sys.setdefaultencoding("utf-8")
 except Exception:
     pass
     #import importlib
@@ -48,10 +48,10 @@ except Exception:
 ABS_PATH = os.path.abspath(__file__)
 DIR_PATH = os.path.dirname(os.path.dirname(ABS_PATH)) + "/"
 
-INSTALLER_MODULES = DIR_PATH + 'settings_modules'
-INSTALLER_LIBS = DIR_PATH + 'lib'
-CINNAMON_MODULES = '/usr/lib/cinnamon-settings/modules'
-CINNAMON_LIBS = '/usr/lib/cinnamon-settings/bin'
+INSTALLER_MODULES = DIR_PATH + "settings_modules"
+INSTALLER_LIBS = DIR_PATH + "lib"
+CINNAMON_MODULES = "/usr/lib/cinnamon-settings/modules"
+CINNAMON_LIBS = "/usr/lib/cinnamon-settings/bin"
 
 WIN_WIDTH = 800
 WIN_H_PADDING = 20
@@ -93,6 +93,7 @@ class CinnamonSettingsSidePageHacker():
         self.modules_to_hack = {}
         self.modules_hacker = {}
         self.c_manager = self.content_box.c_manager
+        self.installer_mods = None
         self.load_modules()
 
     def load_modules(self):
@@ -107,7 +108,6 @@ class CinnamonSettingsSidePageHacker():
                 real_name = name
             self.modules_to_hack[real_name] = mod
         self.modules_to_hack[self.hacker.fileName] = self.hacker
-        self.module_to_hack_obj = {}
         modules_files = self.load_modules_files(CINNAMON_MODULES, self.modules_to_hack.keys())
         self.modules = self.import_modules(modules_files)
         self.sys_arg = None
@@ -120,13 +120,13 @@ class CinnamonSettingsSidePageHacker():
         try:
             mod_filter_files = []
             # Standard setting pages... this can be expanded to include applet dirs maybe?
-            mod_files = glob.glob(os.path.join(path, '*.py'))
+            mod_files = glob.glob(os.path.join(path, "*.py"))
             mod_files.sort()
             if len(mod_files) is 0:
                 raise Exception("No settings modules found!!")
             for i in range(len(mod_files)):
                 mod_files[i] = os.path.basename(os.path.normpath(mod_files[i]))
-                mod_files[i] = mod_files[i].split('.')[0]
+                mod_files[i] = mod_files[i].split(".")[0]
                 if mod_files[i][0:3] != "cs_":
                     raise Exception("Settings modules must have a prefix of 'cs_' !!")
                 if not mod_files[i] in exclude:
@@ -214,7 +214,7 @@ class CinnamonSettingsSidePageHacker():
             # Don't allow item names (and their translations) to be more than 30 chars long. It looks ugly and it creates huge gaps in the icon views
             name = str(sp_name)
             try:
-                name = unicode(name,'utf-8')
+                name = unicode(name, "utf-8")
             except:
                 pass
             if len(name) > 30:
@@ -262,8 +262,8 @@ class CinnamonSettingsSidePageHacker():
             self.button_back = self.builder.get_object("button_back")
             self.search_entry = self.builder.get_object("search_box")
             self.top_bar = self.builder.get_object("top_bar")
-        #self.search_entry.connect('focus-in-event', self._on_sys_arguments)
-        self.side_view_container.connect('size_allocate', self._exploreButtons)
+        #self.search_entry.connect("focus-in-event", self._on_sys_arguments)
+        self.side_view_container.connect("size_allocate", self._exploreButtons)
         self.prepare_swapper()
         self.calculate_bar_heights()
         self.load_sidePage()

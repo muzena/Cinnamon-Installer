@@ -51,7 +51,7 @@ try:
 except Exception:
     def make(src, dest):
         parts = os.path.splitext(src)
-        if parts[len(parts) - 1] == '.po':
+        if parts[len(parts) - 1] == ".po":
             subprocess.call(["msgfmt", "-c", src, "-o", dest])
 
 def reloadAsRoot(options):
@@ -72,7 +72,7 @@ def reloadAsRoot(options):
     return False
 
 def is_program_in_system(programName):
-    path = os.getenv('PATH')
+    path = os.getenv("PATH")
     for p in path.split(os.path.pathsep):
         p = os.path.join(p, programName)
         if os.path.exists(p) and os.access(p, os.X_OK):
@@ -137,7 +137,7 @@ def installCronD(installed_path):
     os.chmod(outFile, st.st_mode | stat.S_IRWXU | stat.S_IRWXG | stat.S_IROTH | stat.S_IXOTH | stat.S_IEXEC)
 
 def installLocale(dest_path, installed_path):
-    po_dir = os.path.join(installed_path, 'po')
+    po_dir = os.path.join(installed_path, "po")
     for path, names, filenames in os.walk(po_dir):
         for f in filenames:
             if f.endswith(".po"):
@@ -175,7 +175,7 @@ def generateDesktop(dest_path, installed_path, locale):
     for directory in os.listdir(locale):
         if os.path.isdir(os.path.join(locale, directory)):
             try:
-                language = gettext.translation('cinnamon-installer', locale, languages=[directory])
+                language = gettext.translation("cinnamon-installer", locale, languages=[directory])
                 language.install()
                 desktopFile.writelines("Name[%s]=%s\n" % (directory, _(menuName)))
             except:
@@ -183,7 +183,7 @@ def generateDesktop(dest_path, installed_path, locale):
     for directory in os.listdir(locale):
         if os.path.isdir(os.path.join(locale, directory)):
             try:
-                language = gettext.translation('cinnamon-installer', locale, languages=[directory])
+                language = gettext.translation("cinnamon-installer", locale, languages=[directory])
                 language.install()
                 desktopFile.writelines("Comment[%s]=%s\n" % (directory, _(menuComment)))
             except:
@@ -327,7 +327,7 @@ def install():
     installSchema(INSTALL_PATH)
     installCronD(INSTALL_PATH)
     removeInstaller(LOCAL_PATH)
-    installDbusService(INSTALL_PATH)
+    #installDbusService(INSTALL_PATH)
 
 def uninstall():
     cleanOld()

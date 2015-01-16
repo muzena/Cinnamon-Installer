@@ -70,6 +70,7 @@ class Module:
         self.first_category_done = False
         self.sidePageHacker = CinnamonSettingsSidePageHacker(self)
         self.installer = InstallerProviders.get_default()
+        self.installer.load_cache()
 
     def on_module_selected(self):
         if not self.loaded:
@@ -141,7 +142,7 @@ class Module:
         self.window = window
         self.sidePage.window = self.window
         #self.sidePage.builder = self.builder
-        self.installer.select_installer_provider(self.window, self.builder)
+        self.installer.setParentRef(self.window, self.builder)
         modules = self.sidePageHacker._setParentRef(self.window, self.builder)
         self.prepare_swapper(modules)
         self.checked_installer_arg()
@@ -197,7 +198,7 @@ class Module:
                # Don't allow item names (and their translations) to be more than 30 chars long. It looks ugly and it creates huge gaps in the icon views
                name = str(sp.name)
                try:
-                   name = unicode(name,'utf-8')
+                   name = unicode(name, "utf-8")
                except:
                    pass
                if len(name) > 30:

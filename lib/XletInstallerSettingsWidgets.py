@@ -175,7 +175,7 @@ class Settings():
         raw_data = _file.read()
         self.data = {}
         try:
-            self.data = json.loads(raw_data.decode('utf-8'), object_pairs_hook=collections.OrderedDict)
+            self.data = json.loads(raw_data.decode("utf-8"), object_pairs_hook=collections.OrderedDict)
         except:
             self.data = json.loads(raw_data, object_pairs_hook=collections.OrderedDict) 
         _file.close()
@@ -187,7 +187,7 @@ class Settings():
         if os.path.exists(name):
             os.remove(name)
         raw_data = json.dumps(self.data, indent=4)
-        new_file = open(name, 'w+')
+        new_file = open(name, "w+")
         new_file.write(raw_data)
         self.factory.resume_monitor()
 
@@ -201,7 +201,7 @@ class Settings():
         self.factory.pause_monitor()
         session_bus = dbus.SessionBus()
         cinnamon_dbus = session_bus.get_object("org.Cinnamon", "/org/Cinnamon")
-        setter = cinnamon_dbus.get_dbus_method('updateSetting', 'org.Cinnamon')
+        setter = cinnamon_dbus.get_dbus_method("updateSetting", "org.Cinnamon")
         payload = json.dumps(self.data[key])
         setter(self.uuid, self.instance_id, key, payload)
         self.factory.resume_monitor()
@@ -248,7 +248,7 @@ class Settings():
         new_file = open(filename)
         new_raw = new_file.read()
         try:
-            new_json = json.loads(new_raw.decode('utf-8'), object_pairs_hook=collections.OrderedDict)
+            new_json = json.loads(new_raw.decode("utf-8"), object_pairs_hook=collections.OrderedDict)
         except:
             new_json = json.loads(new_raw, object_pairs_hook=collections.OrderedDict)
         new_file.close()
@@ -481,7 +481,7 @@ def set_tt(tt, *widgets):
 class IndentedHBox(Gtk.HBox):
     def __init__(self):
         super(IndentedHBox, self).__init__()
-        indent = Gtk.Label.new('\t')
+        indent = Gtk.Label.new("\t")
         self.pack_start(indent, False, False, 0)
 
     def add(self, item):
@@ -509,7 +509,7 @@ class CheckButton(Gtk.CheckButton, BaseWidget):
         BaseWidget.__init__(self, key, settings_obj, uuid)
         super(CheckButton, self).__init__(self.get_desc())
         self.set_active(self.get_val())
-        self.handler = self.connect('toggled', self.on_my_value_changed)
+        self.handler = self.connect("toggled", self.on_my_value_changed)
         set_tt(self.get_tooltip(), self)
 
     def add_dependent(self, widget):
@@ -553,7 +553,7 @@ class SpinButton(Gtk.HBox, BaseWidget):
         self.spinner.set_increments(self.get_step(), self.get_step() * 2)
         self.spinner.set_value(self.get_val())
         set_tt(self.get_tooltip(), self.spinner, self.units, self.label)
-        self.handler = self.spinner.connect('value-changed', self.on_my_value_changed)
+        self.handler = self.spinner.connect("value-changed", self.on_my_value_changed)
         self._value_changed_timer = None
 
     def on_my_value_changed(self, widget):
@@ -873,7 +873,7 @@ class FileChooser(Gtk.HBox, BaseWidget):
         self.entry = Gtk.Entry()
         self.button = Gtk.Button("")
         self.button.set_image(Gtk.Image().new_from_stock(Gtk.STOCK_OPEN, Gtk.IconSize.BUTTON))
-        self.button.get_property('image').show()
+        self.button.get_property("image").show()
         if self.get_desc() != "":
             self.pack_start(self.label, False, False, 2)
 
@@ -1044,7 +1044,7 @@ class Scale(Gtk.HBox, BaseWidget):
         if (self.get_desc() != ""):
             self.pack_start(self.label, False, False, 2)
         self.pack_start(self.scale, True, True, 2)
-        self.handler = self.scale.connect('value-changed', self.on_my_value_changed)
+        self.handler = self.scale.connect("value-changed", self.on_my_value_changed)
         self.scale.show_all()
         set_tt(self.get_tooltip(), self.label, self.scale)
         self.scale.connect("scroll-event", self.on_mouse_scroll_event)
@@ -1248,13 +1248,13 @@ class Button(Gtk.Button, BaseWidget):
     def __init__(self, key, settings_obj, uuid):
         BaseWidget.__init__(self, key, settings_obj, uuid)
         super(Button, self).__init__(self.get_desc())
-        self.connect('clicked', self.on_clicked)
+        self.connect("clicked", self.on_clicked)
         set_tt(self.get_tooltip(), self)
 
     def on_clicked(self, widget):
         session_bus = dbus.SessionBus()
         cinnamon_dbus = session_bus.get_object("org.Cinnamon", "/org/Cinnamon")
-        activate_cb = cinnamon_dbus.get_dbus_method('activateCallback', 'org.Cinnamon')
+        activate_cb = cinnamon_dbus.get_dbus_method("activateCallback", "org.Cinnamon")
         activate_cb(self.get_callback(), self.get_instance_id(), self.get_multi_instance())
 
     def update_dep_state(self, active):

@@ -51,11 +51,11 @@ class MainApp():
         self._fileD = fileD
         self.interface = Gtk.Builder()
         self.interface.set_translation_domain(PROGRAM_NAME)
-        self.interface.add_from_file(DIR_PATH + 'gui/mainUpdater.ui')
-        self._mainWindow = self.interface.get_object('mainWindow')
-        self._appNameLabel = self.interface.get_object('appNameLabel')
-        self._statusLabel = self.interface.get_object('statusLabel')
-        self.progressBar = self.interface.get_object('progressBar')
+        self.interface.add_from_file(DIR_PATH + "gui/mainUpdater.ui")
+        self._mainWindow = self.interface.get_object("mainWindow")
+        self._appNameLabel = self.interface.get_object("appNameLabel")
+        self._statusLabel = self.interface.get_object("statusLabel")
+        self.progressBar = self.interface.get_object("progressBar")
         self._mainWindow.connect("destroy", self.closeWindows)
         self.loop = GObject.MainLoop()
         self.newVersion = 0.0
@@ -264,7 +264,7 @@ class MainApp():
                 (bytes_so_far, "Unknow", "Unknow"))
 
         if bytes_so_far >= total_size:
-            sys.stdout.write('\n')
+            sys.stdout.write("\n")
 
     def _isUpdateNeeded(self):
         self.newVersion = self.readVersionFromFile(TEMP + VERSION_FILE)
@@ -302,8 +302,8 @@ class MainApp():
     def readVersionFromFile(self, path):
         try:
             if os.path.isfile(path):
-                infile = open(path, 'r')
-                result = infile.readline().rstrip('\r\n')
+                infile = open(path, "r")
+                result = infile.readline().rstrip("\r\n")
                 float(result) #Test info
                 return result
         except Exception:
@@ -340,20 +340,20 @@ class Download():
                 (bytes_so_far, "Unknow", "Unknow"))
 
         if bytes_so_far >= total_size:
-            sys.stdout.write('\n')
+            sys.stdout.write("\n")
 
     def cancel():
         self.cancelAction = False
 
     def initializeRequest(self, response):
         self.total_size = -1
-        if 'Content-Length' in response.info():
-            self.total_size = response.info()['Content-Length'].strip()
+        if "Content-Length" in response.info():
+            self.total_size = response.info()["Content-Length"].strip()
         self.total_size = int(self.total_size)
         self.bytes_so_far = 0
         try:
-            if 'Content-Disposition' in response.info():
-                realFileName = response.info()['Content-Disposition'].split('filename=')[1]
+            if "Content-Disposition" in response.info():
+                realFileName = response.info()["Content-Disposition"].split("filename=")[1]
                 if realFileName[0] == '"' or realFileName[0] == "'":
                     realFileName = realFileName[1:-1]
                 if realFileName is not None:
@@ -445,8 +445,8 @@ class Updater:
     def readVersionFromFile(self, path):
         try:
             if os.path.isfile(path):
-                infile = open(path, 'r')
-                result = infile.readline().rstrip('\r\n')
+                infile = open(path, "r")
+                result = infile.readline().rstrip("\r\n")
                 float(result) #Test info
                 return result
         except Exception:
@@ -457,10 +457,10 @@ class Updater:
         print("Error on dir removed")
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Process the updater options.')
+    parser = argparse.ArgumentParser(description="Process the updater options.")
     group_action = parser.add_mutually_exclusive_group(required=True)
-    group_action.add_argument('--qupdate', nargs='?', action='store', type=str, help='Query for update Cinnamon Installer[silent/gui/forced/test]')
-    group_action.add_argument('--uninstall', nargs='?', action='store', type=str, help='Uninstall Cinnamon Installer[silent/gui]')
+    group_action.add_argument("--qupdate", nargs="?", action="store", type=str, help="Query for update Cinnamon Installer[silent/gui/forced/test]")
+    group_action.add_argument("--uninstall", nargs="?", action="store", type=str, help="Uninstall Cinnamon Installer[silent/gui]")
     args = parser.parse_args()
 
     updater = Updater()

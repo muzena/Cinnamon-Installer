@@ -210,31 +210,28 @@ class InstallerClient():
 
 class InstallerAction():
     def __init__(self):
-        self.installer = InstallerProvider.get_default()
+        self.installer = InstallerProviders.get_default()
         self.importerError = self.installer.get_importer_errors()
 
     def install(self, packageName):
-        if self.installer.need_root_access() and (os.geteuid() != 0):
+        if self.installer.need_root_access("package") and (os.geteuid() != 0):
             self._reloadAsRoot("--ipackage", pkgs_name)
         else:
-            self.installer.set_service_for_collection("package")
-            self.installer.execute_install(packageName)
+            self.installer.execute_install("package", packageName)
 
     def uninstall(self, packageName):
-        if self.installer.need_root_access() and (os.geteuid() != 0):
+        if self.installer.need_root_access("package") and (os.geteuid() != 0):
             self._reloadAsRoot("--upackage", packageName)
         else:
-            self.installer.set_service_for_collection("package")
-            self.installer.execute_uninstall(packageName)
+            self.installer.execute_uninstall("package", packageName)
 
     def uninstallProgram(self, programName):
-        if self.installer.need_root_access() and (os.geteuid() != 0):
+        if self.installer.need_root_access("package") and (os.geteuid() != 0):
             self._reloadAsRoot("--uprogram", programName)
         else:
-            self.installer.set_service_for_collection("package")
             packageName = self.findPackageForProgram(programName)
             if packageName:
-                self.installer.execute_uninstall(packageName)
+                self.installer.execute_uninstall("package", packageName)
             else:
                 title = _("Not found any package associated with the program '%s'.") % programName
                 message = _("If you detect any problem or you want to contribute,\n" + \
@@ -242,38 +239,38 @@ class InstallerAction():
                 self.mainAppWindows.show_error(title, message)
 
     def installSpices(self, spicesList):
-        if self.installer.need_root_access() and (os.geteuid() != 0):
+        if self.installer.need_root_access("applet") and (os.geteuid() != 0):
             self._reloadAsRoot("--icinnamon", spicesList)
         else:
-            self.installer.set_service_for_collection("applet")
-            self.installer.execute_install(spicesList)
+            self.installer.execute_install("package", spicesList)
 
     def uninstallSpices(self, spicesList):
         if self.installer.need_root_access() and (os.geteuid() != 0):
             self._reloadAsRoot("--ucinnamon", spicesList)
         else:
+            self.installer.register_collection("applet")
             self.installer.set_service_for_collection("applet")
             self.installer.execute_uninstall(spicesList)
 
     def upgradeSpices(self, spicesList):
+        self.installer.register_collection("applet")
         if self.installer.need_root_access() and (os.geteuid() != 0):
             self._reloadAsRoot("--ccinnamon", spicesList)
         else:
-            self.installer.set_service_for_collection("applet")
             self.installer.execute_upgrade(spicesList)
 
     def updateSpices(self, updateType):
+        self.installer.register_collection("applet")
         if self.installer.need_root_access() and (os.geteuid() != 0):
             self._reloadAsRoot("--rcinnamon", spicesList)
         else:
-            self.installer.set_service_for_collection("applet")
             self.installer.execute_update(spicesList)
 
     def findPackageForProgram(self, program):
         path = GLib.find_program_in_path(program);
         if path is not None:
             print("Program " + program + " was find in path:" + path)
-            self.installer.set_service_for_collection("package")
+            self.installer.register_collection("package")
             packageName = self.installer.find_package_by_path(path);
             if packageName is not None:
                 print("Program " + program + " was find in package:" + packageName)
@@ -283,7 +280,7 @@ class InstallerAction():
     def getPackageByName(self, packageName):
         listPackage = ["error"]
         try:
-            self.installer.set_service_for_collection("package")
+            self.installer.register_collection("package")
             listPackage = self.installer.search_uninstall(packageName)
             if(len(listPackage) == 0):
                listPackage.append("empty")

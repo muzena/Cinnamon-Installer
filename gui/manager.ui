@@ -376,12 +376,11 @@
               <object class="GtkIconView" id="filter_iconview">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
-                <property name="margin_left">10</property>
+                <property name="margin_left">2</property>
+                <property name="margin_right">2</property>
                 <property name="margin">2</property>
                 <property name="columns">1</property>
-                <property name="item_width">100</property>
-                <property name="spacing">2</property>
-                <property name="row_spacing">2</property>
+                <property name="row_spacing">0</property>
                 <property name="column_spacing">0</property>
                 <property name="reorderable">True</property>
                 <property name="item_padding">0</property>

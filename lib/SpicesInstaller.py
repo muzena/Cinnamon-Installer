@@ -59,8 +59,8 @@ except ImportError:
     import simplejson as json
 
 home = os.path.expanduser("~")
-locale_inst = '%s/.local/share/locale' % home
-settings_dir = '%s/.cinnamon/configs/' % home
+locale_inst = "%s/.local/share/locale" % home
+settings_dir = "%s/.cinnamon/configs/" % home
 
 URL_SPICES_HOME = "http://cinnamon-spices.linuxmint.com"
 URL_SPICES_APPLET_LIST = URL_SPICES_HOME + "/json/applets.json"
@@ -124,9 +124,9 @@ class Spice_Harvester:
         self.progress_window.set_position(Gtk.WindowPosition.CENTER_ON_PARENT)
         self.progress_button_abort = self.builder.get_object("btnProgressAbort")
         self.progress_window.connect("delete-event", self.on_progress_close)
-        self.progresslabel = self.builder.get_object('progresslabel')
+        self.progresslabel = self.builder.get_object("progresslabel")
         self.progressbar = self.builder.get_object("progressbar")
-        self.progressbar.set_text('')
+        self.progressbar.set_text("")
         self.progressbar.set_fraction(0)
 
         self.progress_window.set_title("")
@@ -155,14 +155,14 @@ class Spice_Harvester:
         # if self.get_webkit_enabled():
         #     self.browser = WebKit.WebView()
             
-        #     self.browser.connect('button-press-event', lambda w, e: e.button == 3)
-        #     self.browser.connect('title-changed', self.browser_title_changed)
-        #     self.browser.connect('console-message' , self.browser_console_message)
+        #     self.browser.connect("button-press-event", lambda w, e: e.button == 3)
+        #     self.browser.connect("title-changed", self.browser_title_changed)
+        #     self.browser.connect("console-message" , self.browser_console_message)
         
         #     settings = WebKit.WebSettings()
-        #     settings.set_property('enable-xss-auditor', False)
-        #     settings.set_property('enable-file-access-from-file-uris', True)
-        #     settings.set_property('enable-accelerated-compositing', True)
+        #     settings.set_property("enable-xss-auditor", False)
+        #     settings.set_property("enable-file-access-from-file-uris", True)
+        #     settings.set_property("enable-accelerated-compositing", True)
         #     self.browser.set_settings(settings)
 
         #     scrolled_window = Gtk.ScrolledWindow()
@@ -186,7 +186,7 @@ class Spice_Harvester:
 
     def close_detail(self):
         self.spiceDetail.hide()
-        if hasattr(self, 'on_detail_close') and callable(self.on_detail_close):
+        if hasattr(self, "on_detail_close") and callable(self.on_detail_close):
             self.on_detail_close(self)
 
     def show_detail(self, uuid, onSelect=None, onClose=None):        
@@ -207,22 +207,22 @@ class Spice_Harvester:
         # Browsing the info within the app would be great (ala mintinstall) but until it is fully ready 
         # and it gives a better experience (layout, comments, reviewing) than 
         # browsing online we will open the link with an external browser 
-        os.system("xdg-open '%s/%ss/view/%s'" % (URL_SPICES_HOME, self.collection_type, appletData['spices-id']))
+        os.system("xdg-open '%s/%ss/view/%s'" % (URL_SPICES_HOME, self.collection_type, appletData["spices-id"]))
         return
         
-        screenshot_filename = os.path.basename(appletData['screenshot'])
+        screenshot_filename = os.path.basename(appletData["screenshot"])
         screenshot_path = os.path.join(self.get_cache_folder(), screenshot_filename)
-        appletData['screenshot_path'] = screenshot_path
-        appletData['screenshot_filename'] = screenshot_filename
+        appletData["screenshot_path"] = screenshot_path
+        appletData["screenshot_filename"] = screenshot_filename
 
         if not os.path.exists(screenshot_path):
-            f = open(screenshot_path, 'w')
-            self.download_url = URL_SPICES_HOME + appletData['screenshot']
+            f = open(screenshot_path, "w")
+            self.download_url = URL_SPICES_HOME + appletData["screenshot"]
             self.download_with_progressbar(f, screenshot_path, _("Downloading screenshot"), False)
 
         template = open(os.path.realpath(os.path.dirname(os.path.abspath(__file__)) + "/../data/spices/applet-detail.html")).read()
         subs = {}
-        subs['appletData'] = json.dumps(appletData, sort_keys=False, indent=3)
+        subs["appletData"] = json.dumps(appletData, sort_keys=False, indent=3)
         html = string.Template(template).safe_substitute(subs)
 
         # Prevent flashing previously viewed
@@ -238,11 +238,11 @@ class Spice_Harvester:
         if title.startswith("nop"):
             return
         elif title.startswith("install:"):
-            uuid = title.split(':')[1]
+            uuid = title.split(":")[1]
             #self.install(uuid)
         elif title.startswith("uninstall:"):
-            uuid = title.split(':')[1]
-            #self.uninstall(uuid, '')
+            uuid = title.split(":")[1]
+            #self.uninstall(uuid, "")
         return
 
     def browser_console_message(self, view, msg, line, sourceid):
@@ -250,13 +250,13 @@ class Spice_Harvester:
         #print(msg)
 
     def get_index_url(self):
-        if self.collection_type == 'applet':
+        if self.collection_type == "applet":
             return URL_SPICES_APPLET_LIST
-        elif self.collection_type == 'extension':
+        elif self.collection_type == "extension":
             return URL_SPICES_EXTENSION_LIST
-        elif self.collection_type == 'theme':
+        elif self.collection_type == "theme":
             return URL_SPICES_THEME_LIST
-        elif self.collection_type == 'desklet':
+        elif self.collection_type == "desklet":
             return URL_SPICES_DESKLET_LIST
         else:
             return False
@@ -269,10 +269,10 @@ class Spice_Harvester:
         return cache_folder
 
     def get_install_folder(self):
-        if self.collection_type in ['applet','desklet','extension']:
-            install_folder = '%s/.local/share/cinnamon/%ss/' % (home, self.collection_type)
-        elif self.collection_type == 'theme':
-            install_folder = '%s/.themes/' % (home)
+        if self.collection_type in ["applet","desklet","extension"]:
+            install_folder = "%s/.local/share/cinnamon/%ss/" % (home, self.collection_type)
+        elif self.collection_type == "theme":
+            install_folder = "%s/.themes/" % (home)
 
         return install_folder
 
@@ -293,7 +293,7 @@ class Spice_Harvester:
         self.progress_bar_pulse()
 
         filename = os.path.join(self.cache_folder, "index.json")
-        f = open(filename, 'w')
+        f = open(filename, "w")
         self.download(f, filename)
         
         self.load_cache()
@@ -304,7 +304,7 @@ class Spice_Harvester:
 
     def load_cache(self):
         filename = os.path.join(self.cache_folder, "index.json")
-        f = open(filename, 'r')
+        f = open(filename, "r")
         try:
             self.index_cache = json.load(f)
         except ValueError:
@@ -325,16 +325,16 @@ class Spice_Harvester:
 
         for uuid in uuids:
             if not self.themes:
-                icon_basename = os.path.basename(self.index_cache[uuid]['icon'])
+                icon_basename = os.path.basename(self.index_cache[uuid]["icon"])
                 icon_path = os.path.join(self.cache_folder, icon_basename)
                 used_thumbs.append(icon_basename)
             else:
-                icon_basename = self.sanitize_thumb(os.path.basename(self.index_cache[uuid]['screenshot']))
+                icon_basename = self.sanitize_thumb(os.path.basename(self.index_cache[uuid]["screenshot"]))
                 icon_path = os.path.join(self.cache_folder, icon_basename)
                 used_thumbs.append(icon_basename)
 
-            self.index_cache[uuid]['icon_filename'] = icon_basename
-            self.index_cache[uuid]['icon_path'] = icon_path
+            self.index_cache[uuid]["icon_filename"] = icon_basename
+            self.index_cache[uuid]["icon_path"] = icon_path
 
             if not os.path.isfile(icon_path):
                 needs_refresh += 1
@@ -346,15 +346,15 @@ class Spice_Harvester:
             if self.abort_download > ABORT_NONE:
                 return
 
-            icon_path = self.index_cache[uuid]['icon_path']
+            icon_path = self.index_cache[uuid]["icon_path"]
             if not os.path.isfile(icon_path):
                 #self.progress_bar_pulse()
                 self.download_current_file += 1
-                f = open(icon_path, 'w')
+                f = open(icon_path, "w")
                 if not self.themes:
-                    self.download_url = URL_SPICES_HOME + self.index_cache[uuid]['icon']
+                    self.download_url = URL_SPICES_HOME + self.index_cache[uuid]["icon"]
                 else:
-                    self.download_url = URL_SPICES_HOME + "/uploads/themes/thumbs/" + self.index_cache[uuid]['icon_filename']
+                    self.download_url = URL_SPICES_HOME + "/uploads/themes/thumbs/" + self.index_cache[uuid]["icon_filename"]
                 valid = True
                 try:
                     urllib2.urlopen(self.download_url).getcode()
@@ -386,11 +386,11 @@ class Spice_Harvester:
     def get_members(self, zip):
         parts = []
         for name in zip.namelist():
-            if not name.endswith('/'):
-                parts.append(name.split('/')[:-1])
-        prefix = os.path.commonprefix(parts) or ''
+            if not name.endswith("/"):
+                parts.append(name.split("/")[:-1])
+        prefix = os.path.commonprefix(parts) or ""
         if prefix:
-            prefix = '/'.join(prefix) + '/'
+            prefix = "/".join(prefix) + "/"
         offset = len(prefix)
         for zipinfo in zip.infolist():
             name = zipinfo.filename
@@ -402,18 +402,18 @@ class Spice_Harvester:
         for uuid, is_update, is_active in install_list:
             print("Start downloading")
             if uuid in self.index_cache:
-                title = self.index_cache[uuid]['name']
-                self.download_url = URL_SPICES_HOME + self.index_cache[uuid]['file'];
+                title = self.index_cache[uuid]["name"]
+                self.download_url = URL_SPICES_HOME + self.index_cache[uuid]["file"];
                 self.current_uuid = uuid
                 #self.progress_window.show()
 
                 #self.progresslabel.set_text(_("Installing %s...") % (title))
                 #self.progressbar.set_fraction(0)
-                edited_date = self.index_cache[uuid]['last_edited']
+                edited_date = self.index_cache[uuid]["last_edited"]
                 if not self.themes:
                     fd, filename = tempfile.mkstemp()
                     dirname = tempfile.mkdtemp()
-                    f = os.fdopen(fd, 'wb')
+                    f = os.fdopen(fd, "wb")
                     try:
                         self.download(f, filename)
             
@@ -435,9 +435,9 @@ class Spice_Harvester:
 
     def install(self, uuid, is_update, is_active):
         #print("Start downloading and installation")
-        title = self.index_cache[uuid]['name']
+        title = self.index_cache[uuid]["name"]
 
-        self.download_url = URL_SPICES_HOME + self.index_cache[uuid]['file'];
+        self.download_url = URL_SPICES_HOME + self.index_cache[uuid]["file"];
         self.current_uuid = uuid
 
         self.progress_window.show()        
@@ -445,12 +445,12 @@ class Spice_Harvester:
         self.progresslabel.set_text(_("Installing %s...") % (title))
         self.progressbar.set_fraction(0)
 
-        edited_date = self.index_cache[uuid]['last_edited']
+        edited_date = self.index_cache[uuid]["last_edited"]
 
         if not self.themes:
             fd, filename = tempfile.mkstemp()
             dirname = tempfile.mkdtemp()
-            f = os.fdopen(fd, 'wb')
+            f = os.fdopen(fd, "wb")
             try:
                 self.download(f, filename)
                 dest = os.path.join(self.install_folder, uuid)
@@ -458,17 +458,17 @@ class Spice_Harvester:
                 zip = zipfile.ZipFile(filename)
                 zip.extractall(dirname, self.get_members(zip))
                 for file in self.get_members(zip):
-                    #if not file.filename.endswith('/') and ((file.external_attr >> 16L) & 0o755) == 0o755:
+                    #if not file.filename.endswith("/") and ((file.external_attr >> 16L) & 0o755) == 0o755:
                     #    os.chmod(os.path.join(dirname, file.filename), 0o755)
-                    #elif file.filename[:3] == 'po/':
-                    if file.filename[:3] == 'po/':
+                    #elif file.filename[:3] == "po/":
+                    if file.filename[:3] == "po/":
                         parts = os.path.splitext(file.filename)
-                        if parts[1] == '.po':
-                           this_locale_dir = os.path.join(locale_inst, parts[0][3:], 'LC_MESSAGES')
+                        if parts[1] == ".po":
+                           this_locale_dir = os.path.join(locale_inst, parts[0][3:], "LC_MESSAGES")
                            self.progresslabel.set_text(_("Installing translations for %s...") % title)
                            rec_mkdir(this_locale_dir)
-                           #print("/usr/bin/msgfmt -c %s -o %s" % (os.path.join(dest, file.filename), os.path.join(this_locale_dir, '%s.mo' % uuid)))
-                           subprocess.call(["msgfmt", "-c", os.path.join(dirname, file.filename), "-o", os.path.join(this_locale_dir, '%s.mo' % uuid)])
+                           #print("/usr/bin/msgfmt -c %s -o %s" % (os.path.join(dest, file.filename), os.path.join(this_locale_dir, "%s.mo" % uuid)))
+                           subprocess.call(["msgfmt", "-c", os.path.join(dirname, file.filename), "-o", os.path.join(this_locale_dir, "%s.mo" % uuid)])
                            self.progresslabel.set_text(_("Installing %s...") % (title))
                     elif "gschema.xml" in file.filename:
                         sentence = _("Please enter your password to install the required settings schema for %s") % (uuid)
@@ -480,7 +480,7 @@ class Spice_Harvester:
                             schema_filename = file.filename
                         else:
                             self.errorMessage(_("Could not install the settings schema for %s.  You will have to perform this step yourself.") % (uuid))
-                file = open(os.path.join(dirname, "metadata.json"), 'r')
+                file = open(os.path.join(dirname, "metadata.json"), "r")
                 raw_meta = file.read()
                 file.close()
                 md = json.loads(raw_meta)
@@ -488,7 +488,7 @@ class Spice_Harvester:
                 if schema_filename != "":
                     md["schema-file"] = schema_filename
                 raw_meta = json.dumps(md, indent=4)
-                file = open(os.path.join(dirname, "metadata.json"), 'w+')
+                file = open(os.path.join(dirname, "metadata.json"), "w+")
                 file.write(raw_meta)
                 file.close()
                 if os.path.exists(dest):
@@ -510,7 +510,7 @@ class Spice_Harvester:
         else:
             fd, filename = tempfile.mkstemp()
             dirname = tempfile.mkdtemp()
-            f = os.fdopen(fd, 'wb')
+            f = os.fdopen(fd, "wb")
             try:
                 self.download(f, filename)
                 dest = self.install_folder
@@ -525,14 +525,14 @@ class Spice_Harvester:
                     temp_path = os.path.join(dirname, title)
 
                 # Test for correct folder structure - look for cinnamon.css
-                file = open(os.path.join(temp_path, "cinnamon", "cinnamon.css"), 'r')
+                file = open(os.path.join(temp_path, "cinnamon", "cinnamon.css"), "r")
                 file.close()
 
                 md = {}
                 md["last-edited"] = edited_date
                 md["uuid"] = uuid
                 raw_meta = json.dumps(md, indent=4)
-                file = open(os.path.join(temp_path, "cinnamon", "metadata.json"), 'w+')
+                file = open(os.path.join(temp_path, "cinnamon", "metadata.json"), "w+")
                 file.write(raw_meta)
                 file.close()
                 final_path = os.path.join(dest, title)
@@ -587,8 +587,8 @@ class Spice_Harvester:
                     if (os.path.exists(locale_inst)):
                         i19_folders = os.listdir(locale_inst)
                         for i19_folder in i19_folders:
-                            if os.path.isfile(os.path.join(locale_inst, i19_folder, 'LC_MESSAGES', "%s.mo" % item[0])):
-                                os.remove(os.path.join(locale_inst, i19_folder, 'LC_MESSAGES', "%s.mo" % item[0]))
+                            if os.path.isfile(os.path.join(locale_inst, i19_folder, "LC_MESSAGES", "%s.mo" % item[0])):
+                                os.remove(os.path.join(locale_inst, i19_folder, "LC_MESSAGES", "%s.mo" % item[0]))
                             # Clean-up this locale folder
                             removeEmptyFolders(os.path.join(locale_inst, i19_folder))
                     # Uninstall settings file, if any
@@ -627,8 +627,8 @@ class Spice_Harvester:
                 if (os.path.exists(locale_inst)):
                     i19_folders = os.listdir(locale_inst)
                     for i19_folder in i19_folders:
-                        if os.path.isfile(os.path.join(locale_inst, i19_folder, 'LC_MESSAGES', "%s.mo" % uuid)):
-                            os.remove(os.path.join(locale_inst, i19_folder, 'LC_MESSAGES', "%s.mo" % uuid))
+                        if os.path.isfile(os.path.join(locale_inst, i19_folder, "LC_MESSAGES", "%s.mo" % uuid)):
+                            os.remove(os.path.join(locale_inst, i19_folder, "LC_MESSAGES", "%s.mo" % uuid))
                         # Clean-up this locale folder
                         removeEmptyFolders(os.path.join(locale_inst, i19_folder))
 
@@ -654,9 +654,9 @@ class Spice_Harvester:
     def on_refresh_clicked(self):
         self.load_index()
 
-    def download_with_progressbar(self, outfd, outfile, caption='Please wait..', waitForClose=True):
+    def download_with_progressbar(self, outfd, outfile, caption="Please wait..", waitForClose=True):
         self.progressbar.set_fraction(0)
-        self.progressbar.set_text('0%')        
+        self.progressbar.set_text("0%")        
         self.progresslabel.set_text(caption)
         self.progress_window.show()
 
@@ -702,11 +702,11 @@ class Spice_Harvester:
     def reporthook(self, count, blockSize, totalSize):
         if self.download_total_files > 1:
             fraction = (float(self.download_current_file) / float(self.download_total_files));
-            self.progressbar.set_text("%s - %d / %d files" % (str(int(fraction*100)) + '%', self.download_current_file, self.download_total_files))
+            self.progressbar.set_text("%s - %d / %d files" % (str(int(fraction*100)) + "%", self.download_current_file, self.download_total_files))
         else:
             fraction = count * blockSize / float((totalSize / blockSize + 1) *
                 (blockSize))
-            self.progressbar.set_text(str(int(fraction * 100)) + '%')
+            self.progressbar.set_text(str(int(fraction * 100)) + "%")
 
         if fraction > 0:
             self.progressbar.set_fraction(fraction)
@@ -731,7 +731,7 @@ class Spice_Harvester:
             self.error = str(e)
             raise KeyboardInterrupt
 
-        totalSize = int(urlobj.info()['content-length'])
+        totalSize = int(urlobj.info()["content-length"])
 
         try:
             while self.abort_download == ABORT_NONE:

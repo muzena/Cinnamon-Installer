@@ -42,12 +42,12 @@ from defer.utils import deferable
 
 # i18n
 import gettext, locale
-LOCALE_PATH = DIR_PATH + 'locale'
-DOMAIN = 'cinnamon-installer'
+LOCALE_PATH = DIR_PATH + "locale"
+DOMAIN = "cinnamon-installer"
 locale.bindtextdomain(DOMAIN , LOCALE_PATH)
-locale.bind_textdomain_codeset(DOMAIN , 'UTF-8')
+locale.bind_textdomain_codeset(DOMAIN, "UTF-8")
 gettext.bindtextdomain(DOMAIN, LOCALE_PATH)
-gettext.bind_textdomain_codeset(DOMAIN , 'UTF-8')
+gettext.bind_textdomain_codeset(DOMAIN, "UTF-8")
 gettext.textdomain(DOMAIN)
 #_ = gettext.gettext
 _ = lambda msg: gettext.dgettext("aptdaemon", msg)
@@ -55,63 +55,67 @@ _ = lambda msg: gettext.dgettext("aptdaemon", msg)
 from gi.repository import GObject, Gtk, GLib, Gio
 
 CI_STATUS = {
-    'status-resolving-dep': "RESOLVING_DEPENDENCIES",
-    'status-setting-up': "SETTING-UP",
-    'status-loading-cache': "LOADING_CACHE",
-    'status-authenticating': "AUTHENTICATING",
-    'status-downloading': "DOWNLOADING",
-    'status-downloading-repo': "DOWNLOADING_REPO",
-    'status-running': "RUNNING",
-    'status-committing': "COMMITTING",
-    #'status-installing': "INSTALLING",
-    #'status-removing': "REMOVING",
-    'status-finished': "FINISHED",
-    'status-waiting': "WAITING",
-    'status-waiting-lock': "WAITING_LOCK",
-    'status-waiting-medium': "WAITING_MEDIUM",
-    'status-waiting-config-file-prompt': "WAITING_CONFIG_FILE",
-    'status-cancelling': "CANCELLING",
-    'status-cleaning-up': "CLEANING_UP",
-    'status-query': "QUERY",
-    'status-details': "DETAILS",
-    'status-unknown': "UNKNOWN"
+    "status-resolving-dep": "RESOLVING_DEPENDENCIES",
+    "status-setting-up": "SETTING-UP",
+    "status-loading-cache": "LOADING_CACHE",
+    "status-authenticating": "AUTHENTICATING",
+    "status-downloading": "DOWNLOADING",
+    "status-downloading-repo": "DOWNLOADING_REPO",
+    "status-running": "RUNNING",
+    "status-committing": "COMMITTING",
+    #"status-installing": "INSTALLING",
+    #"status-removing": "REMOVING",
+    "status-finished": "FINISHED",
+    "status-waiting": "WAITING",
+    "status-waiting-lock": "WAITING_LOCK",
+    "status-waiting-medium": "WAITING_MEDIUM",
+    "status-waiting-config-file-prompt": "WAITING_CONFIG_FILE",
+    "status-cancelling": "CANCELLING",
+    "status-cleaning-up": "CLEANING_UP",
+    "status-query": "QUERY",
+    "status-details": "DETAILS",
+    "status-unknown": "UNKNOWN"
 }
 
 class InstallerModule():
     def __init__(self):
         self.validTypes = ["package"]
+        self.service = None
 
-    def priority_for_action(self, action):
-        if action in self.validTypes:
+    def priority_for_collection(self, collect_type):
+        if collect_type in self.validTypes:
             return 1
         return 0
     
     def get_service(self):
-        return InstallerService()
+        if self.service is None:
+            self.service = InstallerService()
+        self.service.set_parent_module(self)
+        return self.service
 
 class InstallerService(GObject.GObject, aptdaemon.client.AptClient):#aptdaemon.client.AptClient):
     __gsignals__ = {
-        'EmitTransactionDone': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
-        'EmitTransactionError': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING,)),
-        'EmitAvailableUpdates': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_BOOLEAN, GObject.TYPE_BOOLEAN,)),
-        'EmitStatus': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING,)),
-        'EmitRole': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
-        'EmitNeedDetails': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_BOOLEAN,)),
-        'EmitIcon': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
-        'EmitTarget': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
-        'EmitPercent': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_FLOAT,)),
-        'EmitDownloadPercentChild': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING, GObject.TYPE_FLOAT, GObject.TYPE_STRING,)),
-        'EmitDownloadChildStart': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_BOOLEAN,)),
-        'EmitLogError': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
-        'EmitLogWarning': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
-        'EmitTransactionStart': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
-        'EmitReloadConfig': (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
-        'EmitTransactionConfirmation': (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_PYOBJECT,)),
-        'EmitTransactionCancellable': (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_BOOLEAN,)),
-        'EmitTerminalAttached': (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_BOOLEAN,)),
-        'EmitConflictFile': (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING,)),
-        'EmitChooseProvider': (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_PYOBJECT,)),
-        'EmitMediumRequired': (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING, GObject.TYPE_STRING))
+        "EmitTransactionDone": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
+        "EmitTransactionError": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING,)),
+        "EmitAvailableUpdates": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_BOOLEAN, GObject.TYPE_BOOLEAN,)),
+        "EmitStatus": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING,)),
+        "EmitRole": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
+        "EmitNeedDetails": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_BOOLEAN,)),
+        "EmitIcon": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
+        "EmitTarget": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
+        "EmitPercent": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_FLOAT,)),
+        "EmitDownloadPercentChild": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING, GObject.TYPE_FLOAT, GObject.TYPE_STRING,)),
+        "EmitDownloadChildStart": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_BOOLEAN,)),
+        "EmitLogError": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
+        "EmitLogWarning": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
+        "EmitTransactionStart": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
+        "EmitReloadConfig": (GObject.SIGNAL_RUN_FIRST, None, (GObject.TYPE_STRING,)),
+        "EmitTransactionConfirmation": (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_PYOBJECT,)),
+        "EmitTransactionCancellable": (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_BOOLEAN,)),
+        "EmitTerminalAttached": (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_BOOLEAN,)),
+        "EmitConflictFile": (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING,)),
+        "EmitChooseProvider": (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_PYOBJECT,)),
+        "EmitMediumRequired": (GObject.SIGNAL_RUN_LAST, None, (GObject.TYPE_STRING, GObject.TYPE_STRING, GObject.TYPE_STRING))
     }
     def __init__(self):
         GObject.GObject.__init__(self)
@@ -128,6 +132,7 @@ class InstallerService(GObject.GObject, aptdaemon.client.AptClient):#aptdaemon.c
         self.status_dir = Gio.file_new_for_path(apt_pkg.config.find_file("Dir::State::status"))
         self.monitor = self.status_dir.monitor_file(Gio.FileMonitorFlags.NONE, None)
         self.authorized = False
+        self.module = None
         if self.monitor:
             self.monitor.connect("changed", self._changed)
 
@@ -148,14 +153,26 @@ class InstallerService(GObject.GObject, aptdaemon.client.AptClient):#aptdaemon.c
     def is_service_idle(self):
         return True
 
-    def refresh_service(force_update = False):
+    def refresh_cache(force_update = False, collect_type=None):
         pass
 
     def release_all(self):
         pass
 
-    def load_cache(self, async):
+    def load_cache(self, async, collect_type=None):
         pass
+
+    def have_cache(self, collect_type=None):
+        return True
+
+    def set_parent_module(self, module):
+        self.module = module
+
+    def get_parent_module(self):
+        return self.module
+
+    def get_cache_folder(self, collect_type=None):
+        return ""
 
     def search_files(self, path, loop, result):
         #Return the package that ships the given file.
@@ -175,7 +192,7 @@ class InstallerService(GObject.GObject, aptdaemon.client.AptClient):#aptdaemon.c
                 result.append([]) 
         loop.quit()
 
-    def get_all_local_packages(self, loop, result):
+    def get_all_local_packages(self, loop, result, collect_type=None):
         local_packages = []
         result.append(local_packages)
         try:
@@ -189,7 +206,7 @@ class InstallerService(GObject.GObject, aptdaemon.client.AptClient):#aptdaemon.c
             print(str(e))
         loop.quit()
 
-    def get_all_remote_packages(self, loop, result):
+    def get_all_remote_packages(self, loop, result, collect_type=None):
         local_packages = []
         result.append(local_packages)
         try:
@@ -203,7 +220,7 @@ class InstallerService(GObject.GObject, aptdaemon.client.AptClient):#aptdaemon.c
             print(str(e))
         loop.quit()
 
-    def get_local_packages(self, packages, loop, result):
+    def get_local_packages(self, packages, loop, result, collect_type=None):
         local_packages = []
         result.append(local_packages)
         try:
@@ -216,7 +233,7 @@ class InstallerService(GObject.GObject, aptdaemon.client.AptClient):#aptdaemon.c
             print(str(e))
         loop.quit()
 
-    def get_remote_packages(self, packages, loop, result):
+    def get_remote_packages(self, packages, loop, result, collect_type=None):
         local_packages = []
         result.append(local_packages)
         try:
@@ -229,7 +246,7 @@ class InstallerService(GObject.GObject, aptdaemon.client.AptClient):#aptdaemon.c
             print(str(e))
         loop.quit()
 
-    def get_local_search(self, pattern, loop, result):
+    def get_local_search(self, pattern, loop, result, collect_type=None):
         local_packages = []
         result.append(local_packages)
         try:
@@ -244,7 +261,7 @@ class InstallerService(GObject.GObject, aptdaemon.client.AptClient):#aptdaemon.c
             print(str(e))
         loop.quit()
     '''
-    def get_remote_search(self, pattern, loop, result):
+    def get_remote_search(self, pattern, loop, result, collect_type=None):
         start_time = time.time()
         local_packages = []
         result.append(local_packages)
@@ -268,7 +285,7 @@ class InstallerService(GObject.GObject, aptdaemon.client.AptClient):#aptdaemon.c
         loop.quit()
     '''
     '''
-    def get_remote_search(self, pattern, loop, result):
+    def get_remote_search(self, pattern, loop, result, collect_type=None):
         start_time = time.time()
         local_packages = []
         result.append(local_packages)
@@ -295,7 +312,7 @@ class InstallerService(GObject.GObject, aptdaemon.client.AptClient):#aptdaemon.c
         print(str(time.time() - start_time))
         loop.quit()
     '''
-    def get_remote_search(self, pattern, loop, result):
+    def get_remote_search(self, pattern, loop, result, collect_type=None):
         start_time = time.time()
         local_packages = []
         result.append(local_packages)
@@ -309,9 +326,9 @@ class InstallerService(GObject.GObject, aptdaemon.client.AptClient):#aptdaemon.c
                         (not self._packageExistArch(pkgName))):
                         local_packages.append(pkgName)
             else:
-                dpkg = subprocess.Popen(['apt-cache', 'search', '--names-only', pattern],
+                dpkg = subprocess.Popen(["apt-cache", "search", "--names-only", pattern],
                                         stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                out = dpkg.communicate()[0].decode('UTF-8')
+                out = dpkg.communicate()[0].decode("UTF-8")
                 if dpkg.returncode == 0 and out:
                     pkgs = out.split("\n")
                     for pkgLine in pkgs:
@@ -348,14 +365,14 @@ class InstallerService(GObject.GObject, aptdaemon.client.AptClient):#aptdaemon.c
         loop.quit()
 
 
-    def prepare_transaction_install(self, packages):
+    def prepare_transaction_install(self, packages, collect_type=None):
         if (self.daemon_permission):
             try:
-                self._policykit_test('org.cinnamon.installer.commit')
+                self._policykit_test("org.cinnamon.installer.commit")
             except Exception:
                 e = sys.exc_info()[1]
                 self.authorized = False
-                self.EmitLogError(_('Authentication failed'))
+                self.EmitLogError(_("Authentication failed"))
                 print(str(e))
         else:
             self.authorized = True
@@ -364,17 +381,17 @@ class InstallerService(GObject.GObject, aptdaemon.client.AptClient):#aptdaemon.c
                               reply_handler=self._simulate_trans,
                               error_handler=self._on_error)
         else:
-            self.EmitTransactionError(_('Authentication failed'), _('Authentication failed'))
+            self.EmitTransactionError(_("Authentication failed"), _("Authentication failed"))
         self.authorized = False
 
-    def prepare_transaction_remove(self, packages):
+    def prepare_transaction_remove(self, packages, collect_type=None):
         if (self.daemon_permission):
             try:
-                self._policykit_test('org.cinnamon.installer.commit')
+                self._policykit_test("org.cinnamon.installer.commit")
             except Exception:
                 e = sys.exc_info()[1]
                 self.authorized = False
-                self.EmitLogError(_('Authentication failed'))
+                self.EmitLogError(_("Authentication failed"))
                 print(str(e))
         else:
             self.authorized = True
@@ -383,7 +400,7 @@ class InstallerService(GObject.GObject, aptdaemon.client.AptClient):#aptdaemon.c
                               reply_handler=self._simulate_trans,
                               error_handler=self._on_error)
         else:
-            self.EmitTransactionError(_('Authentication failed'), _('Authentication failed'))
+            self.EmitTransactionError(_("Authentication failed"), _("Authentication failed"))
         self.authorized = False
 
     def cancel(self):
@@ -402,8 +419,8 @@ class InstallerService(GObject.GObject, aptdaemon.client.AptClient):#aptdaemon.c
         self.current_trans = None
 
     def _simulate_trans(self, transaction):
-        #self.EmitTransactionStart("start")
-        #self._set_transaction(transaction)
+        self.EmitTransactionStart("start")
+        self._set_transaction(transaction)
         transaction.simulate(reply_handler=lambda: self._confirm_deps(transaction),
                              error_handler=self._on_error)
 
@@ -428,7 +445,7 @@ class InstallerService(GObject.GObject, aptdaemon.client.AptClient):#aptdaemon.c
 
     def _confirm_deps(self, transaction):
         try:
-            self._set_transaction(transaction)
+            #self._set_transaction(transaction)
             info_config = self._get_transaction_summary(transaction)
             self.EmitTransactionConfirmation(info_config)
             if [pkgs for pkgs in transaction.dependencies if pkgs]:
@@ -551,7 +568,7 @@ class InstallerService(GObject.GObject, aptdaemon.client.AptClient):#aptdaemon.c
 
     def _get_transaction_summary(self, trans):
         #Create a message and the dependencies to be show.
-        infoConf = { 'title': "", 'description': "", 'dependencies': {} }
+        infoConf = { "title": "", "description": "", "dependencies": {} }
         for index, msg in enumerate([_("Install"),
                                      _("Reinstall"),
                                      _("Remove"),
@@ -560,7 +577,7 @@ class InstallerService(GObject.GObject, aptdaemon.client.AptClient):#aptdaemon.c
                                      _("Downgrade"),
                                      _("Skip upgrade")]):
             if trans.dependencies[index]:
-                listPiter = infoConf['dependencies']["%s" % msg] = []
+                listPiter = infoConf["dependencies"]["%s" % msg] = []
                 for pkg in trans.dependencies[index]:
                     for object in self.map_package(pkg):
                         listPiter.append(str(object))
@@ -571,7 +588,7 @@ class InstallerService(GObject.GObject, aptdaemon.client.AptClient):#aptdaemon.c
         #       initial packages or both?
         msg = _("Please take a look at the list of changes below.")
         title = ""
-        if len(infoConf['dependencies'].keys()) == 1:
+        if len(infoConf["dependencies"].keys()) == 1:
             if trans.dependencies[PKGS_INSTALL]:
                 title = _("Additional software has to be installed")
             elif trans.dependencies[PKGS_REINSTALL]:
@@ -600,22 +617,22 @@ class InstallerService(GObject.GObject, aptdaemon.client.AptClient):#aptdaemon.c
             msg += "\n"
             msg += (_("%sB more disk space will be used.") %
                     apt_pkg.size_to_str(trans.space))
-        infoConf['title'] = title
-        infoConf['description'] = msg
+        infoConf["title"] = title
+        infoConf["description"] = msg
         return infoConf
 
     def map_package(self, pkg):
-        """Map a package to a different object type, e.g. applications
+        '''Map a package to a different object type, e.g. applications
         and return a list of those.
         By default return the package itself inside a list.
         Override this method if you don't want to store package names
         in the treeview.
-        """
+        '''
         return [pkg]
 
     def _on_finished(self, transaction, status, close, show_error):
         self.EmitTransactionCancellable(False)
-        self.EmitPercent(1)
+        self.EmitPercent(100)
         if status == EXIT_FAILED and show_error:
             error = transaction.error
             self.EmitTransactionError(get_error_string_from_enum(error.code),
@@ -644,9 +661,9 @@ class InstallerService(GObject.GObject, aptdaemon.client.AptClient):#aptdaemon.c
     def _on_progress_changed(self, transaction, progress):
         """Update the progress according to the latest progress information"""
         if progress > 0:
-            self.EmitPercent(progress/100)
+            self.EmitPercent(progress)
         else:
-            self.EmitPercent(2)
+            self.EmitPercent(200)
 
     def _on_progress_details_changed(self, transaction, items_done, items_total,
                              bytes_done, bytes_total, speed, eta):
@@ -684,13 +701,13 @@ class InstallerService(GObject.GObject, aptdaemon.client.AptClient):#aptdaemon.c
     def resolve_package_providers(self, provider_select):
         print("What?")
 
-    def check_updates(self):
+    def check_updates(self, success=None, nosuccess=None, collect_type=None):
         print("not implemented")
 
-    def system_upgrade(self, downgrade):
+    def system_upgrade(self, show_updates = True, downgrade = False, collect_type=None):
         print("not implemented")
 
-    def write_config(self, array, sender=None, connexion=None):
+    def write_config(self, array, collect_type=None):
         print("not implemented")
 
     def _on_config_file_conflict(self, transaction, old, new):
@@ -752,40 +769,40 @@ class InstallerService(GObject.GObject, aptdaemon.client.AptClient):#aptdaemon.c
 
     def _likely_packaged(self, file):
         '''Check whether the given file is likely to belong to a package.'''
-        pkg_whitelist = ['/bin/', '/boot', '/etc/', '/initrd', '/lib', '/sbin/',
-                         '/opt', '/usr/', '/var']  # packages only ship executables in these directories
+        pkg_whitelist = ["/bin/", "/boot", "/etc/", "/initrd", "/lib", "/sbin/",
+                         "/opt", "/usr/", "/var"]  # packages only ship executables in these directories
 
         whitelist_match = False
         for i in pkg_whitelist:
             if file.startswith(i):
                 whitelist_match = True
                 break
-        return whitelist_match and not file.startswith('/usr/local/') and not \
-            file.startswith('/var/lib/')
+        return whitelist_match and not file.startswith("/usr/local/") and not \
+            file.startswith("/var/lib/")
 
     def _get_file_package(self, file):
         '''Return the package a file belongs to.
         Return None if the file is not shipped by any package.
         '''
         # check if the file is a diversion
-        divert = '/usr/bin/dpkg-divert'
+        divert = "/usr/bin/dpkg-divert"
         if(not GLib.file_test(divert, GLib.FileTest.EXISTS)):
-            divert = '/usr/sbin/dpkg-divert'
+            divert = "/usr/sbin/dpkg-divert"
         if(GLib.file_test(divert, GLib.FileTest.EXISTS)):
-            dpkg = subprocess.Popen([divert, '--list', file],
+            dpkg = subprocess.Popen([divert, "--list", file],
                                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            out = dpkg.communicate()[0].decode('UTF-8')
+            out = dpkg.communicate()[0].decode("UTF-8")
             if dpkg.returncode == 0 and out:
                 pkg = out.split()[-1]
-                if pkg != 'hardening-wrapper':
+                if pkg != "hardening-wrapper":
                     return pkg
 
         fname = os.path.splitext(os.path.basename(file))[0].lower()
 
         all_lists = []
         likely_lists = []
-        for f in glob.glob('/var/lib/dpkg/info/*.list'):
-            p = os.path.splitext(os.path.basename(f))[0].lower().split(':')[0]
+        for f in glob.glob("/var/lib/dpkg/info/*.list"):
+            p = os.path.splitext(os.path.basename(f))[0].lower().split(":")[0]
             if p in fname or fname in p:
                 likely_lists.append(f)
             else:
@@ -797,7 +814,7 @@ class InstallerService(GObject.GObject, aptdaemon.client.AptClient):#aptdaemon.c
             match = self.__fgrep_files(file, all_lists)
 
         if match:
-            return os.path.splitext(os.path.basename(match))[0].split(':')[0]
+            return os.path.splitext(os.path.basename(match))[0].split(":")[0]
 
         return None
 
@@ -810,10 +827,10 @@ class InstallerService(GObject.GObject, aptdaemon.client.AptClient):#aptdaemon.c
         i = 0
 
         while not match and i < len(file_list):
-            p = subprocess.Popen(['fgrep', '-lxm', '1', '--', pattern] +
+            p = subprocess.Popen(["fgrep", "-lxm", "1", "--", pattern] +
                                  file_list[i:(i + slice_size)], stdin=subprocess.PIPE,
                                  stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            out = p.communicate()[0].decode('UTF-8')
+            out = p.communicate()[0].decode("UTF-8")
             if p.returncode == 0:
                 match = out
             i += slice_size
