@@ -459,6 +459,7 @@ class ControlWindow(object):
 
     def exec_start_childs(self, restar_all):
         self.mainApp._downloadTreeView.get_model().clear()
+        self._download_map = {}
 
     def exec_percent_childs(self, id, name, percent, details):
         model = self.mainApp._downloadTreeView.get_model()
@@ -799,7 +800,7 @@ class MainApp():
         #self._mainWindow.connect("delete-event", self.closeWindows)
         self._init_common_values()
         self.loop = GObject.MainLoop()
-        #self.time_id = 0
+        self.time_id = 0
 
     def _init_common_values(self):
         self._statusLabel.set_max_width_chars(15)
@@ -808,11 +809,17 @@ class MainApp():
         #self.mainApp._progressBar.set_size_request(350, -1)
 
     def show(self):
-        if not self._mainWindow.get_visible():
-            self._mainWindow.show()
-            #self._mainWindow.get_window().set_cursor(Gdk.Cursor(Gdk.CursorType.WATCH))
-            #self.time_id = GObject.timeout_add(1500, self._windows_start)
-            #self.loop.run()
+        try :
+            if not self._mainWindow.get_visible():
+                self._mainWindow.show()
+                GObject.idle_add(self._windows_start)
+                #GObject.timeout_add(1500, self._windows_start)
+                #self._mainWindow.get_window().set_cursor(Gdk.Cursor(Gdk.CursorType.WATCH))
+                #self.time_id = GObject.timeout_add(1500, self._windows_start)
+                self.loop.run()
+        except Exception:
+            e = sys.exc_info()[1]
+            print("Error: " + str(e))
 
     def _windows_start(self):
         #print("release")

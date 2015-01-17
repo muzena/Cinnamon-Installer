@@ -316,34 +316,22 @@ class InstallerService(GObject.GObject):
 
     def refresh_cache(self, force_update=False, collect_type=None): #See if this can be moved or removed
         load_assets = force_update
-        self.EmitTransactionStart("Start")
-        if  collect_type == None:
-            self._refresh_all_cache()
-            #elif (self.cache.is_valid_type(collect_type)):
-            #   self.refresh_cache_type(collect_type, load_assets)
-            #self.abort_download = ABORT_NONE
-            #self.cache.refresh_cache_type(collect_type, load_assets)
-        else:
-            total_count = 1
-            install_errors = {}
-            valid_task = {}
-            self.EmitStatus("DOWNLOADING", _("Downloading"))
-            valid_task[collect_type] = [Thread(target = self._refresh_cache_type, args=(collect_type, total_count,
-                                        valid_task,)), -1, install_errors]
-            self._try_start_task(valid_task, self.max_process)
-
-    def _refresh_all_cache(self):
-        total_count = len(self.validTypes)
         install_errors = {}#Queue()
         valid_task = {}
+        self.EmitTransactionStart("Start")
+        self.EmitStatus("DOWNLOADING", _("Downloading"))
         self.EmitDownloadChildStart(False)
-        for collect_type in self.validTypes:
-            self.EmitStatus("DOWNLOADING", _("Downloading"))
+        if collect_type and collect_type in self.validTypes:
+            total_count = 1
             valid_task[collect_type] = [Thread(target = self._refresh_cache_type, args=(collect_type, total_count,
                                         valid_task,)), -1, install_errors]
+        else:
+            total_count = len(self.validTypes)
+            for collect_type in self.validTypes:
+                valid_task[collect_type] = [Thread(target = self._refresh_cache_type, args=(collect_type, total_count,
+                                            valid_task,)), -1, install_errors]
         self._try_start_task(valid_task, self.max_process)
-        #for collect_type in self.validTypes:
-        #    refresh_cache_type(collect_type, load_assets)
+
 
     def _refresh_cache_type(self, collect_type, total_count, valid_task):
         self.EmitRole(_("Refreshing index for %ss" % collect_type))
@@ -360,8 +348,9 @@ class InstallerService(GObject.GObject):
             if valid_task[uuid][1] < 0:
                 procc_count += 1
         count = float(total_count - procc_count - 1)/total_count
-        self.EmitPercent(100*count)
-        targent = "%s" % (str(int(100*count)) + "%")
+        total_percent = (100*count + percent/(count+1))/10
+        self.EmitPercent(total_percent)
+        targent = "%s" % (str(int(total_percent)) + "%")
         self.EmitTarget(targent)
 
     def _on_refresh_finished(self, collect_type, total_count, valid_task, error):
@@ -370,7 +359,10 @@ class InstallerService(GObject.GObject):
         procc_count = self._try_start_task(valid_task, self.max_process)
         if(procc_count == 0):
             print("refresh_finished")
-            self._refresh_assets()
+            if len(valid_task.keys()) == 1:
+                self._refresh_assets(collect_type)
+            else:
+                self._refresh_assets()
         '''
         if (self.has_cache and not force):
             self.load_cache()
@@ -382,16 +374,22 @@ class InstallerService(GObject.GObject):
         '''
         self.lock.release()
 
-    def _refresh_assets(self):
-        total_count = len(self.validTypes)
+    def _refresh_assets(self, collect_type=None):
         valid_task = {}
         install_errors = {}
         max_process = 1
         self.EmitStatus("DOWNLOADING", _("Downloading"))
-        for collect_type in self.validTypes:
+        if collect_type and collect_type in self.validTypes:
+            total_count = 1
             valid_task[collect_type] = [Thread(target = self._refresh_assets_type,
                                         args=(collect_type, total_count, valid_task,)), -1, install_errors]
+        else:
+            total_count = len(self.validTypes)
+            for collect_type in self.validTypes:
+                valid_task[collect_type] = [Thread(target = self._refresh_assets_type,
+                                            args=(collect_type, total_count, valid_task,)), -1, install_errors]
         self._try_start_task(valid_task, max_process)
+
 
     def _refresh_assets_type(self, collect_type, total_count, valid_task):
         self.EmitRole(_("Refreshing cache for %ss" % collect_type))
@@ -410,7 +408,7 @@ class InstallerService(GObject.GObject):
             self._on_refresh_assets_finished(None, collect_type, "", total_count, valid_task, None)
 
     def _refresh_assets_type_async(self, package, collect_type, download_url, total_count, internal_total_count, valid_task, internal_valid_task):
-        self.EmitDownloadPercentChild(str(package["uuid"]), str(package["name"]), 0, str(package["last_edited"]))
+        self.EmitDownloadPercentChild(str(package["uuid"]), str(package["name"]), 0, str(package["last-edited"]))
         self.cache.refresh_asset([package, total_count, internal_total_count, valid_task, internal_valid_task], download_url, self.reporthook_assets)
         error = None
         is_really_finished = self._on_refresh_assets_type_finished(package, download_url, total_count, internal_valid_task, error)
@@ -421,7 +419,7 @@ class InstallerService(GObject.GObject):
     def reporthook_assets(self, count, block_size, total_size, user_param):
         [package, total_count, internal_total_count, valid_task, internal_valid_task] = user_param
         percent = int((float(count*block_size)/total_size)*100)
-        self.EmitDownloadPercentChild(str(package["uuid"]), str(package["name"]), percent, str(package["last_edited"]))
+        self.EmitDownloadPercentChild(str(package["uuid"]), str(package["name"]), percent, str(package["last-edited"]))
         internal_procc_count = 0
         for uuid in internal_valid_task:
             if internal_valid_task[uuid][1] < 0:
@@ -432,8 +430,9 @@ class InstallerService(GObject.GObject):
                 procc_count += 1
         out_count = float(total_count - procc_count - 1)/total_count
         int_count = float(internal_total_count - internal_procc_count - 1)/internal_total_count
-        self.EmitPercent(100*(out_count + int_count/total_count))
-        targent = "%s" % (str(int(100*(out_count + int_count/total_count))) + "%")
+        total_percent = 10 + 90*(out_count + int_count/total_count)
+        self.EmitPercent(total_percent)
+        targent = "%s" % (str(int(total_percent)) + "%")
         self.EmitTarget(targent)
 
     def _on_refresh_assets_type_finished(self, package, download_url, total_count, valid_task, error):
@@ -515,7 +514,7 @@ class InstallerService(GObject.GObject):
         title = pkg["name"]
         error_title = uuid
         try:
-            edited_date = pkg["last_edited"]
+            edited_date = pkg["last-edited"]
             collect_type = pkg["collection"]
 
             #self.progress_window.show()

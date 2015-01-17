@@ -31,7 +31,6 @@ try:
     from SettingsInstallerWidgets import SidePage, SectionBg
     import XletInstallerSettings as XletSettings
     from SpicesInstaller import Spice_Harvester
-    from threading import Thread, Lock
     #from Spices import *
     try: #aparently not needed
         import urllib2
@@ -1061,19 +1060,19 @@ class ExtensionSidePage (SidePage):
         
 
     def _install_extensions(self, install_list):
-            dialog = Gtk.MessageDialog(transient_for = None,
-                                       modal = True,
-                                       message_type = Gtk.MessageType.WARNING)
-            esc = cgi.escape("This action is not implemented yet")
-            dialog.set_markup(esc)
+        dialog = Gtk.MessageDialog(transient_for = None,
+                                   modal = True,
+                                   message_type = Gtk.MessageType.WARNING)
+        esc = cgi.escape("This action is not implemented yet")
+        dialog.set_markup(esc)
 
-            dialog.add_button(_("Close"), 2)
-            dialog.set_default_response(2)
+        dialog.add_button(_("Close"), 2)
+        dialog.set_default_response(2)
 
-            dialog.show_all()
-            response = dialog.run()
-            dialog.hide()
-            dialog.destory()
+        dialog.show_all()
+        response = dialog.run()
+        dialog.hide()
+        dialog.destory()
 
     def install_extensions(self, install_list):
         if len(install_list) > 0:
@@ -1367,11 +1366,9 @@ Please contact the developer.""")
             self.model.clear()
         self.model_new = Gtk.TreeStore(str, str, int, int, str, str, int, bool, str, int, str, str, str, int, int, int, int, str, object, str)
         if force:
-            thread = Thread(target = self.spices.refresh_cache, args=(force, self.collection_type, self.on_installer_load))
-            thread.start()
+            self.spices.refresh_cache(force, self.collection_type, self.on_installer_load)
         else:
-            thread = Thread(target = self.spices.load_cache, args=(force, self.collection_type, self.on_installer_load))
-            thread.start()
+            self.spices.load_cache(force, self.collection_type, self.on_installer_load)
 
     def on_load_extensions_finished(self):
         if(self.treeview):

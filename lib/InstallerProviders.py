@@ -361,7 +361,6 @@ class Installer():
     def execute_install(self, collect_type, pkgs_name, callback=None):
         pkgs_list = self._create_packages_list(pkgs_name)
         if len(pkgs_list) > 0:
-            self.mainWind.restar_window()
             self.mainWind.show()
             self.trans.prepare_transaction_install(pkgs_list)
             self.mainWind.run()
@@ -371,7 +370,6 @@ class Installer():
     def execute_uninstall(self, collect_type, pkgs_name, callback=None):
         pkgs_list = self._create_packages_list(pkgs_name)
         if len(pkgs_list) > 0:
-            self.mainWind.restar_window()
             self.mainWind.show()
             self.trans.prepare_transaction_remove(pkgs_list)
             self.mainWind.run()
@@ -384,7 +382,6 @@ class Installer():
     '''
     def execute_upgrade(self, collect_type, pkgs_namee, callback=None):
         self.register_collection(collect_type)
-        #self.mainWind.restar_window()
         #self.mainWind.run()
         #self.trans.upgrade_system(safe_mode=False, 
         #                          reply_handler=self._simulate_trans,
@@ -392,7 +389,6 @@ class Installer():
 
     def execute_update(self, collect_type, packageName, callback=None):
         self.register_collection(collect_type)
-        #self.mainWind.restar_window()
         #self.mainWind.run()
         #self.trans.update_cache(repaly_handler=self._run_transaction,
         #                        error_handler=self._on_error)
@@ -418,12 +414,13 @@ class Installer():
         elif callback and callable(callback):
             callback(self.trans.service, "Done")
 
-    def refresh_cache(self, collect_type, show_window, callback=None):
+    def refresh_cache(self, show_window, collect_type, callback=None):
         self.register_collection(collect_type)
         if show_window:
-            self.mainWind.restar_window()
             self.mainWind.show()
         self.trans.refresh_cache(True, collect_type)
+        if callback and callable(callback):
+            self.trans.connect("EmitTransactionDone", callback)
         if show_window:
             self.mainWind.run()
 

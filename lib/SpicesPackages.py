@@ -449,12 +449,11 @@ class SpiceCache(GObject.GObject):
             icon_path = os.path.join(cache_folder, icon_basename)
             used_thumbs.append(icon_basename)
 
-            index_cache[uuid]["icon_filename"] = icon_basename
-            index_cache[uuid]["icon_path"] = icon_path
+            index_cache[uuid]["icon-filename"] = icon_basename
             index_cache[uuid]["icon"] = icon_path
             if uuid in self.cache_installed[collect_type]:
-                self.cache_installed[collect_type][uuid]["icon_filename"] = icon_basename
-                self.cache_installed[collect_type][uuid]["icon_path"] = icon_path
+                self.cache_installed[collect_type][uuid]["icon-filename"] = icon_basename
+                self.cache_installed[collect_type][uuid]["icon"] = icon_path
 
         # Cleanup obsolete thumbs
         trash = []
@@ -473,7 +472,7 @@ class SpiceCache(GObject.GObject):
         need_refresh = {}
         uuids = index_cache.keys()
         for uuid in uuids:
-            icon_path = index_cache[uuid]["icon_path"]
+            icon_path = index_cache[uuid]["icon"]
             if not os.path.isfile(icon_path):
                 download_url = self.get_assets_url(collect_type, index_cache[uuid])
                 need_refresh[download_url] = index_cache[uuid]
@@ -492,7 +491,7 @@ class SpiceCache(GObject.GObject):
                 if self.abort_download > ABORT_NONE:
                     os.remove(filename)
                 else:
-                    shutil.move(filename, pkg[0]["icon_path"])
+                    shutil.move(filename, pkg[0]["icon"])
                    #self._load_cache_online_type(collect_type)
                    #self._update_data_cache_type(collect_type)
         except Exception:
@@ -616,9 +615,9 @@ class SpiceCache(GObject.GObject):
 
     def get_assets_url(self, collect_type, package):
         if collect_type == "theme":
-            download_url = URL_SPICES_HOME + "/uploads/themes/thumbs/" + package["icon_filename"]
+            download_url = URL_SPICES_HOME + "/uploads/themes/thumbs/" + package["icon-filename"]
         else:
-            download_url = URL_SPICES_HOME + package["icon"]
+            download_url = URL_SPICES_HOME + ("/uploads/%ss/%s" % (collect_type, package["icon-filename"]))
         return download_url
 
     def from_setting_string(self, collect_type, string):
